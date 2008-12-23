@@ -118,6 +118,10 @@ function RPB:PlayerToArray(player)
 	return list
 end
 
+function RPB:Message(channel, to, message)
+	SendChatMessage(prefix.." "..message, channel, nil, to);
+end
+
 function RPB:Whisper(to, message)
 	SendChatMessage(prefix.." "..message, "WHISPER", nil, to);
 end
@@ -185,6 +189,7 @@ function RPB:PointsAdd(datetime, player, value, ty, itemid, reason, waitlist, wh
 			end
 		end
 		self.activeraid[playerlist[i].name].points = self.activeraid[playerlist[i].name].points + tonumber(value)
+		self.activeraid[playerlist[i].name].points = self.activeraid[playerlist[i].name].lifetime + tonumber(value)
 	end
 end
 
@@ -208,7 +213,6 @@ function RPB:PointsRemove(datetime, player, actiontime, whisper, recieved)
 		if (self.activeraid[playerlist[i].name]) then
 			for j=1, #self.activeraid[playerlist[i].name].recentactions do
 				if (self.activeraid[playerlist[i].name].recentactions[j].datetime == datetime) then
-					tremove(self.activeraid[playerlist[i].name].recentactions,j)
 					found = true
 					db.realm.version.lastaction = actiontime
 					if (whisper) then
@@ -216,6 +220,9 @@ function RPB:PointsRemove(datetime, player, actiontime, whisper, recieved)
 							self:Whisper(name, "Removed "..value.." points for "..reason)
 						end
 					end
+					self.activeraid[playerlist[i].name].points = self.activeraid[playerlist[i].name].points - tonumber(self.activeraid[playerlist[i].name].recentactions[j].value)
+					self.activeraid[playerlist[i].name].points = self.activeraid[playerlist[i].name].lifetime - tonumber(self.activeraid[playerlist[i].name].recentactions[j].value)
+					tremove(self.activeraid[playerlist[i].name].recentactions,j)
 					break
 				end
 			end
@@ -231,11 +238,13 @@ function RPB:PointsRemove(datetime, player, actiontime, whisper, recieved)
 							waitlist	= self.activeraid[playerlist[i].name].recenthistory[j].waitlist,
 							action	= "Delete",
 						}
-						tremove(self.activeraid[playerlist[i].name].recenthistory,j)
 						db.realm.version.lastaction = actiontime
 						if (whisper) then
 							self:Whisper(playerlist[i].name, "Removed "..value.." points for "..reason)
 						end
+						self.activeraid[playerlist[i].name].points = self.activeraid[playerlist[i].name].points - tonumber(self.activeraid[playerlist[i].name].recenthistory[j].value)
+						self.activeraid[playerlist[i].name].points = self.activeraid[playerlist[i].name].lifetime - tonumber(self.activeraid[playerlist[i].name].recenthistory[j].value)
+						tremove(self.activeraid[playerlist[i].name].recenthistory,j)
 						break
 					end
 				end
@@ -279,6 +288,8 @@ function RPB:PointsUpdate(datetime, player, points, ty, itemid, reason, waitlist
 					if (whisper) then
 						self:Whisper(playerlist[i].name, "Updated points for "..reason.." Old: "..oldvalue.." New: "..points)
 					end
+					self.activeraid[playerlist[i].name].points = self.activeraid[playerlist[i].name].points - oldvalue + points
+					self.activeraid[playerlist[i].name].points = self.activeraid[playerlist[i].name].lifetime - oldvalue + points
 					break
 				end
 			end
@@ -299,6 +310,8 @@ function RPB:PointsUpdate(datetime, player, points, ty, itemid, reason, waitlist
 						if (whisper) then
 							self:Whisper(playerlist[i].name, "Updated points for "..reason.." Old: "..oldvalue.." New: "..points)
 						end
+						self.activeraid[playerlist[i].name].points = self.activeraid[playerlist[i].name].points - oldvalue + points
+						self.activeraid[playerlist[i].name].points = self.activeraid[playerlist[i].name].lifetime - oldvalue + points
 						break
 					end
 				end
@@ -311,13 +324,18 @@ function RPB:PointsShow(player, channel, to, history)
 	local playerlist = self:PlayerToArray(player);
 	local playerdata
 	
+	if (#playerlist == 0) then
+		playerlist = self:PlayerToArray(to);
+	end
+	
 	for i=1, #playerlist do
+		msg = playerlist[i].name .. ": " .. self.activeraid[playerlist[i].name].points
 		if not channel then
-			self:Print("Points that they have...")
+			self:Print(msg)
 		elseif not to then
-			SendChatMessage(msg, channel, nil, to)
+			RPB:Message(channel, to, msg)
 		else
-			SendChatMessage(msg, channel, nil, to)
+			RPB:Whisper(to, msg)
 		end
 	end
 end
@@ -390,12 +408,12 @@ RPB.chatCommands["additem"] = function (self, msg)
 end
 
 RPB.chatCommands["show"] = function (self, msg)
-	_, player, history = self:GetArgs(msg, 4, 1)
+	_, player, history, pos = self:GetArgs(msg, 3, 1)
 	self:PointsShow(player, nil, nil, history)
 end
 
 RPB.chatCommands["force"] = function (self, msg)
-	_, player, cmd = self:GetArgs(msg, 3, 1)
+	_, player, cmd, pos = self:GetArgs(msg, 3, 1)
 	self:RollListAdd(player, string.lower(cmd))
 end
 
@@ -435,7 +453,7 @@ end
 RPB.whisperCommands = {}
 RPB.whisperCommands["show"] = function (self, msg, name)
 	_, _, player, history = self:GetArgs(msg, 4, 1)
-	self:PointsShow(player, "WHISPER", player, history)
+	self:PointsShow(player, "WHISPER", name, history)
 end
 
 RPB.whisperCommands["?"] = function (self, msg, name)

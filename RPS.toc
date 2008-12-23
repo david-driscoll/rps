@@ -15,7 +15,6 @@ RPWaitlist\RPWLFrame.lua
 
 ## RPBot
 RPBot\RPBot.lua
-RPBot\RPBotFrame.lua
 RPBot\RPBotFeatures.lua
 RPBot\RPBotLoot.lua
 RPBot\RPBotFrame.lua
