@@ -165,6 +165,7 @@ end
 function RPB:PointsAdd(datetime, player, value, ty, itemid, reason, waitlist, whisper, recieved)
 	local playerlist = self:PlayerToArray(player);
 	local playerdata
+	if not reason then return nil end
 
 	for i=1, #playerlist do
 		self:Print("Points Add For Loop",playerlist[i].name)
@@ -325,7 +326,7 @@ function RPB:PointsShow(player, channel, to, history)
 	local playerdata
 	
 	if (#playerlist == 0) then
-		playerlist = self:PlayerToArray(to);
+		playerlist = self:PlayerToArray(string.lower(to));
 	end
 	
 	for i=1, #playerlist do
@@ -333,7 +334,7 @@ function RPB:PointsShow(player, channel, to, history)
 		if not channel then
 			self:Print(msg)
 		elseif not to then
-			RPB:Message(channel, to, msg)
+			RPB:Message(channel, nil, msg)
 		else
 			RPB:Whisper(to, msg)
 		end
