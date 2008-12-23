@@ -4,7 +4,7 @@
 ## Interface: 30000
 ## Notes: Raid Points System
 ## SavedVariables: 
-embed.xml
+embeds.xml
 
 ## RPLibrary
 RPLibrary\RPLibrary.lua
