@@ -1,0 +1,23 @@
+## Title: Raid Points System
+## Author: Sithy
+## Version: 0.1
+## Interface: 30000
+## Notes: Raid Points System
+## SavedVariables: 
+embed.xml
+
+## RPLibrary
+RPLibrary/RPLibrary.lua
+
+## RPWaitlist
+RPWaitlist/RPWaitlist.lua
+RPWaitlist/RPWLFrame.lua
+
+## RPBot
+RPBot/RPBot.lua
+RPBot/RPBotFrame.lua
+RPBot/RPBotFeatures.lua
+RPBot/RPBotLoot.lua
+RPBot/RPBotFrame.lua
+RPBot/RPBotRollWindow.lua
+##RPBot/RPBotClientWindow.lua
