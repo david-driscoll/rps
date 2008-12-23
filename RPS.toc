@@ -7,17 +7,17 @@
 embed.xml
 
 ## RPLibrary
-RPLibrary/RPLibrary.lua
+RPLibrary\RPLibrary.lua
 
 ## RPWaitlist
-RPWaitlist/RPWaitlist.lua
-RPWaitlist/RPWLFrame.lua
+RPWaitlist\RPWaitlist.lua
+RPWaitlist\RPWLFrame.lua
 
 ## RPBot
-RPBot/RPBot.lua
-RPBot/RPBotFrame.lua
-RPBot/RPBotFeatures.lua
-RPBot/RPBotLoot.lua
-RPBot/RPBotFrame.lua
-RPBot/RPBotRollWindow.lua
-##RPBot/RPBotClientWindow.lua
+RPBot\RPBot.lua
+RPBot\RPBotFrame.lua
+RPBot\RPBotFeatures.lua
+RPBot\RPBotLoot.lua
+RPBot\RPBotFrame.lua
+RPBot\RPBotRollWindow.lua
+##RPBot\RPBotClientWindow.lua
