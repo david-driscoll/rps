@@ -1,0 +1,14 @@
+## Title: RPBot 0.1
+## Author: Sithy
+## Version: 0.1
+## Interface: 30000
+## Notes: Raid Points Automation
+## SavedVariables: 
+embed.xml
+RPBot.lua
+RPBotFrame.lua
+RPBotFeatures.lua
+RPBotLoot.lua
+RPBotFrame.lua
+RPBotRollWindow.lua
+##RPBotClientWindow.lua
