@@ -1,0 +1,9 @@
+## Title: RPWaitList 0.1
+## Author: Sithy
+## Version: 0.1
+## Interface: 30000
+## Notes: A waitlist addon.
+## SavedVariables: rpwaitlistDB
+embed.xml
+RPWaitlist.lua
+RPWLFrame.lua
