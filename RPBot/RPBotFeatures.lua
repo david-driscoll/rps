@@ -199,7 +199,9 @@ function RPB:AddFeature(data)
 
 	self.whisperCommands[data.command] = function(self, msg, name)
 		if self.frames["RollWindow"] and self.frames["RollWindow"].inProgress then
-			self:RollListAdd(name, data.command)
+			if not self:RollListAdd(name, data.command) then
+				self:Whisper(name, "You are already bidding on that item.")
+			end
 		else
 			self:Whisper(name, "No item is up for bidding.")
 		end

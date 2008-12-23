@@ -190,7 +190,7 @@ function RPB:PointsAdd(datetime, player, value, ty, itemid, reason, waitlist, wh
 			end
 		end
 		self.activeraid[playerlist[i].name].points = self.activeraid[playerlist[i].name].points + tonumber(value)
-		self.activeraid[playerlist[i].name].points = self.activeraid[playerlist[i].name].lifetime + tonumber(value)
+		self.activeraid[playerlist[i].name].lifetime = self.activeraid[playerlist[i].name].lifetime + tonumber(value)
 	end
 end
 
@@ -222,7 +222,7 @@ function RPB:PointsRemove(datetime, player, actiontime, whisper, recieved)
 						end
 					end
 					self.activeraid[playerlist[i].name].points = self.activeraid[playerlist[i].name].points - tonumber(self.activeraid[playerlist[i].name].recentactions[j].value)
-					self.activeraid[playerlist[i].name].points = self.activeraid[playerlist[i].name].lifetime - tonumber(self.activeraid[playerlist[i].name].recentactions[j].value)
+					self.activeraid[playerlist[i].name].lifetime = self.activeraid[playerlist[i].name].lifetime - tonumber(self.activeraid[playerlist[i].name].recentactions[j].value)
 					tremove(self.activeraid[playerlist[i].name].recentactions,j)
 					break
 				end
@@ -244,7 +244,7 @@ function RPB:PointsRemove(datetime, player, actiontime, whisper, recieved)
 							self:Whisper(playerlist[i].name, "Removed "..value.." points for "..reason)
 						end
 						self.activeraid[playerlist[i].name].points = self.activeraid[playerlist[i].name].points - tonumber(self.activeraid[playerlist[i].name].recenthistory[j].value)
-						self.activeraid[playerlist[i].name].points = self.activeraid[playerlist[i].name].lifetime - tonumber(self.activeraid[playerlist[i].name].recenthistory[j].value)
+						self.activeraid[playerlist[i].name].lifetime = self.activeraid[playerlist[i].name].lifetime - tonumber(self.activeraid[playerlist[i].name].recenthistory[j].value)
 						tremove(self.activeraid[playerlist[i].name].recenthistory,j)
 						break
 					end
@@ -290,7 +290,7 @@ function RPB:PointsUpdate(datetime, player, points, ty, itemid, reason, waitlist
 						self:Whisper(playerlist[i].name, "Updated points for "..reason.." Old: "..oldvalue.." New: "..points)
 					end
 					self.activeraid[playerlist[i].name].points = self.activeraid[playerlist[i].name].points - oldvalue + points
-					self.activeraid[playerlist[i].name].points = self.activeraid[playerlist[i].name].lifetime - oldvalue + points
+					self.activeraid[playerlist[i].name].lifetime = self.activeraid[playerlist[i].name].lifetime - oldvalue + points
 					break
 				end
 			end
@@ -312,7 +312,7 @@ function RPB:PointsUpdate(datetime, player, points, ty, itemid, reason, waitlist
 							self:Whisper(playerlist[i].name, "Updated points for "..reason.." Old: "..oldvalue.." New: "..points)
 						end
 						self.activeraid[playerlist[i].name].points = self.activeraid[playerlist[i].name].points - oldvalue + points
-						self.activeraid[playerlist[i].name].points = self.activeraid[playerlist[i].name].lifetime - oldvalue + points
+						self.activeraid[playerlist[i].name].lifetime = self.activeraid[playerlist[i].name].lifetime - oldvalue + points
 						break
 					end
 				end

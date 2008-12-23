@@ -20,7 +20,7 @@ RPB.columnDefinitons["RollWindow"] =
 	        ["b"] = 0.0, 
 	        ["a"] = 1.0 
 	    },
-	    ["defaultsort"] = "asc",
+	    --["defaultsort"] = "asc",
 	    
 	},
 	{
@@ -40,8 +40,7 @@ RPB.columnDefinitons["RollWindow"] =
 	        ["b"] = 0.0, 
 	        ["a"] = 1.0 
 	    },
-	    ["defaultsort"] = "asc",
-	    
+	    --["defaultsort"] = "asc",
 	},
 	{
 	    ["name"] = "Rank",
@@ -60,8 +59,7 @@ RPB.columnDefinitons["RollWindow"] =
 	        ["b"] = 0.0, 
 	        ["a"] = 1.0 
 	    },
-	    ["defaultsort"] = "asc",
-	    
+	    --["defaultsort"] = "asc",
 	},
 	{
 	    ["name"] = "Type",
@@ -80,7 +78,7 @@ RPB.columnDefinitons["RollWindow"] =
 	        ["b"] = 0.0, 
 	        ["a"] = 1.0 
 	    },
-	    ["defaultsort"] = "asc",
+	    --["defaultsort"] = "asc",
 	    
 	},
 	{
@@ -100,7 +98,7 @@ RPB.columnDefinitons["RollWindow"] =
 	        ["b"] = 0.0, 
 	        ["a"] = 1.0 
 	    },
-	    ["defaultsort"] = "asc",
+	    --["defaultsort"] = "asc",
 	},
 	{
 	    ["name"] = "Roll",
@@ -119,7 +117,7 @@ RPB.columnDefinitons["RollWindow"] =
 	        ["b"] = 0.0, 
 	        ["a"] = 1.0 
 	    },
-	    ["defaultsort"] = "asc",
+	    --["defaultsort"] = "asc",
 	},
 	{
 	    ["name"] = "Loss",
@@ -138,7 +136,7 @@ RPB.columnDefinitons["RollWindow"] =
 	        ["b"] = 0.0, 
 	        ["a"] = 1.0 
 	    },
-	    ["defaultsort"] = "asc",
+	    --["defaultsort"] = "asc",
 	},
 }
 RPB.columnDefinitons["RollWindowLootList"] = 
@@ -160,7 +158,7 @@ RPB.columnDefinitons["RollWindowLootList"] =
 	        ["b"] = 0.0, 
 	        ["a"] = 1.0 
 	    },
-	    ["defaultsort"] = "asc",
+	    --["defaultsort"] = "asc",
 	},
 }
 
@@ -452,11 +450,16 @@ function RPB:CalculateLoss(points, cmd)
 end
 
 function RPB:RollListAdd(player, cmd, recieved)
+	local rollList = self.frames["RollWindow"].rollList
+	for i=1,#rollList do
+		if (string.lower(rollList[i].cols[crl.player].value) == string.lower(player)) then
+			return false
+		end
+	end
 	--local pinfo = RPLibrary:GetInfo(player)
 	local class, rank, ty, current, loss
 	local feature = self.feature[cmd]
 	local divisor = feature.divisor or 2
-	local rollList = self.frames["RollWindow"].rollList
 	
 	if pinfo then
 		class = pinfo["class"]
@@ -471,8 +474,7 @@ function RPB:RollListAdd(player, cmd, recieved)
 	player = self.activeraid[string.lower(player)].fullname
 
 	loss = self:CalculateLoss(current, cmd)
-	
-	
+
 	rollList[#rollList+1] = RPLibrary:BuildRow(
 		{
 			[crl.player]	= 	RPLibrary:BuildColumn(player),
@@ -480,23 +482,24 @@ function RPB:RollListAdd(player, cmd, recieved)
 			[crl.rank]		=	RPLibrary:BuildColumn(rank),
 			[crl.ty]		=	RPLibrary:BuildColumn(ty),
 			[crl.current]	=	RPLibrary:BuildColumn(current),
-			[crl.roll]		=	RPLibrary:BuildColumn(0),
+			[crl.roll]		=	RPLibrary:BuildColumn(100),
 			[crl.loss]		=	RPLibrary:BuildColumn(loss)
 		}
 	)
 	RPLibrary:AppendRow(
 		rollList[#rollList],
 		--rollWindowScrollFrameOnClick, {rollList[#rollList]},
-		rollWindowScrollFrameColor, {rollList[#rollList][crl.roll]}
+		rollWindowScrollFrameColor, {rollList[#rollList]}
 	)
 	self:RollListSort()
+	return true
 end
 
 function RPB:RollListRemove(player, recieved)
 	local rollList = self.frames["RollWindow"].rollList
 	for i=1,#rollList do
-		if (rollList[i] and rollList[i][crl.player] == player) then
-			tremove(rollList[i])
+		if (string.lower(rollList[i].cols[crl.player].value) == string.lower(player)) then
+			tremove(rollList,i)
 			break
 		end
 	end
@@ -508,12 +511,12 @@ function RPB:RollListUpdate(player, roll, recieved)
 	local rollList = self.frames["RollWindow"].rollList
 	
 	for i=1,#rollList do
-		if (rollList[i] and rollList[i][crl.player] == player) then
-			if (rollList[i][crl.roll] > 0) then
-				self:Print(player,"  Previous Roll:",rollList[i][crl.roll],"   New Roll:",roll)
+		if (rollList[i].cols[crl.player] == player) then
+			if (rollList[i].cols[crl.roll] > 0) then
+				self:Print(player,"  Previous Roll:",rollList[i].cols[crl.roll].value,"   New Roll:",roll)
 			end
-			rollList[i][crl.roll] = roll
-			rollList[i][crl.current] = self.activeraid[player].points + roll
+			rollList[i].cols[crl.roll].value = roll
+			rollList[i].cols[crl.current].value = self.activeraid[player].points + roll
 			found = true
 			break
 		end
@@ -527,9 +530,9 @@ end
 
 function RPB:RollListSort()
 	-- Call the sort function for current?
-	if self.frames["RollWindow"] then
+	if self.frames["RollWindow"] and self.frames["RollWindow"].scrollFrame then
 		--self.frames["RollWindow"].scrollFrame.cols[crl.roll] = "asc"
-		self.frames["RollWindow"].scrollFrame:Refresh()
+		self.frames["RollWindow"].scrollFrame:SortData()
 	end
 end
 
@@ -537,19 +540,28 @@ function rollWindowScrollFrameOnClick(rowFrame, cellFrame, data, cols, row, real
 	if button == "LeftButton" then
 		RPB.frames["RollWindow"].scrollFrame.selected = data[realrow]
 	elseif button == "RightButton" then
-		RPB:RollListRemove(data[realrow][crl.player])
+		RPB:RollListRemove(data[realrow].cols[crl.player].value)
 	end
 end
 
+function rollWindowItemScrollFrameOnClick(rowFrame, cellFrame, data, cols, row, realrow, column, button, down)
+	-- if button == "LeftButton" then
+		-- RPB.frames["RollWindow"].scrollFrameLoot.selected = data[realrow]
+	-- elseif button == "RightButton" then
+		-- RPB:RollListRemove(data[realrow].cols[cll.link])
+	-- end
+end
+
 function rollWindowScrollFrameColor(roll)
-	local high = 0
+	local high = roll.cols[crl.roll].value
 	local rollList = RPB.frames["RollWindow"].rollList
 	for i=1,#rollList do
-		if (rollList[i] and rollList[i][crl.roll] > high) then
-			rollList[i][crl.roll] = high
+		if (rollList[i].cols[crl.roll].value > high) then
+			high = rollList[i].cols[crl.roll].value
 		end
 	end
-	ratio = roll / high
+	RPB:Print(roll.cols[crl.roll].value, high)
+	ratio = roll.cols[crl.roll].value * 1.0 / high
 	return {
 		["r"] = (1-ratio),
 		["g"] = ratio,
@@ -627,14 +639,6 @@ function RPB:StopBidding()
 		-- If offspec or nothing, call 'Any offspecs on [item]? Closing in 5 seconds.'
 end
 
-function rollWindowItemScrollFrameOnClick(rowFrame, cellFrame, data, cols, row, realrow, column, button, down)
-	if button == "LeftButton" then
-		RPB.frames["RollWindow"].scrollFrameLoot.selected = data[realrow]
-	elseif button == "RightButton" then
-		RPB:RollListRemove(data[realrow][cll.link])
-	end
-end
-
 function rollWindowItemScrollFrameColor(quality)
 	
 end
@@ -660,7 +664,7 @@ function RPB:RemoveItem(link, recieved)
 	local lootList = self.frames["RollWindow"].lootList
 
 	for i=1,#self.frames["RollWindow"].lootList do
-		if (self.frames["RollWindow"].lootList[i] and self.frames["RollWindow"].lootList[i][crl.link] == link) then
+		if (self.frames["RollWindow"].lootList[i] and self.frames["RollWindow"].lootList[i][crl.link].value == link) then
 			tremove(self.frames["RollWindow"].lootList[i])
 			break
 		end
@@ -668,17 +672,17 @@ function RPB:RemoveItem(link, recieved)
 end
 
 function RPB:AwardItem()
-	local item = RPB.frames["RollWindow"].scrollFrameLoot.selected
-	local winner = RPB.frames["RollWindow"].scrollFrame.selected
+	local item = RPB.frames["RollWindow"].scrollFrameLoot.selected.cols
+	local winner = RPB.frames["RollWindow"].scrollFrame.selected.cols
 	local class, rank, ty, current, loss, roll, pcurrent, player
 	
-	player = winner[crl.player]
-	class = winner[crl.class]
-	rank = winner[crl.rank]
-	ty = winner[crl.ty]
-	current = winner[crl.current]
-	loss = winner[crl.loss]
-	roll = winner[crl.roll]
+	player = winner[crl.player].value
+	class = winner[crl.class].value
+	rank = winner[crl.rank].value
+	ty = winner[crl.ty].value
+	current = winner[crl.current].value
+	loss = winner[crl.loss].value
+	roll = winner[crl.roll].value
 	pcurrent = self.activeraid[player].points
 	
 	local dt = time()
