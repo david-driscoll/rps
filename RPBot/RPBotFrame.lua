@@ -1,3 +1,18 @@
+--[[
+	*******************
+	* Raid Points System *
+	*******************
+	* File-Revision:  @file-revision@
+	* Project-Version:  @project-version@
+	* Last edited by:  @file-author@ on  @file-date-iso@ 
+	* Last commit:  @project-author@ on   @project-date-iso@ 
+	* Filename: RPBot/RPBotFrame.lua
+	* Component: Placeholder
+	* Details:
+		This file is a placeholder currently, it holds lib-st definitions for several windows that
+			have yet to be created yet.
+]]
+
 local db = RPB.db
 local RPLibrary = LibStub:GetLibrary("RPLibrary")
 RPB.columnDefinitons = {}

@@ -1,3 +1,17 @@
+--[[
+	*******************
+	* Raid Points System *
+	*******************
+	* File-Revision:  @file-revision@
+	* Project-Version:  @project-version@
+	* Last edited by:  @file-author@ on  @file-date-iso@ 
+	* Last commit:  @project-author@ on   @project-date-iso@ 
+	* Filename: RPWaitlist/RPWLFrame.lua
+	* Component: Waitlist
+	* Details:
+		This is the rolling interface.  Deals with displaying the proper lists, and awarding items.
+]]
+
 local RPLibrary = LibStub:GetLibrary("RPLibrary")
 
 RPWL.columnDefiniton = {}
@@ -153,14 +167,14 @@ function RPWL:CreateFrame()
 	title:SetText("Raid Points Waitlist")
 	self.title = title
 
-	self.scrollFrame = ScrollingTable:CreateST(self.columnDefiniton["waitlist"], 12, nil, nil, self.Frame);
+	self.scrollFrame = ScrollingTable:CreateST(self.columnDefiniton["waitlist"], 12, nil, nil, self.Frame, true);
 	self.scrollFrame.frame:SetPoint("TOPLEFT", self.Frame, "TOPLEFT", 100, -35)
 	self.scrollFrame:SetData(self.db.realm.waitlist)
 	self.scrollFrame:RegisterEvents({
 		["OnClick"] = scrollFrameOnClick,
 	});
 	
-	self.scrollFrameGuild = ScrollingTable:CreateST(self.columnDefiniton["roster"], 12, nil, nil, self.Frame);
+	self.scrollFrameGuild = ScrollingTable:CreateST(self.columnDefiniton["roster"], 12, nil, nil, self.Frame, true);
 	self.scrollFrameGuild.frame:SetPoint("TOPLEFT", self.Frame, "TOPLEFT", 100, -275)
 	self.scrollFrameGuild:SetData({})
 	self.scrollFrameGuild:RegisterEvents({

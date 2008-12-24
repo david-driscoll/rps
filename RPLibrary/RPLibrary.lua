@@ -1,3 +1,18 @@
+--[[
+	*******************
+	* Raid Points System *
+	*******************
+	* File-Revision:  @file-revision@
+	* Project-Version:  @project-version@
+	* Last edited by:  @file-author@ on  @file-date-iso@ 
+	* Last commit:  @project-author@ on   @project-date-iso@ 
+	* Filename: RPLibrary/RPLibrary.lua
+	* Component: Library
+	* Details:
+		This file deals with various functions that are shared between the RPBot and RPWaitlist.
+		Skining, lib-st building primarily.
+]]
+
 local MAJOR,MINOR = "RPLibrary", 1
 local RPLibrary, oldminor = LibStub:NewLibrary(MAJOR, MINOR)
 if not RPLibrary then return end
@@ -22,6 +37,16 @@ local sdb = (oSkin and oSkin.db.profile or nil) or (Skinner and Skinner.db.profi
 	Gradient = true,
 }
 
+--- Skins the given frame.
+-- This code is from XLoot, currently in use without
+-- permission I am contacting the developers to see if
+-- I can use it or not.
+-- @param frame The frame to be skinned.
+-- @param header The frame header.
+-- @param bba BackdropBorder Alpha
+-- @param ba Backdrop Alpha
+-- @param fh FadeHeight
+-- @param Backdrop
 function RPLibrary:Skin(frame, header, bba, ba, fh, bd)
 	if not frame then return end
 	
@@ -50,6 +75,11 @@ function RPLibrary:Skin(frame, header, bba, ba, fh, bd)
 	
 end
 
+--- Create a quality colored border on the given button.
+-- This code is from XLoot, currently in use without
+-- permission I am contacting the developers to see if
+-- I can use it or not.
+-- @param button The button
 function RPLibrary:QualityBorder(button)
 	local frame = button.wrapper or button
 	local border = frame:CreateTexture(button:GetName() .. "QualBorder", "OVERLAY")
@@ -63,6 +93,15 @@ function RPLibrary:QualityBorder(button)
 	return border
 end
 
+--- Resize the quality colored border on the given frame.
+-- This code is from XLoot, currently in use without
+-- permission I am contacting the developers to see if
+-- I can use it or not.
+-- @param frame The frame
+-- @param hmult Height Multiplyier
+-- @param ymult Width Multiplyier
+-- @param hoff Height Offset
+-- @param yoff Width Offset
 function RPLibrary:QualityBorderResize(frame, hmult, ymult, hoff, yoff)
 	local border = _G[frame:GetName().."QualBorder"]
 	local width, height = frame:GetWidth(), frame:GetHeight()
@@ -71,6 +110,13 @@ function RPLibrary:QualityBorderResize(frame, hmult, ymult, hoff, yoff)
 	border:SetPoint("CENTER", frame, "CENTER", hoff or 5, yoff or 1)
 end
 
+--- Give a backdrop to the given frame.
+-- This code is from XLoot, currently in use without
+-- permission I am contacting the developers to see if
+-- I can use it or not.
+-- @param frame The frame
+-- @param bgcolor Background color
+-- @param bordercolor Border color
 function RPLibrary:BackdropFrame(frame, bgcolor, bordercolor)
 	frame:SetBackdrop(	{	bgFile = "Interface/Tooltips/UI-Tooltip-Background",
 										edgeFile = "Interface/Tooltips/UI-Tooltip-Border", 
@@ -80,6 +126,15 @@ function RPLibrary:BackdropFrame(frame, bgcolor, bordercolor)
 	frame:SetBackdropBorderColor(unpack(bordercolor))
 end
 
+--- Wrap the button in a backdrop.
+-- This code is from XLoot, currently in use without
+-- permission I am contacting the developers to see if
+-- I can use it or not.
+-- @param button The button
+-- @param woff Width Offset
+-- @param hoff Height Offset
+-- @param edgesize Edge Size
+-- @param borderinset Border Inset
 function RPLibrary:ItemButtonWrapper(button, woff, hoff, edgesize, borderinset)
 	local wrapper = button.wrapper or CreateFrame("Frame", button:GetName().."Wrapper", button)
 	wrapper:SetWidth(button:GetWidth()+(woff or 10))
@@ -98,32 +153,91 @@ function RPLibrary:ItemButtonWrapper(button, woff, hoff, edgesize, borderinset)
 	return wrapper
 end
 
-function RPLibrary:BuildColumn(value, color, args, colorargs, cellupdate)
-	local temp = {
-		["value"] = value,
-		["args"] = args,
-		["color"] = color,
-		["colorargs"] = colorargs,
-		["DoCellUpdate"] = cellupdate,
-	}
+--- Build a table in the format required for lib-st.
+-- This function will take the given the data table and return it into lib-st format.
+-- If color is given as a function and no colorargs are supplied the entire row will be passed as colorargs.
+-- @param tb The table to convert
+-- @param argList Table of special arguements to pass to BuildColumn <code>{args, color, colorargs, dce}</code>
+-- @param color Color object for lib-st
+-- @param colorargs Arguments for the color object if it is a function
+-- @param dce DoCellUpdate, allows a custom display function to be used for that row or cell
+function RPLibrary:BuildTable(tb, argList, color, colorargs, dce)
+	local newtb = {}
+	for i=1,#tb do
+		newtb[i] = RPLibrary:BuildRow(tb[i], argList, color, colorargs, dce)
+	end
+	return newtb
+end
+
+--- Build a row in the format required for lib-st.
+-- This function will take the given the data row and return it into lib-st format.
+-- If color is given as a function and no colorargs are supplied the entire row will be passed as colorargs.
+-- @param row The row to convert
+-- @param argList Table of special arguements to pass to BuildColumn <code>{args, color, colorargs, dce}</code>
+-- @param color Color object for lib-st
+-- @param colorargs Arguments for the color object if it is a function
+-- @param dce DoCellUpdate, allows a custom display function to be used for that row or cell
+function RPLibrary:BuildRow(row, argList, color, colorargs, dce)
+	local newrow = {["cols"] = {}}
+	for i=1,#row do
+		--RPB:Print(row[i], unpack(argList[i] or {}))
+		newrow["cols"][i] = RPLibrary:BuildColumn(row[i], unpack(argList[i] or {}))
+	end
+	if color then
+		newrow["color"] = color
+	end
+	if colorargs then
+		newrow["colorargs"] = { colorargs }
+	end
+	if dce then
+		newrow["DoCellUpdate"] = dce
+	end
+	if (colorargs == nil and type(color) == "function") then
+		newrow["colorargs"] = { newrow }
+	end
+	return newrow
+end
+
+--- Build a column in the format required for lib-st.
+-- This function will take the given the data column and return it into lib-st format.
+-- If color is given as a function and no colorargs are supplied the entire row will be passed as colorargs.
+-- @param value The column value to return
+-- @param args Args for value if value is a function
+-- @param color Color object for lib-st
+-- @param colorargs Arguments for the color object if it is a function
+-- @param dce DoCellUpdate, allows a custom display function to be used for that row or cell
+function RPLibrary:BuildColumn(value, args, color, colorargs, dce)
+	if (colorargs == nil and type(color) == "function") then colorargs = value end
+	local temp = {["value"] = value}
+	if args then
+		temp["args"] = args
+	end
+	if color then
+		temp["color"] = color
+	end
+	if colorargs then
+		temp["colorargs"] = { colorargs }
+	end
+	if dce then
+		temp["DoCellUpdate"] = dce
+	end
 	return temp
 end
 
-function RPLibrary:BuildRow(cols, color, colorargs)
-	if not cols then cols = {} end
-	local temp = {
-		["cols"] = 	cols,
-		["color"] = color,
-		["colorargs"] = colorargs,
-	}
-	return temp
+--- Strip the extra information required for lib-st from the given table.
+-- This function will take the given the lib-st table and return a simple data table
+-- @param tb The table to strip
+function RPLibrary:StripTable(tb)
+	local t = {}
+	for i=1,#tb do
+		t[i] = self:StripRow(tb[i])
+	end
+	return t
 end
 
-function RPLibrary:AppendRow(row, color, colorargs)
-	row["color"] = color
-	row["colorargs"] = colorargs
-end
-
+--- Strip the extra information required for lib-st from the given row.
+-- This function will take the given the lib-st row and return a simple data row
+-- @param tb The row to strip
 function RPLibrary:StripRow(row)
 	local r = {}
 	if (row.cols) then
@@ -134,16 +248,11 @@ function RPLibrary:StripRow(row)
 	return r;
 end
 
+--- Strip the extra information required for lib-st from the given column.
+-- This function will take the given the lib-st column and return a simple data column
+-- @param tb The column to strip
 function RPLibrary:StripColumn(col)
 	return col.value
-end
-
-function RPLibrary:StripTable(tb)
-	local t = {}
-	for i=1,#tb do
-		t[i] = self:StripRow(tb[i])
-	end
-	return t
 end
 
 RPLibrary.classColors = {
@@ -189,9 +298,9 @@ function RPLibrary:Split (s,t)
 	return l
 end
 
-function RPLibrary:ClassColor(class)
-	if (class and self.classColors[string.upper(class)]) then
-		return self.classColors[string.upper(class)]
+function ClassColor(class)
+	if (class and RPLibrary.classColors[string.upper(class)]) then
+		return RPLibrary.classColors[string.upper(class)]
 	else
 		return {["r"] = 1.00, 	["g"] = 1.00, 	["b"] = 1.00, 	["a"] = 1.0,}
 	end

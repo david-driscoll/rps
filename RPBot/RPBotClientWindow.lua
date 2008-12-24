@@ -1,8 +1,21 @@
+--[[
+	*******************
+	* Raid Points System *
+	*******************
+	* File-Revision:  @file-revision@
+	* Project-Version:  @project-version@
+	* Last edited by:  @file-author@ on  @file-date-iso@ 
+	* Last commit:  @project-author@ on   @project-date-iso@ 
+	* Filename: RPBot/RPBotClientWindow.lua
+	* Component: Client
+	* Details:
+		This file creates the client window.  The client window is similar to the group loot interface
+			in that it creates a window that shows the item to be rolled on with the ability to click the proper button.
+]]
+
+
 function RPB:CreateFrameClientWindow()
 	db = self.db
-	-- if self.Frame then
-	  -- self.Frame:Hide()
-	-- end
 
 	if not self.frames then
 		self.frames = {}

@@ -1,3 +1,17 @@
+--[[
+	*******************
+	* Raid Points System *
+	*******************
+	* File-Revision:  @file-revision@
+	* Project-Version:  @project-version@
+	* Last edited by:  @file-author@ on  @file-date-iso@ 
+	* Last commit:  @project-author@ on   @project-date-iso@ 
+	* Filename: RPBot/RPBotRollWindow.lua
+	* Component: Roll Interface
+	* Details:
+		This is the rolling interface.  Deals with displaying the proper lists, and awarding items.
+]]
+
 local db = RPB.db
 local RPLibrary = LibStub:GetLibrary("RPLibrary")
 
@@ -7,12 +21,12 @@ RPB.columnDefinitons["RollWindow"] =
 	    ["name"] = "Name",
 	    ["width"] = 70,
 	    ["align"] = "CENTER",
-	    ["color"] = { 
-	        ["r"] = 0.5, 
-	        ["g"] = 0.5, 
-	        ["b"] = 1.0, 
-	        ["a"] = 1.0 
-	    },
+	    -- ["color"] = { 
+	        -- ["r"] = 0.5, 
+	        -- ["g"] = 0.5, 
+	        -- ["b"] = 1.0, 
+	        -- ["a"] = 1.0 
+	    -- },
 	    ["colorargs"] = nil,
 	    ["bgcolor"] = {
 	        ["r"] = 0.0, 
@@ -27,12 +41,12 @@ RPB.columnDefinitons["RollWindow"] =
 	    ["name"] = "Class",
 	    ["width"] = 70,
 	    ["align"] = "CENTER",
-	    ["color"] = { 
-	        ["r"] = 0.5, 
-	        ["g"] = 0.5, 
-	        ["b"] = 1.0, 
-	        ["a"] = 1.0 
-	    },
+	    -- ["color"] = { 
+	        -- ["r"] = 0.5, 
+	        -- ["g"] = 0.5, 
+	        -- ["b"] = 1.0, 
+	        -- ["a"] = 1.0 
+	    -- },
 	    ["colorargs"] = nil,
 	    ["bgcolor"] = {
 	        ["r"] = 0.0, 
@@ -46,12 +60,12 @@ RPB.columnDefinitons["RollWindow"] =
 	    ["name"] = "Rank",
 	    ["width"] = 70,
 	    ["align"] = "CENTER",
-	    ["color"] = { 
-	        ["r"] = 0.5, 
-	        ["g"] = 0.5, 
-	        ["b"] = 1.0, 
-	        ["a"] = 1.0 
-	    },
+	    -- ["color"] = { 
+	        -- ["r"] = 0.5, 
+	        -- ["g"] = 0.5, 
+	        -- ["b"] = 1.0, 
+	        -- ["a"] = 1.0 
+	    -- },
 	    ["colorargs"] = nil,
 	    ["bgcolor"] = {
 	        ["r"] = 0.0, 
@@ -65,12 +79,12 @@ RPB.columnDefinitons["RollWindow"] =
 	    ["name"] = "Type",
 	    ["width"] = 50,
 	    ["align"] = "CENTER",
-	    ["color"] = { 
-	        ["r"] = 0.5, 
-	        ["g"] = 0.5, 
-	        ["b"] = 1.0, 
-	        ["a"] = 1.0 
-	    },
+	    -- ["color"] = { 
+	        -- ["r"] = 0.5, 
+	        -- ["g"] = 0.5, 
+	        -- ["b"] = 1.0, 
+	        -- ["a"] = 1.0 
+	    -- },
 	    ["colorargs"] = nil,
 	    ["bgcolor"] = {
 	        ["r"] = 0.0, 
@@ -85,12 +99,12 @@ RPB.columnDefinitons["RollWindow"] =
 	    ["name"] = "Currrent",
 	    ["width"] = 50,
 	    ["align"] = "CENTER",
-	    ["color"] = { 
-	        ["r"] = 0.5, 
-	        ["g"] = 0.5, 
-	        ["b"] = 1.0, 
-	        ["a"] = 1.0 
-	    },
+	    -- ["color"] = { 
+	        -- ["r"] = 0.5, 
+	        -- ["g"] = 0.5, 
+	        -- ["b"] = 1.0, 
+	        -- ["a"] = 1.0 
+	    -- },
 	    ["colorargs"] = nil,
 	    ["bgcolor"] = {
 	        ["r"] = 0.0, 
@@ -104,12 +118,12 @@ RPB.columnDefinitons["RollWindow"] =
 	    ["name"] = "Roll",
 	    ["width"] = 50,
 	    ["align"] = "CENTER",
-	    ["color"] = { 
-	        ["r"] = 0.5, 
-	        ["g"] = 0.5, 
-	        ["b"] = 1.0, 
-	        ["a"] = 1.0 
-	    },
+	    -- ["color"] = { 
+	        -- ["r"] = 0.5, 
+	        -- ["g"] = 0.5, 
+	        -- ["b"] = 1.0, 
+	        -- ["a"] = 1.0 
+	    -- },
 	    ["colorargs"] = nil,
 	    ["bgcolor"] = {
 	        ["r"] = 0.0, 
@@ -123,12 +137,12 @@ RPB.columnDefinitons["RollWindow"] =
 	    ["name"] = "Loss",
 	    ["width"] = 50,
 	    ["align"] = "CENTER",
-	    ["color"] = { 
-	        ["r"] = 0.5, 
-	        ["g"] = 0.5, 
-	        ["b"] = 1.0, 
-	        ["a"] = 1.0 
-	    },
+	    -- ["color"] = { 
+	        -- ["r"] = 0.5, 
+	        -- ["g"] = 0.5, 
+	        -- ["b"] = 1.0, 
+	        -- ["a"] = 1.0 
+	    -- },
 	    ["colorargs"] = nil,
 	    ["bgcolor"] = {
 	        ["r"] = 0.0, 
@@ -145,12 +159,12 @@ RPB.columnDefinitons["RollWindowLootList"] =
 	    ["name"] = "Items",
 	    ["width"] = 120,
 	    ["align"] = "CENTER",
-	    ["color"] = { 
-	        ["r"] = 0.5, 
-	        ["g"] = 0.5, 
-	        ["b"] = 1.0, 
-	        ["a"] = 1.0 
-	    },
+	    -- ["color"] = { 
+	        -- ["r"] = 0.5, 
+	        -- ["g"] = 0.5, 
+	        -- ["b"] = 1.0, 
+	        -- ["a"] = 1.0 
+	    -- },
 	    ["colorargs"] = nil,
 	    ["bgcolor"] = {
 	        ["r"] = 0.0, 
@@ -174,6 +188,17 @@ local crl =
 	loss = 7,
 }
 
+local crlArg = 
+{
+	[crl.player]	= { },
+	[crl.class]		= { nil, ClassColor },
+	[crl.rank]		= { },
+	[crl.ty]		= { },
+	[crl.current]	= { },
+	[crl.roll]		= { },
+	[crl.loss]		= { },
+}
+
 -- Constants Loot List
 local cll = 
 {
@@ -181,6 +206,14 @@ local cll =
 	item = 2,
 	count = 3,
 	quality = 4,
+}
+
+local cllArg =
+{
+	[cll.link]		= { },
+	[cll.item]		= { },
+	[cll.count]		= { },
+	[cll.quality]	= { },
 }
 
 function RPB:CreateFrameRollWindow()
@@ -242,7 +275,7 @@ function RPB:CreateFrameRollWindow()
     -- Scroll Frame
 	do
 		f.rollList = {}
-	    f.scrollFrame = ScrollingTable:CreateST(RPB.columnDefinitons["RollWindow"], 10, nil, nil, f);
+	    f.scrollFrame = ScrollingTable:CreateST(RPB.columnDefinitons["RollWindow"], 10, nil, nil, f, true);
 		f.scrollFrame.frame:SetPoint("TOPLEFT", f, "TOPLEFT", 170, -30)
 		f.scrollFrame:SetData(f.rollList)
 		f.scrollFrame:RegisterEvents({
@@ -254,7 +287,7 @@ function RPB:CreateFrameRollWindow()
 			f.item[i] = self:CreateLootFrame(f, i)
 		end
 		f.lootList = {}
-	    f.scrollFrameLoot = ScrollingTable:CreateST(RPB.columnDefinitons["RollWindowLootList"], 10, nil, nil, f);
+	    f.scrollFrameLoot = ScrollingTable:CreateST(RPB.columnDefinitons["RollWindowLootList"], 10, nil, nil, f, true);
 		f.scrollFrameLoot.frame:SetPoint("TOPLEFT", f, "TOPLEFT", 20, -30)
 		f.scrollFrameLoot:SetData(f.lootList)
 		f.scrollFrameLoot:RegisterEvents({
@@ -421,34 +454,6 @@ end
 	-- end
 end
 
-function RPB:CalculateLoss(points, cmd)
-	local feature = self.feature[cmd]
-	-- Make this loaclizable, for generic changes.
-	local divisor = feature.divisor or db.realm.settings.divisor
-	-- local minclass = feature.minclass or db.realm.settings.minclass
-	-- local maxclass = feature.maxclass or db.realm.settings.maxclass
-	local minnonclass = feature.minnonclass or db.realm.settings.minnonclass
-	local maxnonclass = feature.maxnonclass or db.realm.settings.maxnonclass
-	local loss
-	
-	current = ceil( ( points / divisor ) / db.realm.settings.rounding ) * db.realm.settings.rounding
-
-	-- If I want to continue with class specific item logic, this is where we do it.
-	if (current < minnonclass) then
-		loss = minnonclass
-	elseif (current > minnonclass and (not maxnonclass or current < maxnonclass)) then
-		loss = current
-	else
-		loss = maxnonclass
-	end
-
-	if (current > 0 and loss > current and not db.realm.settings.allownegative) then
-		loss = current
-	end
-	
-	return loss
-end
-
 function RPB:RollListAdd(player, cmd, recieved)
 	local rollList = self.frames["RollWindow"].rollList
 	for i=1,#rollList do
@@ -474,22 +479,33 @@ function RPB:RollListAdd(player, cmd, recieved)
 	player = self.activeraid[string.lower(player)].fullname
 
 	loss = self:CalculateLoss(current, cmd)
-
+	-- rollList[#rollList+1] = RPLibrary:BuildRow(
+		-- {
+			-- [crl.player]	= 	RPLibrary:BuildColumn(player),
+			-- [crl.class]		=	RPLibrary:BuildColumn(class),
+			-- [crl.rank]		=	RPLibrary:BuildColumn(rank),
+			-- [crl.ty]		=	RPLibrary:BuildColumn(ty),
+			-- [crl.current]	=	RPLibrary:BuildColumn(current),
+			-- [crl.roll]		=	RPLibrary:BuildColumn(100),
+			-- [crl.loss]		=	RPLibrary:BuildColumn(loss)
+		-- }
+	-- )
+	-- RPLibrary:AppendRow(
+		-- rollList[#rollList],
+		----rollWindowScrollFrameOnClick, {rollList[#rollList]},
+		-- rollWindowScrollFrameColor, {rollList[#rollList]}
+	-- )
 	rollList[#rollList+1] = RPLibrary:BuildRow(
 		{
-			[crl.player]	= 	RPLibrary:BuildColumn(player),
-			[crl.class]		=	RPLibrary:BuildColumn(class),
-			[crl.rank]		=	RPLibrary:BuildColumn(rank),
-			[crl.ty]		=	RPLibrary:BuildColumn(ty),
-			[crl.current]	=	RPLibrary:BuildColumn(current),
-			[crl.roll]		=	RPLibrary:BuildColumn(100),
-			[crl.loss]		=	RPLibrary:BuildColumn(loss)
-		}
-	)
-	RPLibrary:AppendRow(
-		rollList[#rollList],
-		--rollWindowScrollFrameOnClick, {rollList[#rollList]},
-		rollWindowScrollFrameColor, {rollList[#rollList]}
+			[crl.player]	= 	player,
+			[crl.class]		=	class or "",
+			[crl.rank]		=	rank or "",
+			[crl.ty]		=	ty,
+			[crl.current]	=	current,
+			[crl.roll]		=	0,
+			[crl.loss]		=	loss,
+		},
+		crlArg, rollWindowScrollFrameColor
 	)
 	self:RollListSort()
 	return true
@@ -553,15 +569,21 @@ function rollWindowItemScrollFrameOnClick(rowFrame, cellFrame, data, cols, row, 
 end
 
 function rollWindowScrollFrameColor(roll)
-	local high = roll.cols[crl.roll].value
+	local feature = RPB.feature[string.lower(roll.cols[crl.ty].value)]
+	-- Make this loaclizable, for generic changes.
+	local diff = feature.diff or db.realm.settings.diff
+	local high = roll.cols[crl.current].value
+
 	local rollList = RPB.frames["RollWindow"].rollList
 	for i=1,#rollList do
-		if (rollList[i].cols[crl.roll].value > high) then
-			high = rollList[i].cols[crl.roll].value
+		if (rollList[i].cols[crl.current].value > high) then
+			high = rollList[i].cols[crl.current].value
 		end
 	end
-	RPB:Print(roll.cols[crl.roll].value, high)
-	ratio = roll.cols[crl.roll].value * 1.0 / high
+	ratio = math.floor((roll.cols[crl.current].value) * 1.0 / ( high - diff ))
+	if ratio == 1 then
+		ratio = ((roll.cols[crl.current].value - high + diff + diff/2) * 1.0 / diff)
+	end
 	return {
 		["r"] = (1-ratio),
 		["g"] = ratio,
@@ -645,18 +667,28 @@ end
 
 function RPB:AddItem(link, item, count, quality, recieved)
 	local lootList = self.frames["RollWindow"].lootList
+	-- lootList[#lootList+1] = RPLibrary:BuildRow(
+		-- {
+			-- [cll.link]		= 	RPLibrary:BuildColumn(link),
+			-- [cll.item]		=	RPLibrary:BuildColumn(item),
+			-- [cll.count]		=	RPLibrary:BuildColumn(count),
+			-- [cll.quality]	=	RPLibrary:BuildColumn(quality),
+		-- }
+	-- )
+	-- RPLibrary:AppendRow(
+		-- lootList[#lootList]
+		----rollWindowItemScrollFrameOnClick
+		----rollWindowScrollFrameColor, {lootList[#lootList][cll.quality]}
+	-- )
+	
 	lootList[#lootList+1] = RPLibrary:BuildRow(
 		{
-			[cll.link]		= 	RPLibrary:BuildColumn(link),
-			[cll.item]		=	RPLibrary:BuildColumn(item),
-			[cll.count]		=	RPLibrary:BuildColumn(count),
-			[cll.quality]	=	RPLibrary:BuildColumn(quality),
-		}
-	)
-	RPLibrary:AppendRow(
-		lootList[#lootList]
-		--rollWindowItemScrollFrameOnClick
-		--rollWindowScrollFrameColor, {lootList[#lootList][cll.quality]}
+			[cll.link]		= 	link,
+			[cll.item]		=	item,
+			[cll.count]		=	count,
+			[cll.quality]	=	quality,
+		},
+		cllArg
 	)
 end
 
@@ -672,8 +704,8 @@ function RPB:RemoveItem(link, recieved)
 end
 
 function RPB:AwardItem()
-	local item = RPB.frames["RollWindow"].scrollFrameLoot.selected.cols
-	local winner = RPB.frames["RollWindow"].scrollFrame.selected.cols
+	local item = self.frames["RollWindow"].scrollFrameLoot.selected.cols
+	local winner = self.frames["RollWindow"].scrollFrame.selected.cols
 	local class, rank, ty, current, loss, roll, pcurrent, player
 	
 	player = winner[crl.player].value

@@ -1,3 +1,20 @@
+--[[
+	*******************
+	* Raid Points System *
+	*******************
+	* File-Revision:  @file-revision@
+	* Project-Version:  @project-version@
+	* Last edited by:  @file-author@ on  @file-date-iso@ 
+	* Last commit:  @project-author@ on   @project-date-iso@ 
+	* Filename: RPBot/RPBotFeatures.lua
+	* Component: Features
+	* Details:
+		Features is an odd name, this file defines how the bot will respond to certian tells, what
+			buttons will be on the client window and the rules of that "feature".
+		Ideally this file will be modified by a guild that is looking for a specific set of rules, then
+			that will get shipped around, the format here should not change signficantly once a release hits.
+]]
+
 local db = RPB.db
 local RPLibrary = LibStub:GetLibrary("RPLibrary")
 local featureSets = {}
@@ -27,6 +44,7 @@ featureSets["deus"] =
 		minnonclass = nil,
 		maxnonclass = nil,
 		divisor = nil,
+		diff = 50,
 		totalpoints = nil,
 		color = nil,
 		bgcolor = nil,
@@ -57,6 +75,7 @@ featureSets["deus"] =
 		maxnonclass = 50,
 		maxpoints = 50,
 		divisor = 2,
+		diff = 50,
 		color = nil,
 		bgcolor = nil,
 		nolist = false, -- Only true for special cases such as pass, we don't need them added to the roll list.
@@ -86,6 +105,7 @@ featureSets["deus"] =
 		maxnonclass = 0,
 		maxpoints = 0,
 		divisor = 2,
+		diff = 50,
 		color = nil,
 		bgcolor = nil,
 		nolist = false, -- Only true for special cases such as pass, we don't need them added to the roll list.
@@ -115,6 +135,7 @@ featureSets["deus"] =
 		maxnonclass = 20,
 		maxpoints = 20,
 		divisor = 2,
+		diff = 50,
 		color = nil,
 		bgcolor = nil,
 		nolist = false, -- Only true for special cases such as pass, we don't need them added to the roll list.
@@ -148,6 +169,7 @@ featureSets["nikarma"] =
 		minnonclass = nil,
 		maxnonclass = nil,
 		divisor = nil,
+		diff = nil,
 		totalpoints = nil,
 		color = nil,
 		bgcolor = nil,
@@ -178,6 +200,7 @@ featureSets["nikarma"] =
 		maxnonclass = 50,
 		maxpoints = 50,
 		divisor = 2,
+		diff = nil,
 		color = nil,
 		bgcolor = nil,
 		nolist = false, -- Only true for special cases such as pass, we don't need them added to the roll list.
@@ -200,10 +223,10 @@ function RPB:AddFeature(data)
 	self.whisperCommands[data.command] = function(self, msg, name)
 		if self.frames["RollWindow"] and self.frames["RollWindow"].inProgress then
 			if not self:RollListAdd(name, data.command) then
-				self:Whisper(name, "You are already bidding on that item.")
+				self:Whisper("You are already bidding on that item.", name)
 			end
 		else
-			self:Whisper(name, "No item is up for bidding.")
+			self:Whisper("No item is up for bidding.", name)
 		end
 	end
 

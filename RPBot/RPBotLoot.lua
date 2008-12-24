@@ -1,3 +1,20 @@
+--[[
+	*******************
+	* Raid Points System *
+	*******************
+	* File-Revision:  @file-revision@
+	* Project-Version:  @project-version@
+	* Last edited by:  @file-author@ on  @file-date-iso@ 
+	* Last commit:  @project-author@ on   @project-date-iso@ 
+	* Filename: RPBot/RPBotLoot.lua
+	* Component: Loot Tracking
+	* Details:
+		This file is currently a placeholder for the loot tracking, currently the events fire
+			properly but the update loot function hasn't been really touched
+		A lot of this code was borrowed from XLoot, I still need to communicate with the authors
+			if I should do anything special or if I should remove their code all together.
+]]
+
 local db = RPB.db
 local RPLibrary = LibStub:GetLibrary("RPLibrary")
 function RPB:CreateLootFrame(parent, id)
@@ -268,3 +285,16 @@ function RPB:UpdateLoot(texture, item, count, quality)
 	end
 end
 
+
+function RPB:SpecialEvents_ItemLooted(recipient, item, count)
+	-- When the recieved loot event fires.
+	-- Goal here is to track all loot recieved events across all clients.
+		-- Fires to hidden addon channel
+		-- If the event is viewed by the "master", ignore this event otherwise,
+			--take the first client that fired the event to the master for the next 20 seconds.  (So that duplicate data does not make it in)
+	RPB:Loot(recipient, item, count, time(), false)
+end
+
+function RPB:Loot(recipient, item, count, datetime, recieved)
+
+end

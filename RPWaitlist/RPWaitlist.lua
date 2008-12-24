@@ -1,3 +1,20 @@
+--[[
+	*******************
+	* Raid Points System *
+	*******************
+	* File-Revision:  @file-revision@
+	* Project-Version:  @project-version@
+	* Last edited by:  @file-author@ on  @file-date-iso@ 
+	* Last commit:  @project-author@ on   @project-date-iso@ 
+	* Filename: RPWaitlist/RPWaitlist.lua
+	* Component: Waitlist
+	* Details:
+		Waitlist portion of the mod.
+		The guild roster update needs to be changed a little bit, it is kind of
+			forceful in its ways.  It should also be moved into its own library
+			or moved to RPLibrary
+]]
+
 local db
 local prefix = "<WL>"
 local enablecomm = true
@@ -12,7 +29,7 @@ RPWL = LibStub("AceAddon-3.0"):NewAddon("Raid Points Waitlist", "AceConsole-3.0"
 -- To use the grid properly, we need numbered index's.
 -- Numbered index's aren't very specific, so lets get the best of both worlds
 
--- Watilist table contents
+-- Watilist table constents
 local cwl = 
 {
 	name		= 1,
@@ -21,6 +38,15 @@ local cwl =
 	status		= 4,
 	--datetime	= 5,
 	timestamp	= 5,
+}
+
+local cwlArg = 
+{
+	[cwl.name] 		= { },
+	[cwl.alt] 		= { }, 
+	[cwl.class] 	= { nil, ClassColor },
+	[cwl.status] 	= { },
+	[cwl.timestamp] = { nil, nil, nil, DoTimestampUpdate },
 }
 
 -- Guild Roster table contents
@@ -37,6 +63,19 @@ local cgr =
 	rankindex	= 9,
 }
 
+local cgrArg = 
+{
+	[cgr.name]			= { },
+	[cgr.rank]			= { },
+	[cgr.level]			= { },
+	[cgr.class]			= { nil, ClassColor },
+	[cgr.zone]			= { },
+	[cgr.status]		= { },
+	[cgr.online]		= { },
+	[cgr.officernote]	= { },
+	[cgr.rankindex]		= { },
+}
+
 -- Sync commands, lets save some overhead
 local cs = 
 {
@@ -47,6 +86,8 @@ local cs =
 	["sync"]		= "s",
 }
 
+--- Initial start up processes.
+-- Register chat commands, minor events and setup AceDB
 function RPWL:OnInitialize()
 	db = LibStub("AceDB-3.0"):New("rpwaitlistDB", defaults, "Default")
 	self.db = db
@@ -60,6 +101,8 @@ function RPWL:OnInitialize()
 	end
 end
 
+--- Enable processes
+-- Register all events, setup inital state
 function RPWL:OnEnable()
 	self:RegisterEvent("CHAT_MSG_WHISPER")
 	self:RegisterEvent("GUILD_ROSTER_UPDATE")
@@ -75,7 +118,11 @@ function RPWL:OnEnable()
 	self.guildRoster = {}
 	self.guildRosterIndex = {}
 	
-	-- db.realm.waitlist = RPLibrary:StripTable(db.realm.waitlist)
+	db.realm.waitlist = RPLibrary:StripTable(db.realm.waitlist)
+	local temp = db.realm.waitlist
+	db.realm.waitlist = RPLibrary:BuildTable(temp, cwlArg, CheckOnline)
+	db.realm.waitlist = temp
+	-- 
 	-- for i=1,#db.realm.waitlist do
 		-- db.realm.waitlist[i] = RPLibrary:BuildRow(
 			-- {
@@ -101,10 +148,15 @@ function RPWL:OnEnable()
 	
 end
 
+--- Event: GUILD_ROSTER_UPDATE.
+-- Fires when the guild roster has been updated.
+-- @param arg1 Unknown
 function RPWL:GUILD_ROSTER_UPDATE(arg1)
 	RPWL:RosterUpdate()
 end
 
+--- Roster Update
+-- Update the internal table with the current guild roster.
 function RPWL:RosterUpdate()
 	--if not rosterupdate then return end
 	if not GetGuildRosterShowOffline() then
@@ -129,25 +181,38 @@ function RPWL:RosterUpdate()
 		--if (self.guildRoster[string.lower(name)]["online"]) then
 		local online
 		if (self.guildRoster[string.lower(name)]["online"]) then online = 'Y' else online = 'N' end
+			-- self.guildRosterIndex[#self.guildRosterIndex+1] = RPLibrary:BuildRow(
+				-- {
+					-- [cgr.name] 			=	RPLibrary:BuildColumn(self.guildRoster[string.lower(name)]["name"]),
+					-- [cgr.rank] 			=	RPLibrary:BuildColumn(self.guildRoster[string.lower(name)]["rank"]),
+					-- [cgr.level] 		=	RPLibrary:BuildColumn(self.guildRoster[string.lower(name)]["level"]),
+					-- [cgr.class] 		=	RPLibrary:BuildColumn(self.guildRoster[string.lower(name)]["class"], RPLibrary:ClassColor(class)),
+					-- [cgr.zone] 			=	RPLibrary:BuildColumn(self.guildRoster[string.lower(name)]["zone"]),
+					-- [cgr.officernote] 	=	RPLibrary:BuildColumn(self.guildRoster[string.lower(name)]["officernote"]),
+					-- [cgr.online] 		=	RPLibrary:BuildColumn(online),
+					-- [cgr.status] 		=	RPLibrary:BuildColumn(self.guildRoster[string.lower(name)]["status"]),
+					-- [cgr.rankindex]		= 	RPLibrary:BuildColumn(self.guildRoster[string.lower(name)]["rankIndex"]),
+				-- }
+			-- )
+			-- RPLibrary:AppendRow(
+				-- self.guildRosterIndex[#self.guildRosterIndex],
+				-- CheckOnline, {name}
+			-- )
 			self.guildRosterIndex[#self.guildRosterIndex+1] = RPLibrary:BuildRow(
 				{
-					[cgr.name] 			=	RPLibrary:BuildColumn(self.guildRoster[string.lower(name)]["name"]),
-					[cgr.rank] 			=	RPLibrary:BuildColumn(self.guildRoster[string.lower(name)]["rank"]),
-					[cgr.level] 		=	RPLibrary:BuildColumn(self.guildRoster[string.lower(name)]["level"]),
-					[cgr.class] 		=	RPLibrary:BuildColumn(self.guildRoster[string.lower(name)]["class"], RPLibrary:ClassColor(class)),
-					[cgr.zone] 			=	RPLibrary:BuildColumn(self.guildRoster[string.lower(name)]["zone"]),
-					[cgr.officernote] 	=	RPLibrary:BuildColumn(self.guildRoster[string.lower(name)]["officernote"]),
-					[cgr.online] 		=	RPLibrary:BuildColumn(online),
-					[cgr.status] 		=	RPLibrary:BuildColumn(self.guildRoster[string.lower(name)]["status"]),
-					[cgr.rankindex]		= 	RPLibrary:BuildColumn(self.guildRoster[string.lower(name)]["rankIndex"]),
-				}
-			)
-			RPLibrary:AppendRow(
-				self.guildRosterIndex[#self.guildRosterIndex],
-				CheckOnline, {name}
+					[cgr.name] 			=	self.guildRoster[string.lower(name)]["name"],
+					[cgr.rank] 			=	self.guildRoster[string.lower(name)]["rank"],
+					[cgr.level] 		=	self.guildRoster[string.lower(name)]["level"],
+					[cgr.class] 		=	self.guildRoster[string.lower(name)]["class"],
+					[cgr.zone] 			=	self.guildRoster[string.lower(name)]["zone"],
+					[cgr.officernote] 	=	self.guildRoster[string.lower(name)]["officernote"],
+					[cgr.online] 		=	online,
+					[cgr.status] 		=	self.guildRoster[string.lower(name)]["status"],
+					[cgr.rankindex]		= 	self.guildRoster[string.lower(name)]["rankIndex"],
+				},
+				cgrArg, CheckOnline
 			)
 		--end
-		
 	end
 	if self.scrollFrameGuild then
 		self.scrollFrameGuild:SetData(self.guildRosterIndex)
@@ -155,33 +220,50 @@ function RPWL:RosterUpdate()
 	end
 end
 
+--- Sends hidden channel information
+-- Serialized data on send so it can be retrieved as it was.
+-- @param cmd The command to be sent with the data
+-- @param data The data to send
 function RPWL:Send(cmd, data)
 	if not enablecomm then return end
 	self:SendCommMessage("RPWL", self:Serialize(cmd,data), "GUILD")
 end
--- RPWL:SendCommMessage(prefix, text, distribution[, target])
--- RPWL:Serialize(...)
--- RPWL:Deserialize(data)
 
-function RPWL:CHAT_MSG_WHISPER()
--- arg1 = Message received 
--- arg2 = Author 
--- arg3 = Language (or nil if universal, like messages from GM) (always seems to be an empty string; argument may have been kicked because whispering in non-standard language doesn't seem to be possible [any more?]) 
--- arg6 = status (like "DND" or "GM") 
--- arg7 = (number) message id (for reporting spam purposes?) (default: 0) 
--- arg8 = (number) unknown (default: 0)
-
+--- Event: CHAT_MSG_WHISPER.
+-- Fires when any whisper has been recieved
+-- @param arg1 = Message received 
+-- @param arg2 = Author 
+-- @param arg3 = Language (or nil if universal, like messages from GM) (always seems to be an empty string; argument may have been kicked because whispering in non-standard language doesn't seem to be possible [any more?]) 
+-- @param arg6 = status (like "DND" or "GM") 
+-- @param arg7 = (number) message id (for reporting spam purposes?) (default: 0) 
+-- @param arg8 = (number) unknown (default: 0)
+function RPWL:CHAT_MSG_WHISPER(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 	-- Fire our event off to our handler
+	
+	-- TODO: Hide or Show whispers depending on the state that whisper command comes back as.
+	--		This will let us hide the whisper if settings tell us to.
 	self:WhisperCommand(arg1, arg2)
 end
 
--- Sends whispers, self explainitory
-function RPWL:Whisper(to, message)
-	SendChatMessage(prefix.." "..message, "WHISPER", nil, to);
+--- Sends a chat message
+-- @param channel Target Channel
+-- @param to Target player
+-- @param message Message to send, minus our prefix
+function RPWL:Message(channel, message, to)
+	SendChatMessage(prefix.." "..message, channel, nil, to);
 end
 
--- Checks to see if someone is on the waitlist, and returns their index.
--- If they arent found returns 0/false/nil
+--- Sends a whisper
+-- @param to Target player
+-- @param message Message to send
+function RPWL:Whisper(to, message)
+	RPWL:Message("WHISPER", message, to);
+end
+
+--- Checks to see if someone is on the waitlist, and returns their index.
+-- If they arent found returns nil.  Checks for alts if known.
+-- @param name Name of the player to check for
+-- @param alt Alt character
 function RPWL:Check(name, alt)
 	for i=1,(getn(db.realm.waitlist)) do
 		-- Main is on the list
@@ -198,7 +280,12 @@ function RPWL:Check(name, alt)
 	return nil
 end
 
--- Add someone to the waitlist
+--- Add someone to the waitlist.
+-- Checks to see if they are on the waitlist.
+-- @param name Character Name
+-- @param alt Alt character
+-- @param timestamp Time added
+-- @param recieved Wether this command came from :SyncCommand or :WhisperCommand/:ChatCommand.  SyncCommand just wants to relay the information given, nothing has been generated.
 function RPWL:Add(name, alt, timestamp, recieved)
 	-- Make sure they are not on the wait list
 	if not self:Check(name, alt) then
@@ -207,22 +294,32 @@ function RPWL:Add(name, alt, timestamp, recieved)
 		else
 			class = "Unknown"
 		end
-		index = (getn(db.realm.waitlist)+1)
+		index = (#db.realm.waitlist)+1
+		-- db.realm.waitlist[index] = RPLibrary:BuildRow(
+			-- {
+				----[cwl.index] 		= RPLibrary:BuildColumn(index),
+				-- [cwl.name] 		= RPLibrary:BuildColumn(name),
+				-- [cwl.alt] 		= RPLibrary:BuildColumn(alt), 
+				-- [cwl.class] 	= RPLibrary:BuildColumn(class, RPLibrary:ClassColor(class)),
+				-- [cwl.status] 	= RPLibrary:BuildColumn(""),
+				----[cwl.datetime] 	= RPLibrary:BuildColumn(date("%A %b %d %I:%M%p",timestamp)),
+				-- [cwl.timestamp] = RPLibrary:BuildColumn(timestamp),
+			-- }
+		-- )
+		-- db.realm.waitlist[index].cols[cwl.timestamp]["DoCellUpdate"] = DoTimestampUpdate;
+		-- RPLibrary:AppendRow(
+			-- db.realm.waitlist[index],
+			-- CheckOnline, {name}
+		-- )
 		db.realm.waitlist[index] = RPLibrary:BuildRow(
 			{
-				--[cwl.index] 		= RPLibrary:BuildColumn(index),
-				[cwl.name] 		= RPLibrary:BuildColumn(name),
-				[cwl.alt] 		= RPLibrary:BuildColumn(alt), 
-				[cwl.class] 	= RPLibrary:BuildColumn(class, RPLibrary:ClassColor(class)),
-				[cwl.status] 	= RPLibrary:BuildColumn(""),
-				--[cwl.datetime] 	= RPLibrary:BuildColumn(date("%A %b %d %I:%M%p",timestamp)),
-				[cwl.timestamp] = RPLibrary:BuildColumn(timestamp),
-			}
-		)
-		db.realm.waitlist[index].cols[cwl.timestamp]["DoCellUpdate"] = DoTimestampUpdate;
-		RPLibrary:AppendRow(
-			db.realm.waitlist[index],
-			CheckOnline, {name}
+				[cwl.name] 		= name,
+				[cwl.alt] 		= alt,
+				[cwl.class]		= class,
+				[cwl.status] 	= "",
+				[cwl.timestamp] = timestamp,
+			},
+			cwlArg, CheckOnline
 		)
 		
 		if not recieved then
@@ -240,6 +337,10 @@ function RPWL:Add(name, alt, timestamp, recieved)
 	end
 end
 
+--- Add someone to the waitlist.
+-- Checks to see if they are on the waitlist.
+-- @param name Character Name
+-- @param recieved Wether this command came from :SyncCommand or :WhisperCommand/:ChatCommand.
 function RPWL:Remove(name, recieved)
 	-- Check for our special name, lets us clear the waitlist
 	if (string.lower(name) == "all") then
@@ -277,7 +378,9 @@ function RPWL:Remove(name, recieved)
 	end
 end
 
--- Shows the waitlist in chat
+--- Shows the waitlist in a chat channel.
+-- @param channel Channel
+-- @param to Target player
 function RPWL:Show(channel, to)
 	-- Build our message string
 	msg = "Currently on the waitlist: "
@@ -292,14 +395,16 @@ function RPWL:Show(channel, to)
 		self:Print(prefix.." "..msg)
 	-- No to field, send it to a normal chat
 	elseif not to then
-		SendChatMessage(msg, channel)
+		RPWL:Message(channel, msg)
 	-- We need to whisper
 	else
-		SendChatMessage(msg, channel, nil, to);
+		RPWL:Whisper(msg, to);
 	end
 end
 
--- Send help to chat
+--- Send help to chat.
+-- @param channel Channel
+-- @param to Target player
 function RPWL:Help(channel, to)
 	msg =
 	{
@@ -321,17 +426,19 @@ function RPWL:Help(channel, to)
 	-- No to field, send it to a normal chat
 	elseif not to then
 		for i=1, #msg do
-			SendChatMessage(msg[i], channel)
+			RPWL:Message(channel, msg[i])
 		end
 	-- We need to whisper
 	else
 		for i=1, #msg do
-			SendChatMessage(msg[i], channel, nil, to)
+			RPWL:Whisper(msg[i], to)
 		end
 	end
 end
 
--- Process command given by the /wl command
+--- Process command given by the /wl command.
+-- Each chat function is stored as a function, it works similarly to an if..else ladder but adding additional commands is faster and I feel a little cleaner.
+-- @param msg The message given by the event
 function RPWL:ChatCommand(msg)
 	-- Get our arguements, any ones not in the command are returned as nil
 	if msg then
@@ -347,6 +454,11 @@ function RPWL:ChatCommand(msg)
 end
 
 RPWL.chatCommands = {}
+
+--- chatCommand: Add.
+-- Adds a player to the waitlist
+-- @param self Reference to the mod base, since this is a table of functions.
+-- @param msg The message given by the event
 RPWL.chatCommands["add"] = function (self, msg)
 	local _, name, alt, pos = self:GetArgs(msg, 3, 1)
 	if not alt then alt = name end
@@ -354,21 +466,37 @@ RPWL.chatCommands["add"] = function (self, msg)
 	self:Add(name, alt, time())
 end
 
+--- chatCommand: Remove.
+-- Removes a player from the waitlist
+-- @param self Reference to the mod base, since this is a table of functions.
+-- @param msg The message given by the event
 RPWL.chatCommands["remove"] = function (self, msg)
 	local _, name, pos = self:GetArgs(msg, 2, 1)
 	self:Remove(name)
 end
 
+--- chatCommand: Show.
+-- Shows the waitlist to the given channel, if channel is nil uses :Print
+-- @param self Reference to the mod base, since this is a table of functions.
+-- @param msg The message given by the event
 RPWL.chatCommands["show"] = function (self, msg)
-	local _, channel, pos = self:GetArgs(msg, 2, 1)
-	self:Show(channel)
+	local _, channel, to, pos = self:GetArgs(msg, 3, 1)
+	self:Show(channel, to)
 end
 
+--- chatCommand: Help.
+-- Shows the help message
+-- @param self Reference to the mod base, since this is a table of functions.
+-- @param msg The message given by the event
 RPWL.chatCommands["help"] = function (self, msg)
-	local _, query, pos = self:GetArgs(msg, 2, 1)
-	self:Help(query)
+	local _, channel, to, pos = self:GetArgs(msg, 3, 1)
+	self:Help(channel, to)
 end
 
+--- chatCommand: Open.
+-- Opens the waitlist frame.
+-- @param self Reference to the mod base, since this is a table of functions.
+-- @param msg The message given by the event
 RPWL.chatCommands["open"] = function (self, msg)
 	if not self.Frame then
 		self:CreateFrame()
@@ -377,8 +505,11 @@ RPWL.chatCommands["open"] = function (self, msg)
 	self.Frame:Show()
 end
 
+--- Process whispers given by the event.
+-- Each whisper function is stored as a function, it works similarly to an if..else ladder but adding additional commands is faster and I feel a little cleaner.
+-- @param msg The message given by the event
+-- @param from Sender
 function RPWL:WhisperCommand(msg, from)
-	-- Whatever to get args, CraftList2 has an interesting Arg function that might work better!
 	-- Get our arguements, any ones not in the command are returned as nil
 	wcmd, cmd, pos = self:GetArgs(msg, 2, 1)
 	-- Check to make sure the first line was "wl", otherwise this message isnt for us and we need to ignore it.
@@ -392,34 +523,59 @@ function RPWL:WhisperCommand(msg, from)
 end
 
 RPWL.whisperCommands = {}
-RPWL.whisperCommands["add"] = function(self, msg, name)
+
+--- whisperCommand: Add.
+-- Adds a player to the waitlist
+-- @param self Reference to the mod base, since this is a table of functions.
+-- @param msg The message given by the event
+-- @param from Sender
+RPWL.whisperCommands["add"] = function(self, msg, from)
 	_, _, alt, pos = self:GetArgs(msg, 3, 1)
-	if not alt then alt = name end
+	if not alt then alt = from end
 	-- get timestamp here
-	if self:Add(name, alt, time()) then
-		self:Whisper(name, "You have been added to the waitlist.")
+	if self:Add(from, alt, time()) then
+		self:Whisper("You have been added to the waitlist.", from)
 	else
-		self:Whisper(name, "You are already on the waitlist.")
+		self:Whisper("You are already on the waitlist.", from)
 	end
 end
 
-RPWL.whisperCommands["remove"] = function(self, msg, name)
-	if self:Remove(name) then
-		self:Whisper(name, "You have been removed from the waitlist.")
+--- whisperCommand: Remove.
+-- Remove a player from the waitlist
+-- @param self Reference to the mod base, since this is a table of functions.
+-- @param msg The message given by the event
+-- @param from Sender
+RPWL.whisperCommands["remove"] = function(self, msg, from)
+	if self:Remove(from) then
+		self:Whisper("You have been removed from the waitlist.", from)
 	else
-		self:Whisper(name, "You are not on the waitlist.")
+		self:Whisper("You are not on the waitlist.", from)
 	end
 end
 
-RPWL.whisperCommands["show"] = function(self, msg, name)
-	self:Show("WHISPER", name)
+--- whisperCommand: Show.
+-- Shows the waitlist
+-- @param self Reference to the mod base, since this is a table of functions.
+-- @param msg The message given by the event
+-- @param from Sender
+RPWL.whisperCommands["show"] = function(self, msg, from)
+	self:Show("WHISPER", from)
 end
 
-RPWL.whisperCommands["help"] = function(self, msg, name)
-	local _, _, query, pos = self:GetArgs(msg, 3, 1)
-	self:Help(query)
+--- whisperCommand: Help.
+-- Shows the help
+-- @param self Reference to the mod base, since this is a table of functions.
+-- @param msg The message given by the event
+-- @param from Sender
+RPWL.whisperCommands["help"] = function(self, msg, from)
+	local _, _, channel, pos = self:GetArgs(msg, 3, 1)
+	self:Help(channel, from)
 end
 
+--- Process sync events.
+-- Each sync function is stored as a function, it works similarly to an if..else ladder but adding additional commands is faster and I feel a little cleaner.
+-- @param msg The message given by the event
+-- @param from Sender
 function RPWL:OnCommReceived(pre, message, distribution, sender)
 	success, cmd, msg = self:Deserialize(message)
 	self:Print(pre, cmd, msg, distribution, sender)
@@ -430,14 +586,33 @@ function RPWL:OnCommReceived(pre, message, distribution, sender)
 end
 
 RPWL.syncCommands = {}
+
+--- syncCommand: cs.add.
+-- Sync - Add player to the waitlist
+-- @param self Reference to the mod base, since this is a table of functions.
+-- @param msg The message given by the event
+-- @param sender Sender
 RPWL.syncCommands[cs.add] = function(self, msg, sender)
 	self:Add(msg[cwl.name], msg[cwl.alt], msg[cwl.timestamp], true)
 end
 
+--- syncCommand: cs.remove.
+-- Sync - Remove player from the waitlist
+-- @param self Reference to the mod base, since this is a table of functions.
+-- @param msg The message given by the event
+-- @param sender Sender
 RPWL.syncCommands[cs.remove] = function(self, msg, sender)
 	self:Remove(msg, true)
 end
 
+--- syncCommand: cs.syncrequest.
+-- Sent on login by this mod.
+-- You can not sync with yourself.
+-- The first client to respond is the one that we listen for.
+-- That client will broadcast the sync message.
+-- @param self Reference to the mod base, since this is a table of functions.
+-- @param msg The message given by the event
+-- @param sender Sender
 RPWL.syncCommands[cs.syncrequest] = function(self, msg, sender)
 	syncrequest = sender
 	if not syncowner and syncrequest ~= UnitName("player") then
@@ -445,6 +620,14 @@ RPWL.syncCommands[cs.syncrequest] = function(self, msg, sender)
 	end
 end
 
+--- syncCommand: cs.syncowner.
+-- Sent after a syncrequest is heard.
+-- You can not sync with yourself.
+-- The first client to respond is the one that we listen for.
+-- That client will broadcast the sync message.
+-- @param self Reference to the mod base, since this is a table of functions.
+-- @param msg The message given by the event
+-- @param sender Sender
 RPWL.syncCommands[cs.syncowner] = function(self, msg, sender)
 	if not syncowner and syncrequest ~= UnitName("player") then
 		syncowner = sender
@@ -454,47 +637,63 @@ RPWL.syncCommands[cs.syncowner] = function(self, msg, sender)
 	end
 end
 
+--- syncCommand: cs.syncowner.
+-- Sent after the client accepts itself as the owner.
+-- You can not sync with yourself.
+-- The first client to respond is the one that we listen for.
+-- That client will broadcast the sync message.
+-- @param self Reference to the mod base, since this is a table of functions.
+-- @param msg The message given by the event
+-- @param sender Sender
 RPWL.syncCommands[cs.sync] = function(self, msg, sender)
 	if not syncdone and syncowner ~= sender then
 		local temp = msg
-		for i=1,#temp do
-			db.realm.waitlist[i] = RPLibrary:BuildRow(
-				{
-					[cwl.name] 		= RPLibrary:BuildColumn(temp[i][cwl.name]),
-					[cwl.alt] 		= RPLibrary:BuildColumn(temp[i][cwl.alt]), 
-					[cwl.class] 	= RPLibrary:BuildColumn(temp[i][cwl.class], RPLibrary:ClassColor(temp[i][cwl.class])),
-					[cwl.status] 	= RPLibrary:BuildColumn(temp[i][cwl.status]),
-					--[cwl.datetime]	= RPLibrary:BuildColumn(db.realm.waitlist[i].cols[cwl.datetime].value),
-					[cwl.timestamp] = RPLibrary:BuildColumn(temp[i][cwl.timestamp]),
-				}
-			)
-			db.realm.waitlist[i].cols[cwl.timestamp]["DoCellUpdate"] = DoTimestampUpdate;
-			RPLibrary:AppendRow(
-				db.realm.waitlist[i],
-				CheckOnline, {temp[i][cwl.name]}
-			)
-		end
+		-- for i=1,#temp do
+			-- db.realm.waitlist[i] = RPLibrary:BuildRow(
+				-- {
+					-- [cwl.name] 		= RPLibrary:BuildColumn(temp[i][cwl.name]),
+					-- [cwl.alt] 		= RPLibrary:BuildColumn(temp[i][cwl.alt]), 
+					-- [cwl.class] 	= RPLibrary:BuildColumn(temp[i][cwl.class], RPLibrary:ClassColor(temp[i][cwl.class])),
+					-- [cwl.status] 	= RPLibrary:BuildColumn(temp[i][cwl.status]),
+					----[cwl.datetime]	= RPLibrary:BuildColumn(db.realm.waitlist[i].cols[cwl.datetime].value),
+					-- [cwl.timestamp] = RPLibrary:BuildColumn(temp[i][cwl.timestamp]),
+				-- }
+			-- )
+			-- db.realm.waitlist[i].cols[cwl.timestamp]["DoCellUpdate"] = DoTimestampUpdate;
+			-- RPLibrary:AppendRow(
+				-- db.realm.waitlist[i],
+				-- CheckOnline, {temp[i][cwl.name]}
+			-- )
+		-- end
+		db.realm.waitlist = RPLibrary:BuildTable(temp, cwlArg, CheckOnline)
 		syncdone = true
 	end
 	syncowner = nil
 	syncrequest = nil
 end
 
+--- Force the waitlist scrolling table to refresh.
 function RPWL:UpdateList()
 	if self.Frame then
 		self.scrollFrame:SortData();
 	end
 end
 
+-- Force the guildlist scrolling table to refresh.
 function RPWL:UpdateGuildList()
 	if self.Frame then
 		self.scrollFrameGuild:SortData();
 	end
 end
 
+--- Handle the event fired when clicking on any row in the waitlist scrolling table.
 function scrollFrameOnClick(rowFrame, cellFrame, data, cols, row, realrow, column, button, down)
 	if button == "LeftButton" then
-		RPWL.scrollFrame.selected = data[realrow]
+		if RPWL.scrollFrame.selected == data[realrow] then
+			RPWL.scrollFrame.selected = nil
+		else
+			RPWL.scrollFrame.selected = data[realrow]
+		end
 		RPWL.scrollFrame:Refresh()
 	elseif button == "RightButton" then
 		RPWL.scrollFrame.selected = data[realrow]
@@ -503,9 +702,14 @@ function scrollFrameOnClick(rowFrame, cellFrame, data, cols, row, realrow, colum
 	end
 end
 
+-- Handle the event fired when clicking on any row in the guildlist scrolling table.
 function scrollFrameGuildOnClick(rowFrame, cellFrame, data, cols, row, realrow, column, button, down)
 	if button == "LeftButton" then
-		RPWL.scrollFrameGuild.selected = data[realrow]
+		if RPWL.scrollFrameGuild.selected == data[realrow] then
+			RPWL.scrollFrameGuild.selected = nil
+		else
+			RPWL.scrollFrameGuild.selected = data[realrow]
+		end
 		RPWL.scrollFrameGuild:Refresh()
 	elseif button == "RightButton" then
 		RPWL.scrollFrameGuild.selected = data[realrow]
@@ -514,7 +718,10 @@ function scrollFrameGuildOnClick(rowFrame, cellFrame, data, cols, row, realrow, 
 	end
 end
 
-function CheckOnline(name)
+--- Returns a color object depending if the person is online or not.
+-- @param row The row that we are checking for.
+function CheckOnline(row)
+	local name = row.cols[cwl.name].value
 	--if (RPWL:Check(name)) then
 		if (RPWL.guildRoster[string.lower(name)]) then
 			if (RPWL.guildRoster[string.lower(name)]["online"]) then
@@ -525,12 +732,14 @@ function CheckOnline(name)
 	return {["r"] = 0.5, ["g"] = 0.5, ["b"] = 0.5, ["a"] = 1.0}
 end
 
+--- Adds the selected person to the waitlist.
 function RPWL:ButtonAdd()
 	if (self.scrollFrameGuild.selected) then
 		self:Add(self.scrollFrameGuild.selected.cols[cgr.name].value, "", time())
 	end
 end
 
+--- Removes the selected person from the waitlist.
 function RPWL:ButtonRemove()
 	if (self.scrollFrame.selected ~= nil) then
 		self:Remove(self.scrollFrame.selected.cols[cwl.name].value, false, false)

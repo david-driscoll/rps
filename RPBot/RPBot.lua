@@ -1,3 +1,18 @@
+--[[
+	*******************
+	* Raid Points System *
+	*******************
+	* File-Revision:  @file-revision@
+	* Project-Version:  @project-version@
+	* Last edited by:  @file-author@ on  @file-date-iso@ 
+	* Last commit:  @project-author@ on   @project-date-iso@ 
+	* Filename: RPBot/RPBot.lua
+	* Component: Core
+	* Details:
+		This file contains the core of the RPBot. Handles start up, database initialization,
+			database input and output.
+]]
+
 local db
 local prefix = "<RPB>"
 local enablecomm = true
@@ -11,6 +26,8 @@ local RPLibrary = LibStub:GetLibrary("RPLibrary")
 RPB = LibStub("AceAddon-3.0"):NewAddon("Raid Points Bot", "AceConsole-3.0", "AceEvent-3.0", "AceComm-3.0", "AceSerializer-3.0", "AceTimer-3.0")
 RPB.frames = {}
 
+--- Initial start up processes.
+-- Register chat commands, minor events and setup AceDB
 function RPB:OnInitialize()
 	db = LibStub("AceDB-3.0"):New("rpbDB", defaults, "Default")
 	self.db = db
@@ -39,6 +56,7 @@ function RPB:OnInitialize()
 			maxnonclass = 100,
 			minnonclass = 50,
 			divisor = 2,
+			diff = 50,
 			allownegative = true,
 			rounding = 5,
 			defaultraid = "DI",
@@ -47,6 +65,8 @@ function RPB:OnInitialize()
 	end
 end
 
+--- Enable processes
+-- Register all events, setup inital state and load featureset
 function RPB:OnEnable()
 	self:RegisterEvent("LOOT_OPENED")
 	self:RegisterEvent("START_LOOT_ROLL")
@@ -118,12 +138,12 @@ function RPB:PlayerToArray(player)
 	return list
 end
 
-function RPB:Message(channel, to, message)
+function RPB:Message(channel, message, to)
 	SendChatMessage(prefix.." "..message, channel, nil, to);
 end
 
-function RPB:Whisper(to, message)
-	SendChatMessage(prefix.." "..message, "WHISPER", nil, to);
+function RPB:Whisper(message, to)
+	RPB:Message("WHISPER", message, to);
 end
 
 function RPB:UseDatabase(database)
@@ -184,9 +204,9 @@ function RPB:PointsAdd(datetime, player, value, ty, itemid, reason, waitlist, wh
 		db.realm.version.lastaction = datetime
 		if (whisper) then
 			if (tonumber(value) > 0) then
-				self:Whisper(playerlist[i].name, "Added "..value.." points for "..reason)
+				self:Whisper("Added "..value.." points for "..reason, playerlist[i].name)
 			else
-				self:Whisper(playerlist[i].name, "Deducted "..value.." points for "..reason)
+				self:Whisper("Deducted "..value.." points for "..reason, playerlist[i].name)
 			end
 		end
 		self.activeraid[playerlist[i].name].points = self.activeraid[playerlist[i].name].points + tonumber(value)
@@ -218,7 +238,7 @@ function RPB:PointsRemove(datetime, player, actiontime, whisper, recieved)
 					db.realm.version.lastaction = actiontime
 					if (whisper) then
 						if (whisper) then
-							self:Whisper(name, "Removed "..value.." points for "..reason)
+							self:Whisper("Removed "..value.." points for "..reason, name)
 						end
 					end
 					self.activeraid[playerlist[i].name].points = self.activeraid[playerlist[i].name].points - tonumber(self.activeraid[playerlist[i].name].recentactions[j].value)
@@ -241,7 +261,7 @@ function RPB:PointsRemove(datetime, player, actiontime, whisper, recieved)
 						}
 						db.realm.version.lastaction = actiontime
 						if (whisper) then
-							self:Whisper(playerlist[i].name, "Removed "..value.." points for "..reason)
+							self:Whisper("Removed "..value.." points for "..reason, playerlist[i].name)
 						end
 						self.activeraid[playerlist[i].name].points = self.activeraid[playerlist[i].name].points - tonumber(self.activeraid[playerlist[i].name].recenthistory[j].value)
 						self.activeraid[playerlist[i].name].lifetime = self.activeraid[playerlist[i].name].lifetime - tonumber(self.activeraid[playerlist[i].name].recenthistory[j].value)
@@ -287,7 +307,7 @@ function RPB:PointsUpdate(datetime, player, points, ty, itemid, reason, waitlist
 					db.realm.version.lastaction = actiontime
 					found = true
 					if (whisper) then
-						self:Whisper(playerlist[i].name, "Updated points for "..reason.." Old: "..oldvalue.." New: "..points)
+						self:Whisper("Updated points for "..reason.." Old: "..oldvalue.." New: "..points, playerlist[i].name)
 					end
 					self.activeraid[playerlist[i].name].points = self.activeraid[playerlist[i].name].points - oldvalue + points
 					self.activeraid[playerlist[i].name].lifetime = self.activeraid[playerlist[i].name].lifetime - oldvalue + points
@@ -309,7 +329,7 @@ function RPB:PointsUpdate(datetime, player, points, ty, itemid, reason, waitlist
 						}
 						db.realm.version.lastaction = actiontime
 						if (whisper) then
-							self:Whisper(playerlist[i].name, "Updated points for "..reason.." Old: "..oldvalue.." New: "..points)
+							self:Whisper("Updated points for "..reason.." Old: "..oldvalue.." New: "..points, playerlist[i].name)
 						end
 						self.activeraid[playerlist[i].name].points = self.activeraid[playerlist[i].name].points - oldvalue + points
 						self.activeraid[playerlist[i].name].lifetime = self.activeraid[playerlist[i].name].lifetime - oldvalue + points
@@ -319,6 +339,34 @@ function RPB:PointsUpdate(datetime, player, points, ty, itemid, reason, waitlist
 			end
 		end
 	end
+end
+
+function RPB:CalculateLoss(points, cmd)
+	local feature = self.feature[cmd]
+	-- Make this loaclizable, for generic changes.
+	local divisor = feature.divisor or db.realm.settings.divisor
+	-- local minclass = feature.minclass or db.realm.settings.minclass
+	-- local maxclass = feature.maxclass or db.realm.settings.maxclass
+	local minnonclass = feature.minnonclass or db.realm.settings.minnonclass
+	local maxnonclass = feature.maxnonclass or db.realm.settings.maxnonclass
+	local loss
+	
+	current = ceil( ( points / divisor ) / db.realm.settings.rounding ) * db.realm.settings.rounding
+
+	-- If I want to continue with class specific item logic, this is where we do it.
+	if (current < minnonclass) then
+		loss = minnonclass
+	elseif (current > minnonclass and (not maxnonclass or current < maxnonclass)) then
+		loss = current
+	else
+		loss = maxnonclass
+	end
+
+	if (current > 0 and loss > current and not db.realm.settings.allownegative) then
+		loss = current
+	end
+	
+	return loss
 end
 
 function RPB:PointsShow(player, channel, to, history)
@@ -334,24 +382,11 @@ function RPB:PointsShow(player, channel, to, history)
 		if not channel then
 			self:Print(msg)
 		elseif not to then
-			RPB:Message(channel, nil, msg)
+			RPB:Message(channel, msg)
 		else
-			RPB:Whisper(to, msg)
+			RPB:Whisper(msg, to)
 		end
 	end
-end
-
-function RPB:SpecialEvents_ItemLooted(recipient, item, count)
-	-- When the recieved loot event fires.
-	-- Goal here is to track all loot recieved events across all clients.
-		-- Fires to hidden addon channel
-		-- If the event is viewed by the "master", ignore this event otherwise,
-			--take the first client that fired the event to the master for the next 20 seconds.  (So that duplicate data does not make it in)
-	RPB:Loot(recipient, item, count, time(), false)
-end
-
-function RPB:Loot(recipient, item, count, datetime, recieved)
-
 end
 
 function RPB:ChatCommand(msg)
