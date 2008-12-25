@@ -2,20 +2,49 @@
 	*******************
 	* Raid Points System *
 	*******************
-	* File-Revision:  @file-revision@
-	* Project-Version:  @project-version@
-	* Last edited by:  @file-author@ on  @file-date-iso@ 
-	* Last commit:  @project-author@ on   @project-date-iso@ 
-	* Filename: RPLibrary/RPLibrary.lua
+	* File-Revision: @file-revision@
+	* Project-Version: @project-version@
+	* Last edited by: @file-author@ on @file-date-iso@ 
+	* Last commit: @project-author@ on @project-date-iso@ 
+	* Filename: RPLibrary/Library.lua
 	* Component: Library
 	* Details:
 		This file deals with various functions that are shared between the RPBot and RPWaitlist.
 		Skining, lib-st building primarily.
 ]]
 
+-- Leverage SVN
+--@alpha@
 local MAJOR,MINOR = "RPLibrary", 1
-local RPLibrary, oldminor = LibStub:NewLibrary(MAJOR, MINOR)
+--@end-alpha@. 
+--[===[@non-alpha@
+local MAJOR,MINOR = "RPLibrary", @file-revision@
+--@end-non-alpha@]===]
+local RPLibrary = LibStub:NewLibrary(MAJOR, MINOR)
 if not RPLibrary then return end
+
+RPLibrary.embeds = RPLibrary.embeds or {} -- what objects embed this lib
+
+--- embedding and embed handling
+local mixins = {
+	"Skin",
+	"SkinEditBox",
+	"QualityBorder",
+	"QualityBorderResize",
+	"BackdropFrame",
+	"ItemButtonWrapper",
+	"BuildTable",
+	"BuildRow",
+	"BuildColumn",
+	"StripTable",
+	"StripRow",
+	"StripColumn",
+	"STBuild",
+	"STStrip",
+	"Split",
+	"classList",
+	"tierList",
+} 
 
 -- Copied from XLoot, makes my life that much easier.
 local _G = getfenv(0)
@@ -73,6 +102,43 @@ function RPLibrary:Skin(frame, header, bba, ba, fh, bd)
 		_G[frame:GetName().."Header"]:SetPoint("TOP", frame, "TOP", 0, 7)
 	end
 	
+end
+
+function RPLibrary:SkinEditBox(editbox)
+		editbox:SetFontObject("GameFontHighlightSmall")
+		editbox:SetScript("OnEditFocusLost", function(self)
+			self:HighlightText(0, 0)
+			ChatEdit_InsertLink = self.savedInsertLink
+		end)
+		editbox:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
+		editbox:SetScript("OnEditFocusGained", function(self) 
+			self:HighlightText()
+			self.savedInsertLink = ChatEdit_InsertLink
+			ChatEdit_InsertLink = function (link)
+				self:Insert(" "..link)
+			end
+		end)
+
+		local left = editbox:CreateTexture(nil, "BACKGROUND")
+		left:SetWidth(8)
+		left:SetHeight(20)
+		left:SetPoint("LEFT", -5, 0)
+		left:SetTexture("Interface\\Common\\Common-Input-Border")
+		left:SetTexCoord(0, 0.0625, 0, 0.625)
+
+		local right = editbox:CreateTexture(nil, "BACKGROUND")
+		right:SetWidth(8)
+		right:SetHeight(20)
+		right:SetPoint("RIGHT", 0, 0)
+		right:SetTexture("Interface\\Common\\Common-Input-Border")
+		right:SetTexCoord(0.9375, 1, 0, 0.625)
+
+		local center = editbox:CreateTexture(nil, "BACKGROUND")
+		center:SetHeight(20)
+		center:SetPoint("RIGHT", right, "LEFT", 0, 0)
+		center:SetPoint("LEFT", left, "RIGHT", 0, 0)
+		center:SetTexture("Interface\\Common\\Common-Input-Border")
+		center:SetTexCoord(0.0625, 0.9375, 0, 0.625)
 end
 
 --- Create a quality colored border on the given button.
@@ -152,6 +218,33 @@ function RPLibrary:ItemButtonWrapper(button, woff, hoff, edgesize, borderinset)
 	wrapper:Show()
 	return wrapper
 end
+--- Build a lib-st table, row or column intelegently.
+-- If given a table of tables of values then we create a table
+-- If given a table of values then create a row
+-- Otherwise create a column
+-- @param tb The object to convert
+-- @param argList Table of special arguements to pass to BuildColumn <code>{args, color, colorargs, dce}</code>
+-- @param color Color object for lib-st
+-- @param colorargs Arguments for the color object if it is a function
+-- @param dce DoCellUpdate, allows a custom display function to be used for that row or cell
+function RPLibrary:STBuild(value, argList, color, colorargs, dce)
+	local temp = false
+	if (type(value) == "table") then
+		-- Bad table, we want tables numbered only
+		if (not value[1]) then
+			return nil
+		end
+		
+		if (type(value[1]) == "table") then
+			temp = self:BuildTable(value, argList, color, colorargs, dce)
+		else 
+			temp = self:BuildRow(value, argList, color, colorargs, dce)
+		end
+	else
+		temp = self:BuildColumn(value, argList, color, colorargs, dce)
+	end
+	return temp
+end
 
 --- Build a table in the format required for lib-st.
 -- This function will take the given the data table and return it into lib-st format.
@@ -164,7 +257,7 @@ end
 function RPLibrary:BuildTable(tb, argList, color, colorargs, dce)
 	local newtb = {}
 	for i=1,#tb do
-		newtb[i] = RPLibrary:BuildRow(tb[i], argList, color, colorargs, dce)
+		newtb[i] = self:BuildRow(tb[i], argList, color, colorargs, dce)
 	end
 	return newtb
 end
@@ -181,7 +274,7 @@ function RPLibrary:BuildRow(row, argList, color, colorargs, dce)
 	local newrow = {["cols"] = {}}
 	for i=1,#row do
 		--RPB:Print(row[i], unpack(argList[i] or {}))
-		newrow["cols"][i] = RPLibrary:BuildColumn(row[i], unpack(argList[i] or {}))
+		newrow["cols"][i] = self:BuildColumn(row[i], unpack(argList[i] or {}))
 	end
 	if color then
 		newrow["color"] = color
@@ -223,6 +316,31 @@ function RPLibrary:BuildColumn(value, args, color, colorargs, dce)
 	end
 	return temp
 end
+--- Strip the extra information required for lib-st from the given object.
+-- If given a table of tables of values then we strip a table
+-- If given a table of values then strip a row
+-- Otherwise strip a column
+-- @param tb The object to convert
+-- @param argList Table of special arguements to pass to BuildColumn <code>{args, color, colorargs, dce}</code>
+-- @param color Color object for lib-st
+-- @param colorargs Arguments for the color object if it is a function
+-- @param dce DoCellUpdate, allows a custom display function to be used for that row or cell
+function RPLibrary:STStrip(value)
+	local temp = false
+	if (type(value) == "table") then
+		-- Bad table, we want tables numbered only
+		if not value[1] then return nil end
+		
+		if (type(value[1]) == "table") then
+			temp = self:StripTable(value)
+		else
+			temp = self:StripRow(value)
+		end
+	else
+		temp = self:StripColumn(value)
+	end
+	return temp
+end
 
 --- Strip the extra information required for lib-st from the given table.
 -- This function will take the given the lib-st table and return a simple data table
@@ -255,7 +373,7 @@ function RPLibrary:StripColumn(col)
 	return col.value
 end
 
-RPLibrary.classColors = {
+local classColors = {
 ["DEATH KNIGHT"]	= {["r"] = 0.77, 	["g"] = 0.12, 	["b"] = 0.23, 	["a"] = 1.0,},
 ["DRUID"] 			= {["r"] = 1.00, 	["g"] = 0.49, 	["b"] = 0.04, 	["a"] = 1.0,},
 ["HUNTER"] 			= {["r"] = 0.67, 	["g"] = 0.83, 	["b"] = 0.45, 	["a"] = 1.0,},
@@ -270,16 +388,30 @@ RPLibrary.classColors = {
 
 RPLibrary.classList = 
 {
-"death knight",
-"druid",
-"hunter",
-"mage",
-"paladin",
-"priest",
-"rogue",
-"shaman",
-"warlock",
-"warrior",
+["deathknight"]	= "DEATH KNIGHT",
+["druid"] 		= "DRUID",
+["hunter"] 		= "HUNTER",
+["mage"] 		= "MAGE",
+["paladin"] 	= "PALADIN",
+["priest"] 		= "PRIEST",
+["rogue"] 		= "ROGUE",
+["shaman"] 		= "SHAMAN",
+["warlock"]		= "WARLOCK",
+["warrior"]		= "WARRIOR",
+}
+
+RPLibrary.tierList = 
+{
+["DEATH KNIGHT"] = {"ROGUE", "DEATH KNIGHT", "MAGE", "DRUID"},
+["DRUID"] 		 = {"ROGUE", "DEATH KNIGHT", "MAGE", "DRUID"},
+["HUNTER"] 		 = {"WARRIOR", "HUNTER", "SHAMAN"},
+["MAGE"] 		 = {"ROGUE", "DEATH KNIGHT", "MAGE", "DRUID"},
+["PALADIN"] 	 = {"PALADIN", "PRIEST", "WARLOCK"},
+["PRIEST"] 		 = {"PALADIN", "PRIEST", "WARLOCK"},
+["ROGUE"] 		 = {"ROGUE", "DEATH KNIGHT", "MAGE", "DRUID"},
+["SHAMAN"] 		 = {"WARRIOR", "HUNTER", "SHAMAN"},
+["WARLOCK"] 	 = {"PALADIN", "PRIEST", "WARLOCK"},
+["WARRIOR"] 	 = {"WARRIOR", "HUNTER", "SHAMAN"},
 }
 
 -- String Split function
@@ -299,8 +431,8 @@ function RPLibrary:Split (s,t)
 end
 
 function ClassColor(class)
-	if (class and RPLibrary.classColors[string.upper(class)]) then
-		return RPLibrary.classColors[string.upper(class)]
+	if (class and classColors[string.upper(class)]) then
+		return classColors[string.upper(class)]
 	else
 		return {["r"] = 1.00, 	["g"] = 1.00, 	["b"] = 1.00, 	["a"] = 1.0,}
 	end
@@ -338,39 +470,15 @@ DoTimestampUpdate = function(rowFrame, cellFrame, data, cols, row, realrow, colu
 	end
 end
 
-function RPLibrary:SkinEditBox(editbox)
-		editbox:SetFontObject("GameFontHighlightSmall")
-		editbox:SetScript("OnEditFocusLost", function(self)
-			self:HighlightText(0, 0)
-			ChatEdit_InsertLink = self.savedInsertLink
-		end)
-		editbox:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
-		editbox:SetScript("OnEditFocusGained", function(self) 
-			self:HighlightText()
-			self.savedInsertLink = ChatEdit_InsertLink
-			ChatEdit_InsertLink = function (link)
-				self:Insert(" "..link)
-			end
-		end)
+function RPLibrary:Embed(target)
+	for k, v in pairs(mixins) do
+		target[v] = self[v]
+	end
+	self.embeds[target] = true
+	return target
+end
 
-		local left = editbox:CreateTexture(nil, "BACKGROUND")
-		left:SetWidth(8)
-		left:SetHeight(20)
-		left:SetPoint("LEFT", -5, 0)
-		left:SetTexture("Interface\\Common\\Common-Input-Border")
-		left:SetTexCoord(0, 0.0625, 0, 0.625)
-
-		local right = editbox:CreateTexture(nil, "BACKGROUND")
-		right:SetWidth(8)
-		right:SetHeight(20)
-		right:SetPoint("RIGHT", 0, 0)
-		right:SetTexture("Interface\\Common\\Common-Input-Border")
-		right:SetTexCoord(0.9375, 1, 0, 0.625)
-
-		local center = editbox:CreateTexture(nil, "BACKGROUND")
-		center:SetHeight(20)
-		center:SetPoint("RIGHT", right, "LEFT", 0, 0)
-		center:SetPoint("LEFT", left, "RIGHT", 0, 0)
-		center:SetTexture("Interface\\Common\\Common-Input-Border")
-		center:SetTexCoord(0.0625, 0.9375, 0, 0.625)
+--- Finally: upgrade our old embeds
+for target, v in pairs(RPLibrary.embeds) do
+	RPLibrary:Embed(target)
 end

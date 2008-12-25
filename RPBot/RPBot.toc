@@ -4,10 +4,11 @@
 ## Interface: 30000
 ## Notes: Raid Points Automation
 ## SavedVariables: 
-## X-Curse-Packaged-Version: r21
-## X-Curse-Project-Name: Raid Points System
-## X-Curse-Project-ID: rps
-## X-Curse-Repository-ID: wow/rps/mainline
+## X-Misc
+## * File-Revision: @file-revision@ 
+## * Project-Version: @project-revision@ 
+## * Last edited by: @file-author@ on @file-date-iso@
+## * Last commit by: @project-author@ on @project-date-iso@
 
 # Embeds
 #@no-lib-strip@
@@ -21,6 +22,8 @@ Libs\AceEvent-3.0\AceEvent-3.0.xml
 Libs\AceSerializer-3.0\AceSerializer-3.0.xml
 Libs\AceTimer-3.0\AceTimer-3.0.xml
 Libs\lib-st\Core.lua
+Libs\GuildRoster-3.0\GuildRoster.lua
+Libs\Roster-3.0\Roster.lua
 #@end-no-lib-strip@
 
 RPBot.lua

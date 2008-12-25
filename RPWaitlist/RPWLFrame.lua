@@ -2,11 +2,11 @@
 	*******************
 	* Raid Points System *
 	*******************
-	* File-Revision:  @file-revision@
-	* Project-Version:  @project-version@
-	* Last edited by:  @file-author@ on  @file-date-iso@ 
-	* Last commit:  @project-author@ on   @project-date-iso@ 
-	* Filename: RPWaitlist/RPWLFrame.lua
+	* File-Revision: @file-revision@
+	* Project-Version: @project-version@
+	* Last edited by: @file-author@ on @file-date-iso@ 
+	* Last commit: @project-author@ on @project-date-iso@ 
+	* Filename: RPWaitlist/WLFrame.lua
 	* Component: Waitlist
 	* Details:
 		This is the rolling interface.  Deals with displaying the proper lists, and awarding items.

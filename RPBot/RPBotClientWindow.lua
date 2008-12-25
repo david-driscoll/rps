@@ -2,11 +2,11 @@
 	*******************
 	* Raid Points System *
 	*******************
-	* File-Revision:  @file-revision@
-	* Project-Version:  @project-version@
-	* Last edited by:  @file-author@ on  @file-date-iso@ 
-	* Last commit:  @project-author@ on   @project-date-iso@ 
-	* Filename: RPBot/RPBotClientWindow.lua
+	* File-Revision: @file-revision@
+	* Project-Version: @project-version@
+	* Last edited by: @file-author@ on @file-date-iso@ 
+	* Last commit: @project-author@ on @project-date-iso@ 
+	* Filename: RPBot/BotClientWindow.lua
 	* Component: Client
 	* Details:
 		This file creates the client window.  The client window is similar to the group loot interface
@@ -35,7 +35,7 @@ function RPB:CreateFrameClientWindow()
 
 	-- Frame Textures, Drag Header, Close Button, Title
 	do
-		RPLibrary:Skin(f);
+		self:Skin(f);
 	   
 	   local button = CreateFrame("Button", f:GetName() .. "_CloseButton", f, "UIPanelCloseButton")
 	   button:SetPoint("TOPRIGHT", f, "TOPRIGHT", 5, 4)

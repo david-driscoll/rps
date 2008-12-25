@@ -2,11 +2,11 @@
 	*******************
 	* Raid Points System *
 	*******************
-	* File-Revision:  @file-revision@
-	* Project-Version:  @project-version@
-	* Last edited by:  @file-author@ on  @file-date-iso@ 
-	* Last commit:  @project-author@ on   @project-date-iso@ 
-	* Filename: RPBot/RPBotFrame.lua
+	* File-Revision: @file-revision@
+	* Project-Version: @project-version@
+	* Last edited by: @file-author@ on @file-date-iso@ 
+	* Last commit: @project-author@ on @project-date-iso@ 
+	* Filename: RPBot/BotFrame.lua
 	* Component: Placeholder
 	* Details:
 		This file is a placeholder currently, it holds lib-st definitions for several windows that
@@ -14,7 +14,7 @@
 ]]
 
 local db = RPB.db
-local RPLibrary = LibStub:GetLibrary("RPLibrary")
+--local RPLibrary = LibStub:GetLibrary("RPLibrary")
 RPB.columnDefinitons = {}
 
 RPB.columnDefinitons["PointsViewWindow"] = 

@@ -2,11 +2,11 @@
 	*******************
 	* Raid Points System *
 	*******************
-	* File-Revision:  @file-revision@
-	* Project-Version:  @project-version@
-	* Last edited by:  @file-author@ on  @file-date-iso@ 
-	* Last commit:  @project-author@ on   @project-date-iso@ 
-	* Filename: RPBot/RPBot.lua
+	* File-Revision: @file-revision@
+	* Project-Version: @project-version@
+	* Last edited by: @file-author@ on @file-date-iso@ 
+	* Last commit by: @project-author@ on @project-date-iso@ 
+	* Filename: RPBot/Bot.lua
 	* Component: Core
 	* Details:
 		This file contains the core of the RPBot. Handles start up, database initialization,
@@ -15,26 +15,39 @@
 
 local db
 local prefix = "<RPB>"
+-- Leverage SVN
+--@alpha@
+local CommCmd = "rpbDEBUG"
+--@end-alpha@. 
+--[===[@non-alpha@
+local CommCmd = "rpb"
+--@end-non-alpha@]===]
 local enablecomm = true
 local syncrequest, syncowner, syncdone
 local caninvite = false
 local bidtime
 local rollList
-LoadAddOn("RPLibrary")
-local RPLibrary = LibStub:GetLibrary("RPLibrary")
+--LoadAddOn("RPLibrary")
+--local RPLibrary = LibStub:GetLibrary("RPLibrary")
 
-RPB = LibStub("AceAddon-3.0"):NewAddon("Raid Points Bot", "AceConsole-3.0", "AceEvent-3.0", "AceComm-3.0", "AceSerializer-3.0", "AceTimer-3.0")
+RPB = LibStub("AceAddon-3.0"):NewAddon("Raid Points Bot", "AceConsole-3.0", "AceEvent-3.0", "AceComm-3.0", "AceSerializer-3.0", "AceTimer-3.0", "RPLibrary", "GuildRoster-3.0", "Roster-3.0")
 RPB.frames = {}
 
 --- Initial start up processes.
 -- Register chat commands, minor events and setup AceDB
 function RPB:OnInitialize()
+	-- Leverage SVN
+	--@alpha@
+	db = LibStub("AceDB-3.0"):New("rpDEBUGBotDB", defaults, "Default")
+	--@end-alpha@. 
+	--[===[@non-alpha@
 	db = LibStub("AceDB-3.0"):New("rpbDB", defaults, "Default")
+	--@end-non-alpha@]===]
 	self.db = db
 	self:RegisterChatCommand("rp", "ChatCommand")
 	self:RegisterChatCommand("rpb", "ChatCommand")
 	self:RegisterEvent("CHAT_MSG_WHISPER")
-	self:RegisterComm("rpb")
+	self:RegisterComm(CommCmd)
 	if not db.realm.version then
 		--self.activeraid = nil
 		db.realm.raid = {} 
@@ -75,6 +88,8 @@ function RPB:OnEnable()
 	--self:RegisterEvent("CANCEL_LOOT_ROLL")
 	self:RegisterEvent("CHAT_MSG_SYSTEM")
 	self:RegisterEvent("SpecialEvents_ItemLooted")
+	self:RosterScan()
+	self:GuildRosterScan()
 	syncrequest = nil
 	syncowner = nil
 	syncdone = false
@@ -91,8 +106,20 @@ function RPB:OnEnable()
 	
 end
 
+--- Event: CHAT_MSG_WHISPER.
+-- Fires when any whisper has been recieved
+-- param arg1 = Message received 
+-- param arg2 = Author 
+-- param arg3 = Language (or nil if universal, like messages from GM) (always seems to be an empty string; argument may have been kicked because whispering in non-standard language doesn't seem to be possible [any more?]) 
+-- param arg6 = status (like "DND" or "GM") 
+-- param arg7 = (number) message id (for reporting spam purposes?) (default: 0) 
+-- param arg8 = (number) unknown (default: 0)
 function RPB:CHAT_MSG_WHISPER()
-	RPB:WhisperCommand(arg1, arg2)
+	-- Fire our event off to our handler
+	
+	-- TODO: Hide or Show whispers depending on the state that whisper command comes back as.
+	--		This will let us hide the whisper if settings tell us to.
+	self:WhisperCommand(arg1, arg2)
 end
 
 function RPB:CHAT_MSG_SYSTEM()
@@ -102,44 +129,13 @@ function RPB:CHAT_MSG_SYSTEM()
 	end
 end
 
-function RPB:PlayerToArray(player)
-	local list = {}
-	if (player and type(player) == "string") then
-		if player == "all" then
-			-- Check if we are in a raid.
-			-- If we are in a raid get raid contents
-			-- Also get waitlist contents, only if in a raid.
-		else
-			playerlist = {}
-			splitlist = RPLibrary:Split(player, ",")
-			self:Print(splitlist)
-			for i=1,#splitlist do
-				if (RPLibrary.classList[splitlist[i]]) then
-					-- Search raid for all of "class"
-					-- Search waitlist for all of "class"
-					-- Add to list
-				elseif (splitlist[i] == "tier") then
-					-- Find player class
-					-- Determine which tier they belong to.
-					-- Search raid for all of those classes
-					-- Search waitlist for all of those classes
-					-- Add to list
-				else
-					self:Print(splitlist[i])
-					-- Assume this is a normal player, add them to the list.
-					list[#list+1] = {
-						name = splitlist[i],
-						waitlist = RPWL:Check(splitlist[i]) or false,
-					}
-				end
-			end
-		end
-	end
-	return list
+function RPB:Send(cmd, data)
+	if not enablecomm then return end
+	self:SendCommMessage(CommCmd, self:Serialize(cmd,data), "GUILD")
 end
 
 function RPB:Message(channel, message, to)
-	SendChatMessage(prefix.." "..message, channel, nil, to);
+	ChatThrottleLib:SendChatMessage("BULK", CommCmd, prefix.." "..message, channel, nil, to);
 end
 
 function RPB:Whisper(message, to)
@@ -182,13 +178,117 @@ function RPB:CreatePlayer(player)
 	}
 end
 
+function RPB:PlayerToArray(player, to)
+	local list = {}
+	if (player and type(player) == "string") then
+		if player == "all" then
+			local roster = self:Roster()
+			for k, v in pairs(roster) do
+				list[#list+1] = {
+					name = string.lower(v.name),
+					waitlist = false
+				}
+			end
+			local waitlist, cwl = RPWL:Waitlist()
+			for i=1,#waitlist do
+				list[#list+1] = {
+					name = string.lower(v.name),
+					waitlist = true
+				}
+			end
+			-- Check if we are in a raid.
+			-- If we are in a raid get raid contents
+			-- Also get waitlist contents, only if in a raid.
+		else
+			playerlist = {}
+			splitlist = self:Split(player,",")
+			--self:Print(splitlist)
+			for i=1,#splitlist do
+				if (self.classList[string.lower(splitlist[i])]) then
+					local class = self.classList[splitlist[i]]
+					local roster = self:Roster()
+					for k, v in pairs(roster) do
+						if v.class == class then
+							list[#list+1] = {
+								name = string.lower(v.name),
+								waitlist = false
+							}
+						end
+					end
+					if RPWL then
+						local waitlist, cwl = RPWL:Waitlist()
+						for i=1,#waitlist do
+							if string.upper(waitlist[i].cols[cwl.class].value) == class then
+								list[#list+1] = {
+									name = string.lower(v.name),
+									waitlist = true
+								}
+							end
+						end
+					end
+					-- Search raid for all of "class"
+					-- Search waitlist for all of "class"
+					-- Add to list
+				elseif (string.lower(splitlist[i]) == "tier") then
+					if to then
+						local roster = self:Roster()
+						if roster[to] then
+							local tier = self.tierList[roster[to].class]
+							for i=1,#tier do
+								local class = tier[i]
+								local roster = self:Roster()
+								for k, v in pairs(roster) do
+									if v.class == class then
+										list[#list+1] = {
+											name = string.lower(v.name),
+											waitlist = false
+										}
+									end
+								end
+								if RPWL then
+									local waitlist, cwl = RPWL:Waitlist()
+									for i=1,#waitlist do
+										if string.upper(waitlist[i].cols[cwl.class].value) == class then
+											list[#list+1] = {
+												name = string.lower(v.name),
+												waitlist = true
+											}
+										end
+									end
+								end
+							end
+						end
+					end
+					-- Find player class
+					-- Determine which tier they belong to.
+					-- Search raid for all of those classes
+					-- Search waitlist for all of those classes
+					-- Add to list
+				else
+					--self:Print(splitlist[i])
+					-- Assume this is a normal player, add them to the list.
+					local wl = false
+					if RPWL:Check(splitlist[i]) then
+						wl = true
+					end
+					list[#list+1] = {
+						name = string.lower(splitlist[i]),
+						waitlist = wl,
+					}
+				end
+			end
+		end
+	end
+	return list
+end
+
 function RPB:PointsAdd(datetime, player, value, ty, itemid, reason, waitlist, whisper, recieved)
 	local playerlist = self:PlayerToArray(player);
 	local playerdata
 	if not reason then return nil end
 
 	for i=1, #playerlist do
-		self:Print("Points Add For Loop",playerlist[i].name)
+		--self:Print("Points Add For Loop",playerlist[i].name)
 		if (not self.activeraid[playerlist[i].name]) then
 			self:CreatePlayer(playerlist[i].name)
 		end
@@ -370,10 +470,11 @@ function RPB:CalculateLoss(points, cmd)
 end
 
 function RPB:PointsShow(player, channel, to, history)
-	local playerlist = self:PlayerToArray(player);
+	local playerlist = self:PlayerToArray(player, to);
 	local playerdata
 	
 	if (#playerlist == 0) then
+		if not to then return end
 		playerlist = self:PlayerToArray(string.lower(to));
 	end
 	
@@ -398,7 +499,7 @@ function RPB:ChatCommand(msg)
 
 	-- Get our arguements, any ones not in the command are returned as nil
 	local cmd, pos = self:GetArgs(msg, 1, 1)
-	self:Print(cmd, pos)
+	--self:Print(cmd, pos)
 	if cmd and self.chatCommands[string.lower(cmd)] then
 		self.chatCommands[string.lower(cmd)](self, msg)
 	else
@@ -459,7 +560,7 @@ end
 RPB.chatCommands["help"] = RPB.chatCommands["?"]
 
 function RPB:WhisperCommand(msg, name)
-	wcmd, pos = self:GetArgs(msg, 1, 1)
+	wcmd, pos = self:GetArgs(msg, 2, 1)
 	-- Check to make sure the first line was "wl", otherwise this message isnt for us and we need to ignore it.
 	if (string.lower(wcmd) == "bonus" or
 		string.lower(wcmd) == "upgrade" or
@@ -469,7 +570,7 @@ function RPB:WhisperCommand(msg, name)
 	then
 		cmd = wcmd
 		wcmd = "rp"
-		self:Print(cmd)
+		--self:Print(cmd)
 	elseif (string.lower(wcmd) == "rp") then
 		wcmd, cmd, pos = self:GetArgs(msg, 2, 1)
 	end
@@ -512,11 +613,6 @@ local cs =
 
 function RPB:SyncCommand()
 
-end
-
-function RPB:Send(cmd, data)
-	if not enablecomm then return end
-	self:SendCommMessage("rpb", self:Serialize(cmd,data), "GUILD")
 end
 
 function RPB:OnCommReceived(pre, message, distribution, sender)

@@ -2,11 +2,11 @@
 	*******************
 	* Raid Points System *
 	*******************
-	* File-Revision:  @file-revision@
-	* Project-Version:  @project-version@
-	* Last edited by:  @file-author@ on  @file-date-iso@ 
-	* Last commit:  @project-author@ on   @project-date-iso@ 
-	* Filename: RPBot/RPBotFeatures.lua
+	* File-Revision: @file-revision@
+	* Project-Version: @project-version@
+	* Last edited by: @file-author@ on @file-date-iso@ 
+	* Last commit: @project-author@ on @project-date-iso@ 
+	* Filename: RPBot/BotFeatures.lua
 	* Component: Features
 	* Details:
 		Features is an odd name, this file defines how the bot will respond to certian tells, what
@@ -16,7 +16,7 @@
 ]]
 
 local db = RPB.db
-local RPLibrary = LibStub:GetLibrary("RPLibrary")
+--local RPLibrary = LibStub:GetLibrary("RPLibrary")
 local featureSets = {}
 featureSets["deus"] = 
 {

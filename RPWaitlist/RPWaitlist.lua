@@ -2,11 +2,11 @@
 	*******************
 	* Raid Points System *
 	*******************
-	* File-Revision:  @file-revision@
-	* Project-Version:  @project-version@
-	* Last edited by:  @file-author@ on  @file-date-iso@ 
-	* Last commit:  @project-author@ on   @project-date-iso@ 
-	* Filename: RPWaitlist/RPWaitlist.lua
+	* File-Revision: @file-revision@
+	* Project-Version: @project-version@
+	* Last edited by: @file-author@ on @file-date-iso@ 
+	* Last commit by: @project-author@ on @project-date-iso@ 
+	* Filename: RPWaitlist/Waitlist.lua
 	* Component: Waitlist
 	* Details:
 		Waitlist portion of the mod.
@@ -17,13 +17,20 @@
 
 local db
 local prefix = "<WL>"
+-- Leverage SVN
+--@alpha@
+local CommCmd = "rpwlDEBUG"
+--@end-alpha@. 
+--[===[@non-alpha@
+local CommCmd = "rpwl"
+--@end-non-alpha@]===]
 local enablecomm = true
 local syncrequest, syncowner, syncdone
 local rosterupdate
 local minRank = 2
-local RPLibrary = LibStub:GetLibrary("RPLibrary")
+--local RPLibrary = LibStub:GetLibrary("RPLibrary")
 
-RPWL = LibStub("AceAddon-3.0"):NewAddon("Raid Points Waitlist", "AceConsole-3.0", "AceEvent-3.0", "AceComm-3.0", "AceSerializer-3.0")
+RPWL = LibStub("AceAddon-3.0"):NewAddon("Raid Points Waitlist", "AceConsole-3.0", "AceEvent-3.0", "AceComm-3.0", "AceSerializer-3.0", "RPLibrary", "GuildRoster-3.0", "Roster-3.0")
 
 -- Local Table Constants
 -- To use the grid properly, we need numbered index's.
@@ -89,7 +96,13 @@ local cs =
 --- Initial start up processes.
 -- Register chat commands, minor events and setup AceDB
 function RPWL:OnInitialize()
+	-- Leverage SVN
+	--@alpha@
+	db = LibStub("AceDB-3.0"):New("rpDEBUGWaitlistDB", defaults, "Default")
+	--@end-alpha@. 
+	--[===[@non-alpha@
 	db = LibStub("AceDB-3.0"):New("rpwaitlistDB", defaults, "Default")
+	--@end-non-alpha@]===]
 	self.db = db
 	if SlashCmdList["WOWHEAD_LOOTER"] then
 		SLASH_WOWHEAD_LOOTER1 = "/whl"
@@ -105,8 +118,10 @@ end
 -- Register all events, setup inital state
 function RPWL:OnEnable()
 	self:RegisterEvent("CHAT_MSG_WHISPER")
-	self:RegisterEvent("GUILD_ROSTER_UPDATE")
-	self:RegisterComm("RPWL")
+	-- self:RegisterEvent("GUILD_ROSTER_UPDATE")
+	-- self:RegisterEvent("PLAYER_GUILD_UPDATE")
+	self:RegisterMessage("GuildRosterLib_Update")
+	self:RegisterComm(CommCmd)
 	syncrequest = nil
 	syncowner = nil
 	syncdone = false
@@ -115,31 +130,13 @@ function RPWL:OnEnable()
 	if (not (gr <= minRank)) then
 		enablecomm = false
 	end
-	self.guildRoster = {}
+	--self.guildRoster = {}
 	self.guildRosterIndex = {}
 	
-	db.realm.waitlist = RPLibrary:StripTable(db.realm.waitlist)
+	db.realm.waitlist = self:StripTable(db.realm.waitlist)
 	local temp = db.realm.waitlist
-	db.realm.waitlist = RPLibrary:BuildTable(temp, cwlArg, CheckOnline)
+	db.realm.waitlist = self:BuildTable(temp, cwlArg, CheckOnline)
 	db.realm.waitlist = temp
-	-- 
-	-- for i=1,#db.realm.waitlist do
-		-- db.realm.waitlist[i] = RPLibrary:BuildRow(
-			-- {
-				-- [cwl.name] 		= RPLibrary:BuildColumn(db.realm.waitlist[i].cols[cwl.name].value),
-				-- [cwl.alt] 		= RPLibrary:BuildColumn(db.realm.waitlist[i].cols[cwl.alt].value), 
-				-- [cwl.class] 	= RPLibrary:BuildColumn(db.realm.waitlist[i].cols[cwl.class].value, RPLibrary:ClassColor(db.realm.waitlist[i].cols[cwl.class].value)),
-				-- [cwl.status] 	= RPLibrary:BuildColumn(db.realm.waitlist[i].cols[cwl.status].value),
-				----[cwl.datetime] 	= RPLibrary:BuildColumn(db.realm.waitlist[i].cols[cwl.datetime].value),
-				-- [cwl.timestamp] = RPLibrary:BuildColumn(db.realm.waitlist[i].cols[cwl.timestamp].value),
-			-- }
-		-- )	
-		-- db.realm.waitlist[i].cols[cwl.timestamp]["DoCellUpdate"] = DoTimestampUpdate;
-		-- RPLibrary:AppendRow(
-			-- db.realm.waitlist[i],
-			-- CheckOnline, {db.realm.waitlist[i].cols[cwl.name].value}
-		-- )
-	-- end
 	
 	SetGuildRosterShowOffline(true)
 	self:Send(cs.syncrequest, "to me")
@@ -148,76 +145,27 @@ function RPWL:OnEnable()
 	
 end
 
---- Event: GUILD_ROSTER_UPDATE.
+--- Event: GuildRosterLib_Update.
 -- Fires when the guild roster has been updated.
 -- @param arg1 Unknown
-function RPWL:GUILD_ROSTER_UPDATE(arg1)
+function RPWL:GuildRosterLib_Update(arg1)
 	RPWL:RosterUpdate()
 end
 
---- Roster Update
--- Update the internal table with the current guild roster.
-function RPWL:RosterUpdate()
-	--if not rosterupdate then return end
-	if not GetGuildRosterShowOffline() then
-		SetGuildRosterShowOffline(true)
-	end
+--- Event: CHAT_MSG_WHISPER.
+-- Fires when any whisper has been recieved
+-- param arg1 = Message received 
+-- param arg2 = Author 
+-- param arg3 = Language (or nil if universal, like messages from GM) (always seems to be an empty string; argument may have been kicked because whispering in non-standard language doesn't seem to be possible [any more?]) 
+-- param arg6 = status (like "DND" or "GM") 
+-- param arg7 = (number) message id (for reporting spam purposes?) (default: 0) 
+-- param arg8 = (number) unknown (default: 0)
+function RPWL:CHAT_MSG_WHISPER()
+	-- Fire our event off to our handler
 	
-	self.guildRoster = {}
-	self.guildRosterIndex = {}
-	for i=1,GetNumGuildMembers(true) do
-		name, rank, rankIndex, level, class, zone, note, officernote, online, status = GetGuildRosterInfo(i)
-		self.guildRoster[string.lower(name)] = {
-			["name"]		= name,
-			["rank"]		= rank,
-			["rankIndex"]	= rankIndex,
-			["level"]		= level,
-			["class"]		= class,
-			["zone"]		= zone,
-			["officernote"]	= officernote,
-			["online"]		= online,
-			["status"]		= status,
-		}
-		--if (self.guildRoster[string.lower(name)]["online"]) then
-		local online
-		if (self.guildRoster[string.lower(name)]["online"]) then online = 'Y' else online = 'N' end
-			-- self.guildRosterIndex[#self.guildRosterIndex+1] = RPLibrary:BuildRow(
-				-- {
-					-- [cgr.name] 			=	RPLibrary:BuildColumn(self.guildRoster[string.lower(name)]["name"]),
-					-- [cgr.rank] 			=	RPLibrary:BuildColumn(self.guildRoster[string.lower(name)]["rank"]),
-					-- [cgr.level] 		=	RPLibrary:BuildColumn(self.guildRoster[string.lower(name)]["level"]),
-					-- [cgr.class] 		=	RPLibrary:BuildColumn(self.guildRoster[string.lower(name)]["class"], RPLibrary:ClassColor(class)),
-					-- [cgr.zone] 			=	RPLibrary:BuildColumn(self.guildRoster[string.lower(name)]["zone"]),
-					-- [cgr.officernote] 	=	RPLibrary:BuildColumn(self.guildRoster[string.lower(name)]["officernote"]),
-					-- [cgr.online] 		=	RPLibrary:BuildColumn(online),
-					-- [cgr.status] 		=	RPLibrary:BuildColumn(self.guildRoster[string.lower(name)]["status"]),
-					-- [cgr.rankindex]		= 	RPLibrary:BuildColumn(self.guildRoster[string.lower(name)]["rankIndex"]),
-				-- }
-			-- )
-			-- RPLibrary:AppendRow(
-				-- self.guildRosterIndex[#self.guildRosterIndex],
-				-- CheckOnline, {name}
-			-- )
-			self.guildRosterIndex[#self.guildRosterIndex+1] = RPLibrary:BuildRow(
-				{
-					[cgr.name] 			=	self.guildRoster[string.lower(name)]["name"],
-					[cgr.rank] 			=	self.guildRoster[string.lower(name)]["rank"],
-					[cgr.level] 		=	self.guildRoster[string.lower(name)]["level"],
-					[cgr.class] 		=	self.guildRoster[string.lower(name)]["class"],
-					[cgr.zone] 			=	self.guildRoster[string.lower(name)]["zone"],
-					[cgr.officernote] 	=	self.guildRoster[string.lower(name)]["officernote"],
-					[cgr.online] 		=	online,
-					[cgr.status] 		=	self.guildRoster[string.lower(name)]["status"],
-					[cgr.rankindex]		= 	self.guildRoster[string.lower(name)]["rankIndex"],
-				},
-				cgrArg, CheckOnline
-			)
-		--end
-	end
-	if self.scrollFrameGuild then
-		self.scrollFrameGuild:SetData(self.guildRosterIndex)
-		self:UpdateGuildList()
-	end
+	-- TODO: Hide or Show whispers depending on the state that whisper command comes back as.
+	--		This will let us hide the whisper if settings tell us to.
+	self:WhisperCommand(arg1, arg2)
 end
 
 --- Sends hidden channel information
@@ -226,23 +174,7 @@ end
 -- @param data The data to send
 function RPWL:Send(cmd, data)
 	if not enablecomm then return end
-	self:SendCommMessage("RPWL", self:Serialize(cmd,data), "GUILD")
-end
-
---- Event: CHAT_MSG_WHISPER.
--- Fires when any whisper has been recieved
--- @param arg1 = Message received 
--- @param arg2 = Author 
--- @param arg3 = Language (or nil if universal, like messages from GM) (always seems to be an empty string; argument may have been kicked because whispering in non-standard language doesn't seem to be possible [any more?]) 
--- @param arg6 = status (like "DND" or "GM") 
--- @param arg7 = (number) message id (for reporting spam purposes?) (default: 0) 
--- @param arg8 = (number) unknown (default: 0)
-function RPWL:CHAT_MSG_WHISPER(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
-	-- Fire our event off to our handler
-	
-	-- TODO: Hide or Show whispers depending on the state that whisper command comes back as.
-	--		This will let us hide the whisper if settings tell us to.
-	self:WhisperCommand(arg1, arg2)
+	self:SendCommMessage(CommCmd, self:Serialize(cmd,data), "GUILD")
 end
 
 --- Sends a chat message
@@ -250,7 +182,7 @@ end
 -- @param to Target player
 -- @param message Message to send, minus our prefix
 function RPWL:Message(channel, message, to)
-	SendChatMessage(prefix.." "..message, channel, nil, to);
+	ChatThrottleLib:SendChatMessage("BULK", CommCmd, prefix.." "..message, channel, nil, to);
 end
 
 --- Sends a whisper
@@ -288,30 +220,15 @@ end
 -- @param recieved Wether this command came from :SyncCommand or :WhisperCommand/:ChatCommand.  SyncCommand just wants to relay the information given, nothing has been generated.
 function RPWL:Add(name, alt, timestamp, recieved)
 	-- Make sure they are not on the wait list
+	local guildRoster = self:GuildRoster()
 	if not self:Check(name, alt) then
-		if self.guildRoster[string.lower(name)] then
-			class = self.guildRoster[string.lower(name)]["class"]
+		if guildRoster[string.lower(name)] then
+			class = guildRoster[string.lower(name)]["class"]
 		else
 			class = "Unknown"
 		end
 		index = (#db.realm.waitlist)+1
-		-- db.realm.waitlist[index] = RPLibrary:BuildRow(
-			-- {
-				----[cwl.index] 		= RPLibrary:BuildColumn(index),
-				-- [cwl.name] 		= RPLibrary:BuildColumn(name),
-				-- [cwl.alt] 		= RPLibrary:BuildColumn(alt), 
-				-- [cwl.class] 	= RPLibrary:BuildColumn(class, RPLibrary:ClassColor(class)),
-				-- [cwl.status] 	= RPLibrary:BuildColumn(""),
-				----[cwl.datetime] 	= RPLibrary:BuildColumn(date("%A %b %d %I:%M%p",timestamp)),
-				-- [cwl.timestamp] = RPLibrary:BuildColumn(timestamp),
-			-- }
-		-- )
-		-- db.realm.waitlist[index].cols[cwl.timestamp]["DoCellUpdate"] = DoTimestampUpdate;
-		-- RPLibrary:AppendRow(
-			-- db.realm.waitlist[index],
-			-- CheckOnline, {name}
-		-- )
-		db.realm.waitlist[index] = RPLibrary:BuildRow(
+		db.realm.waitlist[index] = self:BuildRow(
 			{
 				[cwl.name] 		= name,
 				[cwl.alt] 		= alt,
@@ -323,7 +240,7 @@ function RPWL:Add(name, alt, timestamp, recieved)
 		)
 		
 		if not recieved then
-			self:Send(cs.add, RPLibrary:StripRow(db.realm.waitlist[index]))
+			self:Send(cs.add, self:StripRow(db.realm.waitlist[index]))
 		end
 		self:Print(prefix.." Added",name," to the waitlist.")
 		self:UpdateList()
@@ -632,7 +549,7 @@ RPWL.syncCommands[cs.syncowner] = function(self, msg, sender)
 	if not syncowner and syncrequest ~= UnitName("player") then
 		syncowner = sender
 		if syncowner == UnitName("player") then
-			self:Send(cs.sync, RPLibrary:StripTable(db.realm.waitlist))
+			self:Send(cs.sync, self:StripTable(db.realm.waitlist))
 		end
 	end
 end
@@ -648,24 +565,7 @@ end
 RPWL.syncCommands[cs.sync] = function(self, msg, sender)
 	if not syncdone and syncowner ~= sender then
 		local temp = msg
-		-- for i=1,#temp do
-			-- db.realm.waitlist[i] = RPLibrary:BuildRow(
-				-- {
-					-- [cwl.name] 		= RPLibrary:BuildColumn(temp[i][cwl.name]),
-					-- [cwl.alt] 		= RPLibrary:BuildColumn(temp[i][cwl.alt]), 
-					-- [cwl.class] 	= RPLibrary:BuildColumn(temp[i][cwl.class], RPLibrary:ClassColor(temp[i][cwl.class])),
-					-- [cwl.status] 	= RPLibrary:BuildColumn(temp[i][cwl.status]),
-					----[cwl.datetime]	= RPLibrary:BuildColumn(db.realm.waitlist[i].cols[cwl.datetime].value),
-					-- [cwl.timestamp] = RPLibrary:BuildColumn(temp[i][cwl.timestamp]),
-				-- }
-			-- )
-			-- db.realm.waitlist[i].cols[cwl.timestamp]["DoCellUpdate"] = DoTimestampUpdate;
-			-- RPLibrary:AppendRow(
-				-- db.realm.waitlist[i],
-				-- CheckOnline, {temp[i][cwl.name]}
-			-- )
-		-- end
-		db.realm.waitlist = RPLibrary:BuildTable(temp, cwlArg, CheckOnline)
+		db.realm.waitlist = self:BuildTable(temp, cwlArg, CheckOnline)
 		syncdone = true
 	end
 	syncowner = nil
@@ -721,10 +621,11 @@ end
 --- Returns a color object depending if the person is online or not.
 -- @param row The row that we are checking for.
 function CheckOnline(row)
+	local guildRoster = RPWL:GuildRoster()
 	local name = row.cols[cwl.name].value
 	--if (RPWL:Check(name)) then
-		if (RPWL.guildRoster[string.lower(name)]) then
-			if (RPWL.guildRoster[string.lower(name)]["online"]) then
+		if (guildRoster[string.lower(name)]) then
+			if (guildRoster[string.lower(name)]["online"]) then
 				return {["r"] = 0.0, ["g"] = 1.0, ["b"] = 0.0, ["a"] = 1.0}
 			end
 		end
@@ -746,4 +647,42 @@ function RPWL:ButtonRemove()
 		self.scrollFrame.selected = nil
 		self.scrollFrame:Refresh();
 	end
+end
+
+--- Roster Update
+-- Update the internal table with the current guild roster.
+function RPWL:RosterUpdate()
+	--if not rosterupdate then return end
+	-- if not GetGuildRosterShowOffline() then
+		-- SetGuildRosterShowOffline(true)
+	-- end
+	self.guildRosterIndex = {}
+	local guildRoster = self:GuildRoster()
+	for key, value in pairs(guildRoster) do
+		local online
+		if (guildRoster[string.lower(key)]["online"]) then online = 'Y' else online = 'N' end
+			self.guildRosterIndex[#self.guildRosterIndex+1] = self:BuildRow(
+				{
+					[cgr.name] 			=	guildRoster[string.lower(key)]["name"],
+					[cgr.rank] 			=	guildRoster[string.lower(key)]["rank"],
+					[cgr.level] 		=	guildRoster[string.lower(key)]["level"],
+					[cgr.class] 		=	guildRoster[string.lower(key)]["class"],
+					[cgr.zone] 			=	guildRoster[string.lower(key)]["zone"],
+					[cgr.officernote] 	=	guildRoster[string.lower(key)]["officernote"],
+					[cgr.online] 		=	online,
+					[cgr.status] 		=	guildRoster[string.lower(key)]["status"],
+					[cgr.rankindex]		= 	guildRoster[string.lower(key)]["rankIndex"],
+				},
+				cgrArg, CheckOnline
+			)
+	end
+	if self.scrollFrameGuild then
+		self.scrollFrameGuild:SetData(self.guildRosterIndex)
+		self:UpdateGuildList()
+	end
+end
+
+--- Expose the waitlist table.
+function RPWL:Waitlist()
+	return db.realm.waitlist, cwl
 end

@@ -2,11 +2,11 @@
 	*******************
 	* Raid Points System *
 	*******************
-	* File-Revision:  @file-revision@
-	* Project-Version:  @project-version@
-	* Last edited by:  @file-author@ on  @file-date-iso@ 
-	* Last commit:  @project-author@ on   @project-date-iso@ 
-	* Filename: RPBot/RPBotLoot.lua
+	* File-Revision: @file-revision@
+	* Project-Version: @project-version@
+	* Last edited by: @file-author@ on @file-date-iso@ 
+	* Last commit: @project-author@ on @project-date-iso@ 
+	* Filename: RPBot/BotLoot.lua
 	* Component: Loot Tracking
 	* Details:
 		This file is currently a placeholder for the loot tracking, currently the events fire
@@ -16,7 +16,7 @@
 ]]
 
 local db = RPB.db
-local RPLibrary = LibStub:GetLibrary("RPLibrary")
+--local RPLibrary = LibStub:GetLibrary("RPLibrary")
 function RPB:CreateLootFrame(parent, id)
 	-- Shamefully taken from XLoot
 	-- Credits go to the original Dev, and the current Dev's maintaining it.  Still love the addon.
@@ -58,9 +58,9 @@ function RPB:CreateLootFrame(parent, id)
 
 	button:SetHitRectInsets(0, -165, 0, -1)
 	-- End template
-	local border = RPLibrary:QualityBorder(button)
-	local fborder = RPLibrary:QualityBorder(frame)
-	button.wrapper = RPLibrary:ItemButtonWrapper(button, 6, 6)
+	local border = self:QualityBorder(button)
+	local fborder = self:QualityBorder(frame)
+	button.wrapper = self:ItemButtonWrapper(button, 6, 6)
 	fborder:SetHeight(fborder:GetHeight() -3)
 	fborder:SetPoint("CENTER", frame, "CENTER", 4, .5)
 	fborder:SetAlpha(0.3)
@@ -97,7 +97,7 @@ function RPB:CreateLootFrame(parent, id)
 	self.frame:SetHeight(self.frame:GetHeight() + frame:GetHeight())
 
 	--Skin
-	RPLibrary:Skin(frame)
+	self:Skin(frame)
 	
 	button.text = text
 	button.desc = desc
@@ -109,19 +109,25 @@ function RPB:CreateLootFrame(parent, id)
 end
 
 function RPB:LOOT_OPENED()
-	local texture, item, count, quality
+	local texture, item, count, quality, link
 	local numLoot = GetNumLootItems()
 	for slot = 1, numLoot do
 		texture, item, count, quality = GetLootSlotInfo(slot)
-		self:UpdateLoot(texture, item, count, quality)
+		link = GetLootSlotLink(slot)
+		item = string.gsub(link,".-\124H([^\124]*)\124h.*", "%1")
+		-- avoid coins
+		if (count > 0) then
+			self:AddItem(link, item, count, quality)
+		end
+		--self:UpdateLoot(texture, item, count, quality)
 	end
 end
 
 function RPB:START_LOOT_ROLL()
-	local rollID = item
-	local link = GetLootRollItemLink(item)
-	local texture, name, count, quality, bop = GetLootRollItemInfo(item)
-	self:UpdateLoot(texture, item, count, quality)
+	local link = GetLootRollItemLink(arg1)
+	local texture, name, count, quality, bop = GetLootRollItemInfo(arg1)
+	local item = string.gsub(link,".-\124H([^\124]*)\124h.*", "%1")
+	--self:UpdateLoot(texture, item, count, quality)
 	self:AddItem(link, item, count, quality)
 end
 
