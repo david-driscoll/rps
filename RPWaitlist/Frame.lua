@@ -16,7 +16,7 @@
 
 RPWL.columnDefiniton = {}
 RPWL.columnDefiniton["waitlist"] =
-{
+{  
 	{
 		["name"] = "Name", 
 		["width"] = 80, 
