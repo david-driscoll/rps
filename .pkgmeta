@@ -33,12 +33,11 @@ externals:
         tag: latest
    
 move-folders:
-	RPS/Libs: RPS/RPLibrary/Libs
     RPS/RPLibrary: RPLibrary
+	RPS/Libs: RPLibrary/Libs
     RPS/RPBot: RPBot
     RPS/RPBotSettings: RPBotSettings
     RPS/RPWaitlist: RPWaitlist
 
 ignore:
-    - RPS/RPS.toc
-    - RPS/.pkgmeta
+    - RPS.toc
