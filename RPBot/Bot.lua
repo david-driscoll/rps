@@ -33,6 +33,29 @@ local rollList
 RPB = LibStub("AceAddon-3.0"):NewAddon("Raid Points Bot", "AceConsole-3.0", "AceEvent-3.0", "AceComm-3.0", "AceSerializer-3.0", "AceTimer-3.0", "RPLibrary", "GuildRoster-3.0", "Roster-3.0")
 RPB.frames = {}
 
+local function whisperFilter()
+	local settings = RPB.settings
+	if 		event == "CHAT_MSG_WHISPER_INFORM"
+			and settings.filterOut == "1"
+			and strfind(arg1, "^"..prefix)
+	then
+		return true
+	elseif 	event == "CHAT_MSG_WHISPER"
+			and settings.filterIn == "1"
+			and (
+				strfind(arg1, "^rp")
+				or strfind(arg1, "^bonus")
+				or strfind(arg1, "^upgrade")
+				or strfind(arg1, "^offspec")
+				or strfind(arg1, "^sidegrade")
+				or strfind(arg1, "^rot")
+			)
+	then
+		return true
+	end
+	return false
+end
+
 --- Initial start up processes.
 -- Register chat commands, minor events and setup AceDB
 function RPB:OnInitialize()
@@ -47,6 +70,8 @@ function RPB:OnInitialize()
 	self:RegisterChatCommand("rp", "ChatCommand")
 	self:RegisterChatCommand("rpb", "ChatCommand")
 	self:RegisterEvent("CHAT_MSG_WHISPER")
+	ChatFrame_AddMessageEventFilter("CHAT_MSG_WHISPER", whisperFilter)
+	ChatFrame_AddMessageEventFilter("CHAT_MSG_WHISPER_INFORM", whisperFilter)
 	self:RegisterComm(CommCmd)
 	if not db.realm.version then
 		--self.activeraid = nil
@@ -58,24 +83,33 @@ function RPB:OnInitialize()
 			lastaction, -- date and time the last action was taken
 			lastloot, -- date and time last looted item was taken
 		}
-		db.realm.settings = 
-		{
-			bidtime = 30,
-			lastcalltime = 5,
-			showwhispers = false,
-			notifyonchange = true,
-			maxclass = 100,
-			minclass = 50,
-			maxnonclass = 100,
-			minnonclass = 50,
-			divisor = 2,
-			diff = 50,
-			allownegative = true,
-			rounding = 5,
-			defaultraid = "DI",
-			defaultfeature = "deus",
-		}
 	end
+	-- if not db.realm.settings then
+		-- db.realm.settings = 
+		-- {
+			-- syncPassword	= "",
+			-- syncSettings	= "1",
+			-- syncIn			= "1",
+			-- syncOut			= "1",
+			-- filterIn		= "0",
+			-- filterOut		= "1",
+			-- raid 			= "di",
+			----defaultRaid 	= "di",
+			-- featureSet			= "deus",
+			----defaultfeatureSet 	= "deus",
+			-- broadcast 		= "AUTO",
+			-- bidtime 		= "30",
+			-- lastcall	 	= "5",
+			-- maxclass 		= "100",
+			-- minclass 		= "50",
+			-- maxnonclass 	= "100",
+			-- minnonclass 	= "50",
+			-- divisor 		= "2",
+			-- diff 			= "50",
+			-- allownegative 	= "1",
+			-- rounding 		= "5",
+		-- }
+	-- end
 end
 
 --- Enable processes
@@ -95,9 +129,13 @@ function RPB:OnEnable()
 	syncdone = false
 	self.activeraid = nil
 	
-	self.rollList = {}
-	self.feature = {}
-	self:AddFeatureSet(db.realm.settings.defaultfeature)
+	self.settings = RPBS.db.realm.settings
+	self.feature = RPBS.feature
+	self.options = RPBS.options
+	-- self:AddFeatureSet(db.realm.settings.featureSet)
+	
+	-- self.options = self:RegisterPortfolio()
+	-- self.options:refresh()
 	
 	--SetGuildRosterShowOffline(true)
 	--self:Send("syncrequest", "to me")
@@ -122,13 +160,6 @@ function RPB:CHAT_MSG_WHISPER()
 	self:WhisperCommand(arg1, arg2)
 end
 
-function RPB:CHAT_MSG_SYSTEM()
-	if (RPB.rollWindowRolling and event == "CHAT_MSG_SYSTEM" and string.find(arg1, "rolls") and string.find(arg1, "%(1%-100%)")) then
-		_, _, player, roll = string.find(arg1, "(.+) " .. "rolls" .. " (%d+)");
-		RPB:RollListUpdate(player, roll)
-	end
-end
-
 function RPB:Send(cmd, data)
 	if not enablecomm then return end
 	self:SendCommMessage(CommCmd, self:Serialize(cmd,data), "GUILD")
@@ -142,8 +173,30 @@ function RPB:Whisper(message, to)
 	RPB:Message("WHISPER", message, to);
 end
 
+function RPB:Broadcast(message)
+	local channel = self.settings.broadcast
+	if channel == "AUTO" then
+		if UnitInRaid("player") then
+			channel = "RAID"
+		elseif UnitInParty("player") then
+			channel = "PARTY"
+		elseif GetGuildInfo("player") then
+			channel = "GUILD"
+		else
+			channel = "PRINT"
+		end
+	end
+
+	if channel == "PRINT" then
+		self:Print(prefix.." "..message)
+	else
+		self:Message(channel, message);
+	end
+end
+
 function RPB:UseDatabase(database)
 	if (database and db.realm.raid[string.lower(database)]) then
+		self.settings.raid = string.lower(database)
 		self.activeraid = db.realm.raid[string.lower(database)]
 		self:Print("Now running database", string.lower(database))
 		return true
@@ -154,20 +207,25 @@ function RPB:UseDatabase(database)
 end
 
 function RPB:CreateDatabase(database)
-	db.realm.raid[string.lower(database)] = 
-	{
-	}
-	self:Print("Database",database,"created!")
-	db.realm.version.lastaction = time()
-	RPB:UseDatabase(database)
+	if database then
+		db.realm.raid[string.lower(database)] = 
+		{
+		}
+		self:Print("Database",database,"created!")
+		db.realm.version.lastaction = time()
+		RPBS:AddRaid(database)
+		RPB:UseDatabase(database)
+	end
 end
 
 function RPB:CreatePlayer(player)
+	local pinfo = self:GuildRosterByName(player) or self:RosterByName(player)
 	self.activeraid[string.lower(player)] = {
 		id 				= -1,
-		name 			= string.lower(player),
-		fullname 		= player,
-		class			= "Unknown",
+		name 			= string.lower(pinfo.name) or string.lower(name),
+		fullname 		= pinfo.name or player,
+		class			= pinfo.class or "Unknown",
+		rank			= pinfo.rank or "Unknown",
 		gender			= "Unknown",
 		race			= "Unknown",
 		talent			= "Unknown",
@@ -178,6 +236,25 @@ function RPB:CreatePlayer(player)
 	}
 end
 
+function RPB:GetPlayer(player, col)
+	if self.activeraid and self.activeraid[string.lower(player)] then
+		if col then
+			return self.activeraid[string.lower(player)][col]
+		else
+			return self.activeraid[string.lower(player)]
+		end
+	end
+	return nil
+end
+
+function RPB:SetPlayer(player, col, val)
+	if self.activeraid and self.activeraid[string.lower(player)] then
+		self.activeraid[string.lower(player)][col] = val
+		return true
+	end
+	return false
+end
+
 function RPB:PlayerToArray(player, to)
 	local list = {}
 	if (player and type(player) == "string") then
@@ -185,32 +262,34 @@ function RPB:PlayerToArray(player, to)
 			local roster = self:Roster()
 			for k, v in pairs(roster) do
 				list[#list+1] = {
-					name = string.lower(v.name),
+					name = v.name,
 					waitlist = false
 				}
 			end
-			local waitlist, cwl = RPWL:Waitlist()
-			for i=1,#waitlist do
-				list[#list+1] = {
-					name = string.lower(v.name),
-					waitlist = true
-				}
+			if RPWL then
+				local waitlist, cwl = RPWL:Waitlist()
+				for i=1,#waitlist do
+					list[#list+1] = {
+						name = waitlist[i].cols[cwl.name].value,
+						waitlist = true
+					}
+				end
 			end
 			-- Check if we are in a raid.
 			-- If we are in a raid get raid contents
 			-- Also get waitlist contents, only if in a raid.
 		else
 			playerlist = {}
-			splitlist = self:Split(player,",")
+			splitlist = { strsplit(",",player) }
 			--self:Print(splitlist)
 			for i=1,#splitlist do
 				if (self.classList[string.lower(splitlist[i])]) then
-					local class = self.classList[splitlist[i]]
+					local class = self.classList[string.lower(splitlist[i])]
 					local roster = self:Roster()
 					for k, v in pairs(roster) do
 						if v.class == class then
 							list[#list+1] = {
-								name = string.lower(v.name),
+								name = v.name,
 								waitlist = false
 							}
 						end
@@ -220,7 +299,7 @@ function RPB:PlayerToArray(player, to)
 						for i=1,#waitlist do
 							if string.upper(waitlist[i].cols[cwl.class].value) == class then
 								list[#list+1] = {
-									name = string.lower(v.name),
+									name = waitlist[i].cols[cwl.name].value,
 									waitlist = true
 								}
 							end
@@ -240,7 +319,7 @@ function RPB:PlayerToArray(player, to)
 								for k, v in pairs(roster) do
 									if v.class == class then
 										list[#list+1] = {
-											name = string.lower(v.name),
+											name = v.name,
 											waitlist = false
 										}
 									end
@@ -250,7 +329,7 @@ function RPB:PlayerToArray(player, to)
 									for i=1,#waitlist do
 										if string.upper(waitlist[i].cols[cwl.class].value) == class then
 											list[#list+1] = {
-												name = string.lower(v.name),
+												name = waitlist[i].cols[cwl.name].value,
 												waitlist = true
 											}
 										end
@@ -268,11 +347,11 @@ function RPB:PlayerToArray(player, to)
 					--self:Print(splitlist[i])
 					-- Assume this is a normal player, add them to the list.
 					local wl = false
-					if RPWL:Check(splitlist[i]) then
+					if RPWL and RPWL:Check(splitlist[i]) then
 						wl = true
 					end
 					list[#list+1] = {
-						name = string.lower(splitlist[i]),
+						name = splitlist[i],
 						waitlist = wl,
 					}
 				end
@@ -289,10 +368,18 @@ function RPB:PointsAdd(datetime, player, value, ty, itemid, reason, waitlist, wh
 
 	for i=1, #playerlist do
 		--self:Print("Points Add For Loop",playerlist[i].name)
-		if (not self.activeraid[playerlist[i].name]) then
+		if (not self.activeraid[string.lower(playerlist[i].name)]) then
 			self:CreatePlayer(playerlist[i].name)
 		end
-		self.activeraid[playerlist[i].name].recentactions[(#(self.activeraid[playerlist[i].name].recentactions)+1)] = {
+		if not itemid or type(itemid) == string then
+			_, _, itemid  = string.find(reason, "item:(%d+)");
+			itemid = tonumber(itemid)
+			--itemid = tonumber(string.gsub(reason,".*(item:%d+:%d+:%d+:%d+).*","%1"))
+			if not itemid then
+				itemid = 0
+			end
+		end
+		self.activeraid[string.lower(playerlist[i].name)].recentactions[(#(self.activeraid[string.lower(playerlist[i].name)].recentactions)+1)] = {
 			datetime 	= datetime,
 			ty			= ty,
 			itemid		= tonumber(itemid),
@@ -309,8 +396,8 @@ function RPB:PointsAdd(datetime, player, value, ty, itemid, reason, waitlist, wh
 				self:Whisper("Deducted "..value.." points for "..reason, playerlist[i].name)
 			end
 		end
-		self.activeraid[playerlist[i].name].points = self.activeraid[playerlist[i].name].points + tonumber(value)
-		self.activeraid[playerlist[i].name].lifetime = self.activeraid[playerlist[i].name].lifetime + tonumber(value)
+		self.activeraid[string.lower(playerlist[i].name)].points = self.activeraid[string.lower(playerlist[i].name)].points + tonumber(value)
+		self.activeraid[string.lower(playerlist[i].name)].lifetime = self.activeraid[string.lower(playerlist[i].name)].lifetime + tonumber(value)
 	end
 end
 
@@ -331,9 +418,9 @@ function RPB:PointsRemove(datetime, player, actiontime, whisper, recieved)
 	
 	for i=1, #playerlist do
 		found = false
-		if (self.activeraid[playerlist[i].name]) then
-			for j=1, #self.activeraid[playerlist[i].name].recentactions do
-				if (self.activeraid[playerlist[i].name].recentactions[j].datetime == datetime) then
+		if (self.activeraid[string.lower(playerlist[i].name)]) then
+			for j=1, #self.activeraid[string.lower(playerlist[i].name)].recentactions do
+				if (self.activeraid[string.lower(playerlist[i].name)].recentactions[j].datetime == datetime) then
 					found = true
 					db.realm.version.lastaction = actiontime
 					if (whisper) then
@@ -341,31 +428,31 @@ function RPB:PointsRemove(datetime, player, actiontime, whisper, recieved)
 							self:Whisper("Removed "..value.." points for "..reason, name)
 						end
 					end
-					self.activeraid[playerlist[i].name].points = self.activeraid[playerlist[i].name].points - tonumber(self.activeraid[playerlist[i].name].recentactions[j].value)
-					self.activeraid[playerlist[i].name].lifetime = self.activeraid[playerlist[i].name].lifetime - tonumber(self.activeraid[playerlist[i].name].recentactions[j].value)
-					tremove(self.activeraid[playerlist[i].name].recentactions,j)
+					self.activeraid[string.lower(playerlist[i].name)].points = self.activeraid[string.lower(playerlist[i].name)].points - tonumber(self.activeraid[string.lower(playerlist[i].name)].recentactions[j].value)
+					self.activeraid[string.lower(playerlist[i].name)].lifetime = self.activeraid[string.lower(playerlist[i].name)].lifetime - tonumber(self.activeraid[string.lower(playerlist[i].name)].recentactions[j].value)
+					tremove(self.activeraid[string.lower(playerlist[i].name)].recentactions,j)
 					break
 				end
 			end
 			if (not found and player ~= "all") then
-				for j=1, #self.activeraid[playerlist[i].name].recenthistory do
-					if (self.activeraid[playerlist[i].name].recenthistory[j].datetime == datetime) then
-						self.activeraid[playerlist[i].name].recentactions[#((self.activeraid[playerlist[i].name].recentactions)+1)] = {
-							datetime 	= self.activeraid[playerlist[i].name].recenthistory[j].datetime,
-							ty			= self.activeraid[playerlist[i].name].recenthistory[j].ty,
-							itemid		= self.activeraid[playerlist[i].name].recenthistory[j].itemid,
-							reason		= self.activeraid[playerlist[i].name].recenthistory[j].reason,
-							value		= self.activeraid[playerlist[i].name].recenthistory[j].value,
-							waitlist	= self.activeraid[playerlist[i].name].recenthistory[j].waitlist,
+				for j=1, #self.activeraid[string.lower(playerlist[i].name)].recenthistory do
+					if (self.activeraid[string.lower(playerlist[i].name)].recenthistory[j].datetime == datetime) then
+						self.activeraid[string.lower(playerlist[i].name)].recentactions[#((self.activeraid[string.lower(playerlist[i].name)].recentactions)+1)] = {
+							datetime 	= self.activeraid[string.lower(playerlist[i].name)].recenthistory[j].datetime,
+							ty			= self.activeraid[string.lower(playerlist[i].name)].recenthistory[j].ty,
+							itemid		= self.activeraid[string.lower(playerlist[i].name)].recenthistory[j].itemid,
+							reason		= self.activeraid[string.lower(playerlist[i].name)].recenthistory[j].reason,
+							value		= self.activeraid[string.lower(playerlist[i].name)].recenthistory[j].value,
+							waitlist	= self.activeraid[string.lower(playerlist[i].name)].recenthistory[j].waitlist,
 							action	= "Delete",
 						}
 						db.realm.version.lastaction = actiontime
 						if (whisper) then
 							self:Whisper("Removed "..value.." points for "..reason, playerlist[i].name)
 						end
-						self.activeraid[playerlist[i].name].points = self.activeraid[playerlist[i].name].points - tonumber(self.activeraid[playerlist[i].name].recenthistory[j].value)
-						self.activeraid[playerlist[i].name].lifetime = self.activeraid[playerlist[i].name].lifetime - tonumber(self.activeraid[playerlist[i].name].recenthistory[j].value)
-						tremove(self.activeraid[playerlist[i].name].recenthistory,j)
+						self.activeraid[string.lower(playerlist[i].name)].points = self.activeraid[string.lower(playerlist[i].name)].points - tonumber(self.activeraid[string.lower(playerlist[i].name)].recenthistory[j].value)
+						self.activeraid[string.lower(playerlist[i].name)].lifetime = self.activeraid[string.lower(playerlist[i].name)].lifetime - tonumber(self.activeraid[string.lower(playerlist[i].name)].recenthistory[j].value)
+						tremove(self.activeraid[string.lower(playerlist[i].name)].recenthistory,j)
 						break
 					end
 				end
@@ -391,11 +478,11 @@ function RPB:PointsUpdate(datetime, player, points, ty, itemid, reason, waitlist
 	
 	for i=1, #playerlist do
 		found = false
-		if (self.activeraid[playerlist[i].name]) then
-			for j=1, #self.activeraid[playerlist[i].name].recentactions do
-				if (self.activeraid[playerlist[i].name].recentactions[j].datetime == datetime) then
-					local oldvalue = self.activeraid[playerlist[i].name].recentactions[j].value
-					self.activeraid[playerlist[i].name].recentactions[j] = {
+		if (self.activeraid[string.lower(playerlist[i].name)]) then
+			for j=1, #self.activeraid[string.lower(playerlist[i].name)].recentactions do
+				if (self.activeraid[string.lower(playerlist[i].name)].recentactions[j].datetime == datetime) then
+					local oldvalue = self.activeraid[string.lower(playerlist[i].name)].recentactions[j].value
+					self.activeraid[string.lower(playerlist[i].name)].recentactions[j] = {
 						datetime 	= datetime,
 						ty			= ty,
 						itemid		= itemid,
@@ -409,16 +496,16 @@ function RPB:PointsUpdate(datetime, player, points, ty, itemid, reason, waitlist
 					if (whisper) then
 						self:Whisper("Updated points for "..reason.." Old: "..oldvalue.." New: "..points, playerlist[i].name)
 					end
-					self.activeraid[playerlist[i].name].points = self.activeraid[playerlist[i].name].points - oldvalue + points
-					self.activeraid[playerlist[i].name].lifetime = self.activeraid[playerlist[i].name].lifetime - oldvalue + points
+					self.activeraid[string.lower(playerlist[i].name)].points = self.activeraid[string.lower(playerlist[i].name)].points - oldvalue + points
+					self.activeraid[string.lower(playerlist[i].name)].lifetime = self.activeraid[string.lower(playerlist[i].name)].lifetime - oldvalue + points
 					break
 				end
 			end
 			if (not found and player ~= "all") then
-				for j=1, #self.activeraid[playerlist[i].name].recenthistory do
-					if (self.activeraid[playerlist[i].name].recenthistory[j].datetime == datetime) then
-						local oldvalue = self.activeraid[playerlist[i].name].recenthistory[j].value
-						self.activeraid[playerlist[i].name].recenthistory[j] = {
+				for j=1, #self.activeraid[string.lower(playerlist[i].name)].recenthistory do
+					if (self.activeraid[string.lower(playerlist[i].name)].recenthistory[j].datetime == datetime) then
+						local oldvalue = self.activeraid[string.lower(playerlist[i].name)].recenthistory[j].value
+						self.activeraid[string.lower(playerlist[i].name)].recenthistory[j] = {
 							datetime 	= datetime,
 							ty			= ty,
 							itemid		= itemid,
@@ -431,8 +518,8 @@ function RPB:PointsUpdate(datetime, player, points, ty, itemid, reason, waitlist
 						if (whisper) then
 							self:Whisper("Updated points for "..reason.." Old: "..oldvalue.." New: "..points, playerlist[i].name)
 						end
-						self.activeraid[playerlist[i].name].points = self.activeraid[playerlist[i].name].points - oldvalue + points
-						self.activeraid[playerlist[i].name].lifetime = self.activeraid[playerlist[i].name].lifetime - oldvalue + points
+						self.activeraid[string.lower(playerlist[i].name)].points = self.activeraid[string.lower(playerlist[i].name)].points - oldvalue + points
+						self.activeraid[string.lower(playerlist[i].name)].lifetime = self.activeraid[string.lower(playerlist[i].name)].lifetime - oldvalue + points
 						break
 					end
 				end
@@ -444,14 +531,14 @@ end
 function RPB:CalculateLoss(points, cmd)
 	local feature = self.feature[cmd]
 	-- Make this loaclizable, for generic changes.
-	local divisor = feature.divisor or db.realm.settings.divisor
+	local divisor = tonumber(feature.divisor) or tonumber(self.settings.divisor)
 	-- local minclass = feature.minclass or db.realm.settings.minclass
 	-- local maxclass = feature.maxclass or db.realm.settings.maxclass
-	local minnonclass = feature.minnonclass or db.realm.settings.minnonclass
-	local maxnonclass = feature.maxnonclass or db.realm.settings.maxnonclass
+	local minnonclass = tonumber(feature.minnonclass) or tonumber(self.settings.minnonclass)
+	local maxnonclass = tonumber(feature.maxnonclass) or tonumber(self.settings.maxnonclass)
 	local loss
 	
-	current = ceil( ( points / divisor ) / db.realm.settings.rounding ) * db.realm.settings.rounding
+	current = ceil( ( points / divisor ) / tonumber(self.settings.rounding) ) * tonumber(self.settings.rounding)
 
 	-- If I want to continue with class specific item logic, this is where we do it.
 	if (current < minnonclass) then
@@ -462,7 +549,7 @@ function RPB:CalculateLoss(points, cmd)
 		loss = maxnonclass
 	end
 
-	if (current > 0 and loss > current and not db.realm.settings.allownegative) then
+	if (current > 0 and loss > current and not tonumber(self.settings.allownegative)) then
 		loss = current
 	end
 	
@@ -479,7 +566,11 @@ function RPB:PointsShow(player, channel, to, history)
 	end
 	
 	for i=1, #playerlist do
-		msg = playerlist[i].name .. ": " .. self.activeraid[playerlist[i].name].points
+		local wait = ""
+		if playerlist[i].waitlist then
+			wait = "{star}"
+		end
+		msg = wait .. self:GetPlayer(playerlist[i].name,"fullname") .. ": " .. self:GetPlayer(playerlist[i].name,"points")
 		if not channel then
 			self:Print(msg)
 		elseif not to then
@@ -492,8 +583,8 @@ end
 
 function RPB:ChatCommand(msg)
 	if (not self.activeraid) then
-		if (not self:UseDatabase(db.realm.settings.defaultraid)) then
-			self:CreateDatabase(db.realm.settings.defaultraid)
+		if (not self:UseDatabase(self.settings.raid)) then
+			self:CreateDatabase(self.settings.raid)
 		end
 	end
 
@@ -551,13 +642,22 @@ end
 
 RPB.chatCommands["force"] = function (self, msg)
 	_, player, cmd, pos = self:GetArgs(msg, 3, 1)
-	self:RollListAdd(player, string.lower(cmd))
+	self:RollListAdd(player, cmd)
 end
 
 RPB.chatCommands["?"] = function (self, msg)
 	RPB:Print("help stuff")
 end
 RPB.chatCommands["help"] = RPB.chatCommands["?"]
+
+--- chatCommand: Settings.
+-- Opens the settings frame.
+-- @param self Reference to the mod base, since this is a table of functions.
+-- @param msg The message given by the event
+RPB.chatCommands["settings"] = function (self, msg)
+	InterfaceOptionsFrame_OpenToCategory(self.options)
+end
+RPB.chatCommands["options"] = RPB.chatCommands["settings"]
 
 function RPB:WhisperCommand(msg, name)
 	wcmd, pos = self:GetArgs(msg, 2, 1)
@@ -578,7 +678,7 @@ function RPB:WhisperCommand(msg, name)
 	
 	if cmd and self.whisperCommands[string.lower(cmd)] then
 		if (not self.activeraid) then
-			self:UseDatabase(db.realm.settings.defaultraid)
+			self:UseDatabase(self.settings.raid)
 		end
 		self.whisperCommands[string.lower(cmd)](self, msg, name)
 	else
@@ -621,7 +721,7 @@ function RPB:OnCommReceived(pre, message, distribution, sender)
 	if not cmd then return end
 	if cmd and self.syncCommands[string.lower(cmd)] then
 		if (not self.activeraid) then
-			self:UseDatabase(db.realm.settings.defaultraid)
+			self:UseDatabase(self.settings.raid)
 		end
 		self.syncCommands[string.lower(cmd)](msg, sender)
 	end	

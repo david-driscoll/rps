@@ -29,6 +29,7 @@ RPLibrary.embeds = RPLibrary.embeds or {} -- what objects embed this lib
 local mixins = {
 	"Skin",
 	"SkinEditBox",
+	"ScriptEditBox",
 	"QualityBorder",
 	"QualityBorderResize",
 	"BackdropFrame",
@@ -105,12 +106,35 @@ function RPLibrary:Skin(frame, header, bba, ba, fh, bd)
 end
 
 function RPLibrary:SkinEditBox(editbox)
-		editbox:SetFontObject("GameFontHighlightSmall")
+	editbox:SetFontObject("GameFontHighlightSmall")
+	local left = editbox:CreateTexture(nil, "BACKGROUND")
+	left:SetWidth(8)
+	left:SetHeight(20)
+	left:SetPoint("LEFT", -5, 0)
+	left:SetTexture("Interface\\Common\\Common-Input-Border")
+	left:SetTexCoord(0, 0.0625, 0, 0.625)
+
+	local right = editbox:CreateTexture(nil, "BACKGROUND")
+	right:SetWidth(8)
+	right:SetHeight(20)
+	right:SetPoint("RIGHT", 0, 0)
+	right:SetTexture("Interface\\Common\\Common-Input-Border")
+	right:SetTexCoord(0.9375, 1, 0, 0.625)
+
+	local center = editbox:CreateTexture(nil, "BACKGROUND")
+	center:SetHeight(20)
+	center:SetPoint("RIGHT", right, "LEFT", 0, 0)
+	center:SetPoint("LEFT", left, "RIGHT", 0, 0)
+	center:SetTexture("Interface\\Common\\Common-Input-Border")
+	center:SetTexCoord(0.0625, 0.9375, 0, 0.625)
+end
+
+function RPLibrary:ScriptEditBox(editbox, insert)
+	if insert then
 		editbox:SetScript("OnEditFocusLost", function(self)
 			self:HighlightText(0, 0)
 			ChatEdit_InsertLink = self.savedInsertLink
 		end)
-		editbox:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
 		editbox:SetScript("OnEditFocusGained", function(self) 
 			self:HighlightText()
 			self.savedInsertLink = ChatEdit_InsertLink
@@ -118,27 +142,15 @@ function RPLibrary:SkinEditBox(editbox)
 				self:Insert(" "..link)
 			end
 		end)
-
-		local left = editbox:CreateTexture(nil, "BACKGROUND")
-		left:SetWidth(8)
-		left:SetHeight(20)
-		left:SetPoint("LEFT", -5, 0)
-		left:SetTexture("Interface\\Common\\Common-Input-Border")
-		left:SetTexCoord(0, 0.0625, 0, 0.625)
-
-		local right = editbox:CreateTexture(nil, "BACKGROUND")
-		right:SetWidth(8)
-		right:SetHeight(20)
-		right:SetPoint("RIGHT", 0, 0)
-		right:SetTexture("Interface\\Common\\Common-Input-Border")
-		right:SetTexCoord(0.9375, 1, 0, 0.625)
-
-		local center = editbox:CreateTexture(nil, "BACKGROUND")
-		center:SetHeight(20)
-		center:SetPoint("RIGHT", right, "LEFT", 0, 0)
-		center:SetPoint("LEFT", left, "RIGHT", 0, 0)
-		center:SetTexture("Interface\\Common\\Common-Input-Border")
-		center:SetTexCoord(0.0625, 0.9375, 0, 0.625)
+	else
+		editbox:SetScript("OnEditFocusLost", function(self)
+			self:HighlightText(0, 0)
+		end)
+		editbox:SetScript("OnEditFocusGained", function(self) 
+			self:HighlightText()
+		end)
+	end
+	editbox:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
 end
 
 --- Create a quality colored border on the given button.
@@ -481,4 +493,17 @@ end
 --- Finally: upgrade our old embeds
 for target, v in pairs(RPLibrary.embeds) do
 	RPLibrary:Embed(target)
+end
+
+
+local optionTable = {
+	id="RPS",
+	text="Raid Points System",
+	addon="Raid Points System",
+	options={}
+}
+
+local Portfolio = LibStub and LibStub("Portfolio")
+if Portfolio then
+	Portfolio.RegisterOptionSet(optionTable)
 end

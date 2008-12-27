@@ -6,13 +6,13 @@
 	* Project-Version: @project-version@
 	* Last edited by: @file-author@ on @file-date-iso@ 
 	* Last commit: @project-author@ on @project-date-iso@ 
-	* Filename: RPWaitlist/WLFrame.lua
+	* Filename: RPWaitlist/Frame.lua
 	* Component: Waitlist
 	* Details:
 		This is the rolling interface.  Deals with displaying the proper lists, and awarding items.
 ]]
 
-local RPLibrary = LibStub:GetLibrary("RPLibrary")
+--local RPLibrary = LibStub:GetLibrary("RPLibrary")
 
 RPWL.columnDefiniton = {}
 RPWL.columnDefiniton["waitlist"] =
@@ -135,7 +135,7 @@ function RPWL:CreateFrame()
 	f:SetWidth(640)
 	f:SetPoint("CENTER",0,0)
 	
-	RPLibrary:Skin(f)
+	self:Skin(f)
 
 	local button = CreateFrame("Button", "DIWL_CloseButton", f, "UIPanelCloseButton")
 	button:SetPoint("TOPRIGHT", f, "TOPRIGHT", 5, 4)

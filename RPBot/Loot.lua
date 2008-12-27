@@ -6,7 +6,7 @@
 	* Project-Version: @project-version@
 	* Last edited by: @file-author@ on @file-date-iso@ 
 	* Last commit: @project-author@ on @project-date-iso@ 
-	* Filename: RPBot/BotLoot.lua
+	* Filename: RPBot/Loot.lua
 	* Component: Loot Tracking
 	* Details:
 		This file is currently a placeholder for the loot tracking, currently the events fire
@@ -114,7 +114,9 @@ function RPB:LOOT_OPENED()
 	for slot = 1, numLoot do
 		texture, item, count, quality = GetLootSlotInfo(slot)
 		link = GetLootSlotLink(slot)
-		item = string.gsub(link,".-\124H([^\124]*)\124h.*", "%1")
+		if link then
+			item = string.gsub(link,".-\124H([^\124]*)\124h.*", "%1")
+		end
 		-- avoid coins
 		if (count > 0) then
 			self:AddItem(link, item, count, quality)

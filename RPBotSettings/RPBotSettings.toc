@@ -1,9 +1,9 @@
-## Title: RPBot 0.1
+## Title: RPBotSettings 0.1
 ## Author: Sithy
 ## Version: 0.1
 ## Interface: 30000
 ## Notes: Raid Points Automation
-## SavedVariables: rpBotDB
+## SavedVariables: rpBotSettingsDB
 ## X-Misc
 ## * File-Revision: @file-revision@ 
 ## * Project-Version: @project-revision@ 
@@ -27,8 +27,6 @@ Libs\GuildRoster-3.0\GuildRoster.lua
 Libs\Roster-3.0\Roster.lua
 Libs\Portfolio\Loader.xml
 
-Bot.lua
-Loot.lua
-Frame.lua
-RollWindow.lua
-##RPBotClientWindow.lua
+BotSettings.lua
+Features.lua
+Portfolio.lua

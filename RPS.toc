@@ -3,7 +3,7 @@
 ## Version: 0.1
 ## Interface: 30000
 ## Notes: Raid Points System
-## SavedVariables: rpDEBUGWaitlistDB, rpDEBUGBotDB
+## SavedVariables: rpDEBUGWaitlistDB, rpDEBUGBotDB, rpDEBUGBotSettingsDB
 ## X-Misc
 ## * File-Revision:@file-revision@ 
 ## * Project-Version: @project-revision@ 
@@ -22,21 +22,27 @@ Libs\AceEvent-3.0\AceEvent-3.0.xml
 Libs\AceSerializer-3.0\AceSerializer-3.0.xml
 Libs\AceTimer-3.0\AceTimer-3.0.xml
 Libs\lib-st\Core.lua
+#@end-no-lib-strip@
 Libs\GuildRoster-3.0\GuildRoster.lua
 Libs\Roster-3.0\Roster.lua
-#@end-no-lib-strip@
+Libs\Portfolio\Loader.xml
 
 # RPLibrary
 RPLibrary\RPLibrary.lua
 
 # RPWaitlist
-RPWaitlist\RPWaitlist.lua
-RPWaitlist\RPWLFrame.lua
+RPWaitlist\Waitlist.lua
+RPWaitlist\Frame.lua
+RPWaitlist\Portfolio.lua
+
+# RPBotSettings
+RPBotSettings\BotSettings.lua
+RPBotSettings\Features.lua
+RPBotSettings\Portfolio.lua
 
 # RPBot
-RPBot\RPBot.lua
-RPBot\RPBotFeatures.lua
-RPBot\RPBotLoot.lua
-RPBot\RPBotFrame.lua
-RPBot\RPBotRollWindow.lua
-##RPBot\RPBotClientWindow.lua
+RPBot\Bot.lua
+RPBot\Loot.lua
+RPBot\Frame.lua
+RPBot\RollWindow.lua
+##RPBot\ClientWindow.lua

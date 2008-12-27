@@ -24,7 +24,6 @@ local CommCmd = "rpwlDEBUG"
 --[===[@non-alpha@
 local CommCmd = "rpwl"
 --@end-non-alpha@]===]
-local enablecomm = true
 local syncrequest, syncowner, syncdone
 local rosterupdate
 local minRank = 2
@@ -91,7 +90,22 @@ local cs =
 	["syncrequest"]	= "sr",
 	["syncowner"]	= "so",
 	["sync"]		= "s",
+	["settings"]	= "se",
 }
+
+local function whisperFilter()
+	local settings = db.realm.settings
+	if 		event == "CHAT_MSG_WHISPER_INFORM"
+			and settings.filterOut == "1"
+			and strfind(arg1, "^"..prefix) then
+		return true
+	elseif 	event == "CHAT_MSG_WHISPER"
+			and settings.filterIn == "1"
+			and strfind(arg1, "^wl") then
+		return true
+	end
+	return false
+end
 
 --- Initial start up processes.
 -- Register chat commands, minor events and setup AceDB
@@ -112,14 +126,25 @@ function RPWL:OnInitialize()
 	if not db.realm.waitlist then
 		db.realm.waitlist = {}
 	end
+	if not db.realm.settings then
+		db.realm.settings =
+		{
+			syncIn			= "1",
+			syncOut			= "1",
+			syncPassword	= "",
+			filterIn		= "0",
+			filterOut		= "1",
+			syncSettings	= "1",
+		}
+	end
 end
 
 --- Enable processes
 -- Register all events, setup inital state
 function RPWL:OnEnable()
 	self:RegisterEvent("CHAT_MSG_WHISPER")
-	-- self:RegisterEvent("GUILD_ROSTER_UPDATE")
-	-- self:RegisterEvent("PLAYER_GUILD_UPDATE")
+	ChatFrame_AddMessageEventFilter("CHAT_MSG_WHISPER", whisperFilter)
+	ChatFrame_AddMessageEventFilter("CHAT_MSG_WHISPER_INFORM", whisperFilter)
 	self:RegisterMessage("GuildRosterLib_Update")
 	self:RegisterComm(CommCmd)
 	syncrequest = nil
@@ -127,22 +152,25 @@ function RPWL:OnEnable()
 	syncdone = false
 	rosterupdate = true
 	local guildname, _, gr = GetGuildInfo("player")
-	if (not (gr <= minRank)) then
-		enablecomm = false
-	end
+	-- if (not (gr <= minRank)) then
+		-- enablecomm = false
+	-- end
 	--self.guildRoster = {}
 	self.guildRosterIndex = {}
 	
 	db.realm.waitlist = self:StripTable(db.realm.waitlist)
 	local temp = db.realm.waitlist
-	db.realm.waitlist = self:BuildTable(temp, cwlArg, CheckOnline)
+	temp = self:BuildTable(temp, cwlArg, CheckOnline)
 	db.realm.waitlist = temp
+	
+	self.options = self:RegisterPortfolio()
+	self.options:refresh()
 	
 	SetGuildRosterShowOffline(true)
 	self:Send(cs.syncrequest, "to me")
+	
 	--enablecomm = false
 	--AceComm:RegisterComm("wlupdate")
-	
 end
 
 --- Event: GuildRosterLib_Update.
@@ -173,8 +201,9 @@ end
 -- @param cmd The command to be sent with the data
 -- @param data The data to send
 function RPWL:Send(cmd, data)
-	if not enablecomm then return end
-	self:SendCommMessage(CommCmd, self:Serialize(cmd,data), "GUILD")
+	if db.realm.settings.syncOut == "0" then return end
+	--if not enablecomm then return end
+	self:SendCommMessage(CommCmd, self:Serialize(db.realm.settings.syncPassword,cmd,data), "GUILD")
 end
 
 --- Sends a chat message
@@ -188,7 +217,7 @@ end
 --- Sends a whisper
 -- @param to Target player
 -- @param message Message to send
-function RPWL:Whisper(to, message)
+function RPWL:Whisper(message, to)
 	RPWL:Message("WHISPER", message, to);
 end
 
@@ -197,7 +226,7 @@ end
 -- @param name Name of the player to check for
 -- @param alt Alt character
 function RPWL:Check(name, alt)
-	for i=1,(getn(db.realm.waitlist)) do
+	for i=1,(#(db.realm.waitlist)) do
 		-- Main is on the list
 		if (string.lower(db.realm.waitlist[i].cols[cwl.name].value) == string.lower(name)) then
 			return i
@@ -422,6 +451,15 @@ RPWL.chatCommands["open"] = function (self, msg)
 	self.Frame:Show()
 end
 
+--- chatCommand: Settings.
+-- Opens the settings frame.
+-- @param self Reference to the mod base, since this is a table of functions.
+-- @param msg The message given by the event
+RPWL.chatCommands["settings"] = function (self, msg)
+	InterfaceOptionsFrame_OpenToCategory(self.options)
+end
+RPWL.chatCommands["options"] = RPWL.chatCommands["settings"]
+
 --- Process whispers given by the event.
 -- Each whisper function is stored as a function, it works similarly to an if..else ladder but adding additional commands is faster and I feel a little cleaner.
 -- @param msg The message given by the event
@@ -494,8 +532,10 @@ end
 -- @param msg The message given by the event
 -- @param from Sender
 function RPWL:OnCommReceived(pre, message, distribution, sender)
-	success, cmd, msg = self:Deserialize(message)
-	self:Print(pre, cmd, msg, distribution, sender)
+	if db.realm.settings.syncIn == "0" then return end
+	success, password, cmd, msg = self:Deserialize(message)
+	self:Print(pre, password, db.realm.settings.syncPassword, db.realm.settings.syncPassword == password, cmd, msg, distribution, sender)
+	if db.realm.settings.syncPassword ~= password then return end
 	if not cmd then return end
 	if cmd and self.syncCommands[string.lower(cmd)] then
 		self.syncCommands[string.lower(cmd)](self, msg, sender)
@@ -572,6 +612,31 @@ RPWL.syncCommands[cs.sync] = function(self, msg, sender)
 	syncrequest = nil
 end
 
+--- syncCommand: cs.settings.
+-- Sent when the button to sync is clicked
+-- You can not sync with yourself.
+-- The first client to respond is the one that we listen for.
+-- That client will broadcast the sync message.
+-- @param self Reference to the mod base, since this is a table of functions.
+-- @param msg The message given by the event
+-- @param sender Sender
+RPWL.syncCommands[cs.settings] = function(self, msg, sender)
+	local settings = db.realm.settings
+	if (settings.syncSettings == "0") then return end
+	for k,v in pairs(settings) do
+		if (k ~= "syncPassword") then
+			if (settings[k] ~= msg[k]) then
+				settings[k] = msg[k]
+			end
+		end
+	end
+	self.options:refresh()
+end
+
+function RPWL:PushSettings(value, isGUI, isUpdate)
+	self:Send(cs.settings, self.db.realm.settings)
+end
+
 --- Force the waitlist scrolling table to refresh.
 function RPWL:UpdateList()
 	if self.Frame then
@@ -589,32 +654,40 @@ end
 --- Handle the event fired when clicking on any row in the waitlist scrolling table.
 function scrollFrameOnClick(rowFrame, cellFrame, data, cols, row, realrow, column, button, down)
 	if button == "LeftButton" then
-		if RPWL.scrollFrame.selected == data[realrow] then
-			RPWL.scrollFrame.selected = nil
-		else
-			RPWL.scrollFrame.selected = data[realrow]
+		if data[realrow] then
+			if RPWL.scrollFrame.selected == data[realrow] then
+				RPWL.scrollFrame.selected = nil
+			else
+				RPWL.scrollFrame.selected = data[realrow]
+			end
 		end
 		RPWL.scrollFrame:Refresh()
 	elseif button == "RightButton" then
-		RPWL.scrollFrame.selected = data[realrow]
-		RPWL:ButtonRemove()
-		RPWL.scrollFrame:SortData()
+		if data[realrow] then
+			RPWL.scrollFrame.selected = data[realrow]
+			RPWL:ButtonRemove()
+			RPWL.scrollFrame:SortData()
+		end
 	end
 end
 
 -- Handle the event fired when clicking on any row in the guildlist scrolling table.
 function scrollFrameGuildOnClick(rowFrame, cellFrame, data, cols, row, realrow, column, button, down)
 	if button == "LeftButton" then
-		if RPWL.scrollFrameGuild.selected == data[realrow] then
-			RPWL.scrollFrameGuild.selected = nil
-		else
-			RPWL.scrollFrameGuild.selected = data[realrow]
+		if data[realrow] then
+			if RPWL.scrollFrameGuild.selected == data[realrow] then
+				RPWL.scrollFrameGuild.selected = nil
+			else
+				RPWL.scrollFrameGuild.selected = data[realrow]
+			end
+			RPWL.scrollFrameGuild:Refresh()
 		end
-		RPWL.scrollFrameGuild:Refresh()
 	elseif button == "RightButton" then
-		RPWL.scrollFrameGuild.selected = data[realrow]
-		RPWL:ButtonAdd()
-		RPWL.scrollFrameGuild:SortData()
+		if data[realrow] then
+			RPWL.scrollFrameGuild.selected = data[realrow]
+			RPWL:ButtonAdd()
+			RPWL.scrollFrameGuild:SortData()
+		end
 	end
 end
 
@@ -686,3 +759,4 @@ end
 function RPWL:Waitlist()
 	return db.realm.waitlist, cwl
 end
+

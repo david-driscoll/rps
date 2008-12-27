@@ -35,8 +35,8 @@ lib:Embed(RosterLib)
 local mixins = {
 	"RosterUnitIDByName",
 	"RosterUnitIDByUnit",
-	"RosterObjectByName",
-	"RosterObjectByUnit",
+	"RosterByName",
+	"RosterByUnit",
 	"RosterCount",
 	"Roster",
 	"RosterScan",
@@ -424,11 +424,11 @@ function RosterLib:RosterUnitIDByUnit(unit)
 	end
 end
 
-function RosterLib:RosterObjectByName(name)
+function RosterLib:RosterByName(name)
 	return roster[name]
 end
 
-function RosterLib:RosterObjectByUnit(unit)
+function RosterLib:RosterByUnit(unit)
 	if not LegitimateUnits[unit] then
 		--RosterLib:error("Bad argument #2 to `GetUnitObjectFromUnit'. %q is not a legitimate UnitID.", unit)
 	end

@@ -61,9 +61,7 @@ end
 -- @param name Name of the player to find
 function GuildRosterLib:GuildRosterByName(name)
 	if guildRoster[string.lower(name)] then
-		return guildRoster[name]
-	else
-		return nil
+		return guildRoster[string.lower(name)]
 	end
 end
 
@@ -72,7 +70,7 @@ end
 function GuildRosterLib:GuildRosterByUnit(unit)
 	local name = UnitName(unit)
 	if guildRoster[string.lower(name)] then
-		return guildRoster[name]
+		return guildRoster[string.lower(name)]
 	else
 		return nil
 	end

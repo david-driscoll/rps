@@ -6,7 +6,7 @@
 	* Project-Version: @project-version@
 	* Last edited by: @file-author@ on @file-date-iso@ 
 	* Last commit: @project-author@ on @project-date-iso@ 
-	* Filename: RPBot/BotClientWindow.lua
+	* Filename: RPBot/ClientWindow.lua
 	* Component: Client
 	* Details:
 		This file creates the client window.  The client window is similar to the group loot interface

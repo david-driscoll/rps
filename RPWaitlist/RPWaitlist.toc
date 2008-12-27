@@ -21,9 +21,11 @@ Libs\AceDB-3.0\AceDB-3.0.xml
 Libs\AceEvent-3.0\AceEvent-3.0.xml
 Libs\AceSerializer-3.0\AceSerializer-3.0.xml
 Libs\lib-st\Core.lua
+#@end-no-lib-strip@
 Libs\GuildRoster-3.0\GuildRoster.lua
 Libs\Roster-3.0\Roster.lua
-#@end-no-lib-strip@
+Libs\Portfolio\Loader.xml
 
-RPWaitlist.lua
-RPWLFrame.lua
+Waitlist.lua
+Frame.lua
+Portfolio.lua
