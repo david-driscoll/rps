@@ -14,7 +14,7 @@
 ]]
 
 local db
-RPBS = LibStub("AceAddon-3.0"):NewAddon("Raid Points Bot Settings", "RPLibrary", "GuildRoster-3.0", "Roster-3.0")
+RPBS = LibStub("AceAddon-3.0"):NewAddon("Raid Points Bot Settings")
 
 --- Initial start up processes.
 -- Register chat commands, minor events and setup AceDB
