@@ -754,10 +754,6 @@ function RPB:RollListAward()
 	self.frames["RollWindow"].scrollFrame:SortData()
 end
 
-function rollWindowItemScrollFrameColor(quality)
-	
-end
-
 function RPB:ItemListAdd(link, item, count, quality, recieved)
 	if quality and quality > 3 then return end
 	if not link then
