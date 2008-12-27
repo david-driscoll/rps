@@ -281,7 +281,7 @@ function RPB:UpdateLoot(texture, item, count, quality)
 	self.frame:Show()
 	if db.linkallvis == "always" or (db.linkallvis == "raid" and GetNumRaidMembers() > 0) or (db.linkallvis == "party" and GetNumPartyMembers() > 0) then
 		self.linkbutton:Show()
-	else
+	else     
 		self.linkbutton:Hide()
 	end
 	--self:msg("Displaying at position: "..XLootFrame:GetLeft().." "..XLootFrame:GetTop());
