@@ -27,7 +27,9 @@ local syncrequest, syncowner, syncdone
 local caninvite = false
 local bidtime
 local rollList
---LoadAddOn("RPLibrary")
+LoadAddOn("RPLibrary")
+LoadAddOn("RPBotSettings")
+
 local MD5 = LibStub:GetLibrary("MDFive-1.0")
 
 RPB = LibStub("AceAddon-3.0"):NewAddon("Raid Points Bot", "AceConsole-3.0", "AceEvent-3.0", "AceComm-3.0", "AceSerializer-3.0", "AceTimer-3.0", "RPLibrary", "GuildRoster-3.0", "Roster-3.0")
