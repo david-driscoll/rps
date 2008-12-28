@@ -868,7 +868,7 @@ function RPB:OnCommReceived(pre, message, distribution, sender)
 	if self.settings.syncPassword ~= password then return end
 	if not cmd then return end
 
-	--self:Print("RPB:OnCommReceived", cmd, msg, distribution, sender)
+	self:Print("RPB:OnCommReceived", cmd, msg, distribution, sender)
 	if self.syncHold then
 		if not (
 			cmd == cs.getmaster or
@@ -903,9 +903,9 @@ end
 
 RPB.syncCommands = {}
 RPB.syncCommands[cs.logon] = function(self, msg, sender)
-	if sender ~= UnitName("player") then
-		--self:Print("Database:", msg.database, db.realm.version.database)
-		--self:Print("Lastaction:", msg.lastaction, db.realm.version.lastaction)
+	--if sender ~= UnitName("player") then
+		self:Print("Database:", msg.database, db.realm.version.database)
+		self:Print("Lastaction:", msg.lastaction, db.realm.version.lastaction)
 		if msg.database > db.realm.version.database then
 			if msg.lastaction > db.realm.version.lastaction then
 				self:Send(cs.dbupdate, "you", sender)
@@ -916,14 +916,14 @@ RPB.syncCommands[cs.logon] = function(self, msg, sender)
 			-- if msg.lastaction > db.realm.version.lastacction then we send for a sync
 			-- if msg.lastaction <= db.realm.version.lastaction then we need to alert everyone about the inconistant settings, IE the savedvariables need to be uploaded.
 		elseif msg.database == db.realm.version.database then
-			if msg.lastaction > db.realm.version.lastaction then
-				self:Send(cs.dbupdate, "you", sender)
-			elseif msg.lastaction < db.realm.version.lastaction then
-				self:Send(cs.dboutdate, "you", sender)
-			else
+			if msg.lastaction == db.realm.version.lastaction then
 				self.syncQueue = {}
 				self.syncHold = false
 				self.syncResync = false
+			elseif msg.lastaction > db.realm.version.lastaction then
+				self:Send(cs.dbupdate, "you", sender)
+			elseif msg.lastaction < db.realm.version.lastaction then
+				self:Send(cs.dboutdate, "you", sender)
 			end
 		elseif msg.database < db.realm.version.database then
 			if msg.lastaction < db.realm.version.lastaction then
@@ -932,7 +932,7 @@ RPB.syncCommands[cs.logon] = function(self, msg, sender)
 				self:Send(cs.dboutdate, "you", sender)
 			end
 		end
-	end
+	--end
 end
 
 RPB.syncCommands[cs.alert] = function(self, msg, sender)

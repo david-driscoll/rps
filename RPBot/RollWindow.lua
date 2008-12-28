@@ -742,7 +742,7 @@ function RPB:ContinueBidding()
 		
 		if (timeleft > lastcall and timeleft % lastcall*2 == 0) then
 			self:Broadcast("Bidding on " .. item[cll.link].value .. ".  Closing in " .. timeleft .. " seconds.")
-		elseif (timeleft == lastcall) then
+		elseif (timeleft == lastcall+1) then
 			self:CancelTimer(self.frames["RollWindow"].timer)
 			RPB:StopBidding()
 		end
