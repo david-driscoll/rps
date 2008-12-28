@@ -496,6 +496,10 @@ function RPB:RollListAdd(player, cmd, recieved)
 		rank = pinfo["rank"] or ""
 	end	
 	
+	pdata = self:GetPlayer(player)
+	current = pdata.points
+	player = pdata.fullname
+	
 	ty = feature.name
 	local rollList = self.frames["RollWindow"].rollList
 	for i=1,#rollList do
@@ -507,16 +511,12 @@ function RPB:RollListAdd(player, cmd, recieved)
 		end
 	end
 	
-
 	if not recieved then
 		self:Send(cs.rolllistadd, {player, cmd, true})
 	end
 	if (not self:GetPlayer(player)) then
 		self:CreatePlayer(player)
 	end
-	pdata = self:GetPlayer(player)
-	current = pdata.points
-	player = pdata.fullname
 
 	loss = self:CalculateLoss(current, cmd)
 	rollList[#rollList+1] = self:BuildRow(
@@ -569,8 +569,8 @@ function RPB:RollListUpdate(player, roll, ty, recieved)
 	local rollList = self.frames["RollWindow"].rollList
 
 	for i=1,#rollList do
-		if (rollList[i].cols[crl.player].value == player) then
-			if (rollList[i].cols[crl.roll].value > 0) then
+		if (string.lower(rollList[i].cols[crl.player].value) == string.lower(player)) then
+			if (tonumber(rollList[i].cols[crl.roll].value) > 0) then
 				self:Broadcast(player,"  Previous Roll:",rollList[i].cols[crl.roll].value,"   New Roll:",roll)
 			end
 			if roll then
@@ -815,7 +815,7 @@ function RPB:RollListAward(recieved)
 end
 
 function RPB:ItemListAdd(link, item, count, quality, recieved)
-	if quality and quality < 3 then return end
+	--if quality and quality < 3 then return end
 	if not link then
 		local editbox = self.frames["RollWindow"].editbox["AddItem"]
 		local itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemCount, itemEquipLoc, itemTexture = GetItemInfo(editbox:GetText())
