@@ -62,12 +62,14 @@ local cs =
 	rolllistremove	= "rolllistremove",
 	rolllistupdate	= "rolllistupdate",
 	rolllistaward	= "rolllistaward",
+	rolllistclear	= "rolllistclear",
 	startbidding	= "startbidding",
 	starttimedbidding = "starttimedbidding",
 	rolllistclick	= "rolllistclick",
 	itemlistadd		= "itemlistadd",
 	itemlistremove	= "itemlistremove",
 	itemlistclick 	= "itemlistclick",
+	itemlistclear 	= "itemlistclear",
 	getmaster		= "getmaster",
 	setmaster		= "setmaster",
 	
@@ -1095,6 +1097,12 @@ RPB.syncCommands[cs.rolllistupdate] = function(self, msg, sender)
 	-- self:RollListUpdate(msg[1], msg[2], msg[3], msg[4])
 end
 
+RPB.syncCommands[cs.rolllistclear] = function(self, msg, sender)
+	if sender == UnitName("player") then return end
+	self:RollListClear(unpack(msg or {}))
+	-- self:RollListUpdate(msg[1], msg[2], msg[3], msg[4])
+end
+
 --  Constants Roll List
 local crl = 
 {
@@ -1170,6 +1178,12 @@ end
 RPB.syncCommands[cs.itemlistremove] = function(self, msg, sender)
 	if sender == UnitName("player") then return end
 	self:ItemListRemove(unpack(msg or {}))
+	-- self:ItemListRemove(msg[1], msg[2])
+end
+
+RPB.syncCommands[cs.itemlistclear] = function(self, msg, sender)
+	if sender == UnitName("player") then return end
+	self:ItemListClear(unpack(msg or {}))
 	-- self:ItemListRemove(msg[1], msg[2])
 end
 

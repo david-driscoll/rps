@@ -21,14 +21,15 @@ local cs =
 	rolllistadd		= "rolllistadd",
 	rolllistremove	= "rolllistremove",
 	rolllistupdate	= "rolllistupdate",
-	rolllistclear	= "rolllistclear",
 	rolllistaward	= "rolllistaward",
+	rolllistclear	= "rolllistclear",
 	startbidding	= "startbidding",
 	starttimedbidding = "starttimedbidding",
 	rolllistclick	= "rolllistclick",
 	itemlistadd		= "itemlistadd",
 	itemlistremove	= "itemlistremove",
 	itemlistclick 	= "itemlistclick",
+	itemlistclear 	= "itemlistclear",
 	getmaster		= "getmaster",
 	setmaster		= "setmaster",
 }
@@ -549,12 +550,12 @@ function RPB:RollListRemove(player, recieved)
 	self:RollListSort()
 end
 
-function RPB:RollListClear()
+function RPB:RollListClear(recieved)
+	if not recieved then
+		self:Send(cs.rolllistclear, {true})
+	end		
 	local rollList = self.frames["RollWindow"].rollList
-	
-	for i=1,#rollList do
-		self:RollListRemove(rollList[1].cols[crl.player].value)
-	end
+	rollList = {}
 	self:RollListSort()
 	self.frames["RollWindow"].inProgress = false
 	if self.master == UnitName("player") then
@@ -571,7 +572,8 @@ function RPB:RollListUpdate(player, roll, ty, recieved)
 	for i=1,#rollList do
 		if (string.lower(rollList[i].cols[crl.player].value) == string.lower(player)) then
 			if (tonumber(rollList[i].cols[crl.roll].value) > 0) then
-				self:Broadcast(player,"  Previous Roll:",rollList[i].cols[crl.roll].value,"   New Roll:",roll)
+				self:Broadcast(player .. "  Previous Roll:" .. rollList[i].cols[crl.roll].value .. "   New Roll:" .. roll)
+				break
 			end
 			if roll then
 				rollList[i].cols[crl.roll].value = roll
@@ -593,7 +595,7 @@ function RPB:RollListUpdate(player, roll, ty, recieved)
 	if (found) then
 		self:RollListSort()
 	else
-		if not recieved then
+		if self.master == UnitName("player") then
 			self:Broadcast(player.." is not currently bidding, roll ignored.")
 		end
 	end
@@ -822,11 +824,18 @@ function RPB:ItemListAdd(link, item, count, quality, recieved)
 		--RPB:Print(GetItemInfo(editbox:GetText()))
 		link = editbox:GetText()
 		_, _, item  = string.find(link, "item:(%d+)");
+		if not item then
+			item = 0
+		end
 		count = itemCount
 		quality = itemRarity
 		editbox:SetText("")
 		editbox:ClearFocus()
 	end
+	if link == "" then return false end
+	if not count then count = 0 end
+	if not quality then quality = 0 end
+	self:Print(link, item, count, quality, true)
 	if not recieved then
 		self:Send(cs.itemlistadd, {link, item, count, quality, true})
 	end
@@ -860,10 +869,12 @@ function RPB:ItemListRemove(link, recieved)
 	self.frames["RollWindow"].scrollFrameLoot:SortData()
 end
 
-function RPB:ItemListClear()
-	local lootList = self.frames["RollWindow"].lootList
-	for i=1,#lootList do
-		self:ItemListRemove(lootList[1].cols[cll.link].value)
+function RPB:ItemListClear(recieved)
+	if not recieved then
+		self:Send(cs.itemlistclear, {true})
 	end
+	local lootList = self.frames["RollWindow"].lootList
+	lootList = {}
+	self.frames["RollWindow"].scrollFrameLoot:SortData()
 end
 
