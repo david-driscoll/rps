@@ -480,7 +480,7 @@ function RPB:PointsAdd(datetime, player, value, ty, itemid, reason, waitlist, wh
 			if (tonumber(value) > 0) then
 				self:Whisper("Added "..value.." points for "..reason, playerlist[i].name)
 			else
-				self:Whisper("Deducted "..value.." points for "..reason, playerlist[i].name)
+				self:Whisper("Deducted "..(-value).." points for "..reason, playerlist[i].name)
 			end
 		end
 		self.activeraid[string.lower(playerlist[i].name)].points = self.activeraid[string.lower(playerlist[i].name)].points + tonumber(value)
@@ -1073,6 +1073,8 @@ end
 
 RPB.syncCommands[cs.getmaster] = function(self, msg, sender)
 	if self.master == UnitName("player") then
+		self:Send(cs.setmaster, "")
+	elseif self.master == sender then
 		self:Send(cs.setmaster, "")
 	end
 end
