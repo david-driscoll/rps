@@ -32,6 +32,10 @@ local cs =
 	itemlistclear 	= "itemlistclear",
 	getmaster		= "getmaster",
 	setmaster		= "setmaster",
+	itemlistset		= "itemlistset",
+	itemlistget		= "itemlistget",
+	rolllistset		= "rolllistset",
+	rolllistget		= "rolllistget",
 }
 
 RPB.columnDefinitons["RollWindow"] = 
@@ -484,8 +488,7 @@ end
 
 function RPB:RollListAdd(player, cmd, recieved)
 	--local pinfo = self:GetInfo(player)
-	local pinfo = self:GuildRosterByName(player) or self:RosterByName(player)
-	if not pinfo then pinfo = self:RosterByName(player) end
+	local pinfo = self:GuildRosterByName(player) or self:RosterByName(player:gsub("^%l", string.upper))
 	
 	--self:Print("RPB:RollListAdd", player, cmd, recieved)
 	local class, rank, ty, current, loss
@@ -543,6 +546,9 @@ function RPB:RollListRemove(player, recieved)
 	end			
 	for i=1,#rollList do
 		if (string.lower(rollList[i].cols[crl.player].value) == string.lower(player)) then
+			if self.frames["RollWindow"].scrollFrame.selected == rollList[i] then
+				self.frames["RollWindow"].scrollFrame.selected = nil
+			end
 			tremove(rollList,i)
 			break
 		end
@@ -553,9 +559,9 @@ end
 function RPB:RollListClear(recieved)
 	if not recieved then
 		self:Send(cs.rolllistclear, {true})
-	end		
-	local rollList = self.frames["RollWindow"].rollList
-	rollList = {}
+	end
+	self.frames["RollWindow"].rollList = {}
+	self.frames["RollWindow"].scrollFrameLoot.selected = nil
 	self:RollListSort()
 	self.frames["RollWindow"].inProgress = false
 	if self.master == UnitName("player") then
@@ -862,6 +868,9 @@ function RPB:ItemListRemove(link, recieved)
 	local lootList = self.frames["RollWindow"].lootList
 	for i=1,#lootList do
 		if (lootList[i] and lootList[i].cols[cll.link].value == link) then
+			if self.frames["RollWindow"].scrollFrameLoot.selected == lootList[i] then
+				self.frames["RollWindow"].scrollFrameLoot.selected = nil
+			end
 			tremove(lootList,i)
 			break
 		end
@@ -873,8 +882,46 @@ function RPB:ItemListClear(recieved)
 	if not recieved then
 		self:Send(cs.itemlistclear, {true})
 	end
-	local lootList = self.frames["RollWindow"].lootList
-	lootList = {}
+	self.frames["RollWindow"].lootList = {}
 	self.frames["RollWindow"].scrollFrameLoot:SortData()
+	self.frames["RollWindow"].scrollFrameLoot.selected = nil
 end
+
+RPB.syncCommands[cs.itemlistget] = function(self, msg, sender)
+	if self.master == UnitName("player") then
+		local sendTable = self:StripTable(self.frames["RollWindow"].lootList or {})
+		local selectedTable = {}
+		if self.frames["RollWindow"].scrollFrameLoot.selected then
+			selectedTable = self:StripRow(self.frames["RollWindow"].scrollFrameLoot.selected)
+		end
+		self:Send(cs.itemlistset, {sendTable, selectedTable})
+	end
+end
+
+RPB.syncCommands[cs.itemlistset] = function(self, msg, sender)
+	local temp = self:BuildTable(msg[1], cllArg)
+	self.frames["RollWindow"].lootList = temp
+	self.frames["RollWindow"].scrollFrameLoot.selected = self:BuildRow(msg[2], cllArg)
+	self.frames["RollWindow"].scrollFrameLoot:SetData(self.frames["RollWindow"].lootList)
+end
+	
+RPB.syncCommands[cs.rolllistget] = function(self, msg, sender)
+	if self.master == UnitName("player") then
+		local sendTable = self:StripTable(self.frames["RollWindow"].rollList or {})
+		local selectedTable = {}
+		if self.frames["RollWindow"].scrollFrame.selected then
+			selectedTable = self:StripRow(self.frames["RollWindow"].scrollFrame.selected)
+		end
+		self:Send(cs.rolllistset, {sendTable, selectedTable})
+	end
+end
+
+RPB.syncCommands[cs.rolllistset] = function(self, msg, sender)
+	local temp = self:BuildTable(msg[1], crlArg, rollWindowScrollFrameColor)
+	self.frames["RollWindow"].rollList = temp
+	self.frames["RollWindow"].scrollFrame.selected = self:BuildRow(msg[2], crlArg, rollWindowScrollFrameColor)
+	self.frames["RollWindow"].scrollFrame:SetData(self.frames["RollWindow"].rollList)
+	self:RollListSort()
+end
+
 

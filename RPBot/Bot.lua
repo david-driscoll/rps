@@ -72,6 +72,10 @@ local cs =
 	itemlistclear 	= "itemlistclear",
 	getmaster		= "getmaster",
 	setmaster		= "setmaster",
+	itemlistset		= "itemlistset",
+	itemlistget		= "itemlistget",
+	rolllistset		= "rolllistset",
+	rolllistget		= "rolllistget",
 	
 	pointsadd		= "pointsadd",
 	pointsremove	= "pointsremove",
@@ -278,10 +282,10 @@ function RPB:CreateDatabase(database)
 end
 
 function RPB:CreatePlayer(player)
-	local pinfo = self:GuildRosterByName(player) or self:RosterByName(player)
+	local pinfo = self:GuildRosterByName(player) or self:RosterByName(player:gsub("^%l", string.upper))
 	self.activeraid[string.lower(player)] = {
 		id 				= -1,
-		name 			= string.lower(pinfo.name) or string.lower(name),
+		name 			= string.lower(pinfo.name) or string.lower(player),
 		fullname 		= pinfo.name or player,
 		class			= pinfo.class or "Unknown",
 		rank			= pinfo.rank or "Unknown",
@@ -1206,6 +1210,8 @@ function RPB:GetMaster()
 	if not self.master then
 		RPB:SetMaster(UnitName("player"))
 	end
+	self:Send(cs.itemlistget, "")
+	self:Send(cs.rolllistget, "")
 end
 
 function RPB:SetMaster(player, recieved)
