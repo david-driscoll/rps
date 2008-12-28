@@ -123,7 +123,7 @@ function RPB:LOOT_OPENED()
 		end
 		--self:UpdateLoot(texture, item, count, quality)
 	end
-end
+end 
 
 function RPB:START_LOOT_ROLL()
 	local link = GetLootRollItemLink(arg1)

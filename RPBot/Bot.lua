@@ -27,8 +27,6 @@ local syncrequest, syncowner, syncdone
 local caninvite = false
 local bidtime
 local rollList
-LoadAddOn("RPLibrary")
-LoadAddOn("RPBotSettings")
 
 local MD5 = LibStub:GetLibrary("MDFive-1.0")
 
