@@ -712,6 +712,7 @@ function RPB:StartBidding(recieved)
 			self.frames["RollWindow"].button["StartBidding"]:Disable()
 			self.frames["RollWindow"].button["StartTimedBidding"]:Disable()
 			self.frames["RollWindow"].button["StopBidding"]:Enable()
+			self.frames["RollWindow"].button["StopBidding"]:Enable()
 		end
 	end
 end
