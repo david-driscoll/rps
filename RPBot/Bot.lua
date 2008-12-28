@@ -28,7 +28,7 @@ local caninvite = false
 local bidtime
 local rollList
 --LoadAddOn("RPLibrary")
---local RPLibrary = LibStub:GetLibrary("RPLibrary")
+local MD5 = LibStub:GetLibrary("MDFive-1.0")
 
 RPB = LibStub("AceAddon-3.0"):NewAddon("Raid Points Bot", "AceConsole-3.0", "AceEvent-3.0", "AceComm-3.0", "AceSerializer-3.0", "AceTimer-3.0", "RPLibrary", "GuildRoster-3.0", "Roster-3.0")
 RPB.frames = {}
@@ -56,6 +56,54 @@ local function whisperFilter()
 	return false
 end
 
+local cs =
+{
+	rolllistadd		= "rolllistadd",
+	rolllistremove	= "rolllistremove",
+	rolllistupdate	= "rolllistupdate",
+	rolllistaward	= "rolllistaward",
+	startbidding	= "startbidding",
+	starttimedbidding = "starttimedbidding",
+	rolllistclick	= "rolllistclick",
+	itemlistadd		= "itemlistadd",
+	itemlistremove	= "itemlistremove",
+	itemlistclick 	= "itemlistclick",
+	getmaster		= "getmaster",
+	setmaster		= "setmaster",
+	
+	pointsadd		= "pointsadd",
+	pointsremove	= "pointsremove",
+	pointsupdate	= "pointsupdate",
+	loot			= "loot",
+	-- Login Syncing
+	logon			= "logon",
+	alert			= "alert",
+	dboutdate		= "dboutdate",
+	dbupdate		= "dbupdate",
+	dbmd5			= "dbmd5",
+	dbrequest		= "dbrequest",
+	dbsend			= "dbsend",
+	settings		= "settings",
+	-- rolllistadd		= "rla",
+	-- rolllistremove	= "rlr",
+	-- rolllistupdate	= "rlu",
+	-- pointsadd		= "pa",
+	-- pointsremove	= "pr",
+	-- pointsupdate	= "pu",
+	-- loot			= "lt",
+	-- master			= "m",
+	-- logon			= "lo",
+	-- alert			= "a",
+	-- dboutdate		= "dbod",
+	-- dbupdate		= "dbu",
+	-- dbmd5			= "db5",
+	-- dbrequest		= "dbr",
+	-- dbsend			= "dbs",
+	--settings		= "s",
+}
+RPB.syncQueue = {}
+RPB.syncHold = true
+
 --- Initial start up processes.
 -- Register chat commands, minor events and setup AceDB
 function RPB:OnInitialize()
@@ -79,9 +127,9 @@ function RPB:OnInitialize()
 		db.realm.recentloot = {}
 		db.realm.version =
 		{
-			database, -- date and time downloaded from the website,
-			lastaction, -- date and time the last action was taken
-			lastloot, -- date and time last looted item was taken
+			database = 0, -- date and time downloaded from the website,
+			lastaction = 0, -- date and time the last action was taken
+			lastloot = 0, -- date and time last looted item was taken
 		}
 	end
 	-- if not db.realm.settings then
@@ -132,16 +180,16 @@ function RPB:OnEnable()
 	self.settings = RPBS.db.realm.settings
 	self.feature = RPBS.feature
 	self.options = RPBS.options
-	-- self:AddFeatureSet(db.realm.settings.featureSet)
 	
-	-- self.options = self:RegisterPortfolio()
-	-- self.options:refresh()
-	
-	--SetGuildRosterShowOffline(true)
-	--self:Send("syncrequest", "to me")
-	--enablecomm = false
-	--AceComm:RegisterComm("wlupdate")
-	
+	self:CreateFrameRollWindow()
+	self.timer = self:ScheduleTimer("DatabaseSync", 10)
+	self.master = nil
+	self:Send(cs.getmaster)
+	self.masterTimer = self:ScheduleTimer("GetMaster", 15)
+end
+
+function RPB:DatabaseSync()
+	self:Send(cs.logon, db.realm.version)
 end
 
 --- Event: CHAT_MSG_WHISPER.
@@ -160,9 +208,16 @@ function RPB:CHAT_MSG_WHISPER()
 	self:WhisperCommand(arg1, arg2)
 end
 
-function RPB:Send(cmd, data)
+function RPB:Send(cmd, data, player)
 	if not enablecomm then return end
-	self:SendCommMessage(CommCmd, self:Serialize(cmd,data), "GUILD")
+	if self.settings.syncOut == "0" then return end
+	local channel = "GUILD"
+	if player then
+		channel = "WHISPER"
+	end
+	--if not enablecomm then return end
+	--if data and type(data) == "table" then self:Print(unpack(data)) end
+	self:SendCommMessage(CommCmd, self:Serialize(self.settings.syncPassword,cmd,data), channel, player)
 end
 
 function RPB:Message(channel, message, to)
@@ -212,7 +267,9 @@ function RPB:CreateDatabase(database)
 		{
 		}
 		self:Print("Database",database,"created!")
-		db.realm.version.lastaction = time()
+		local t = time()
+		db.realm.version.lastaction = t
+		db.realm.version.database = t
 		RPBS:AddRaid(database)
 		RPB:UseDatabase(database)
 	end
@@ -231,7 +288,16 @@ function RPB:CreatePlayer(player)
 		talent			= "Unknown",
 		points			= 0,
 		lifetime		= 0,
-		recenthistory 	= {},
+		recenthistory 	=
+			{
+				datetime 	= 0,
+				ty			= 'P',
+				itemid		= 0,
+				reason		= "Old Points",
+				value		= 0,
+				waitlist	= false,
+				action		= "Insert",
+			},
 		recentactions 	= {},
 	}
 end
@@ -366,6 +432,21 @@ function RPB:PointsAdd(datetime, player, value, ty, itemid, reason, waitlist, wh
 	local playerdata
 	if not reason then return nil end
 
+	if not recieved then
+		self:Send(cs.pointsadd, {datetime, player, value, ty, itemid, reason, waitlist, false, true})
+		-- self:Send(cs.pointsadd, 
+			-- {
+				-- ["datetime"] = datetime,
+				-- ["player"] = player,
+				-- ["value"] = value,
+				-- ["ty"] = ty,
+				-- ["itemid"] = itemid,
+				-- ["reason"] = reason,
+				-- ["waitlist"] = waitlist,
+			-- }
+		-- )
+	end
+	
 	for i=1, #playerlist do
 		--self:Print("Points Add For Loop",playerlist[i].name)
 		if (not self.activeraid[string.lower(playerlist[i].name)]) then
@@ -415,6 +496,17 @@ function RPB:PointsRemove(datetime, player, actiontime, whisper, recieved)
 	end
 	local playerdata
 	local found
+	
+	if not recieved then
+		self:Send(cs.pointsremove, {datetime, player, actiontime, false, true})
+		-- self:Send(cs.pointsremove, 
+			-- {
+				-- ["datetime"] = datetime,
+				-- ["player"] = player,
+				-- ["actiontime"] = actiontime,
+			-- }
+		-- )
+	end
 	
 	for i=1, #playerlist do
 		found = false
@@ -475,7 +567,23 @@ function RPB:PointsUpdate(datetime, player, points, ty, itemid, reason, waitlist
 	end
 	local playerdata
 	local found
-	
+		
+	if not recieved then
+		self:Send(cs.pointsupdate, {datetime, player, value, ty, itemid, reason, waitlist, actiontime, false, true})
+		-- self:Send(cs.pointsupdate, 
+			-- {
+				-- ["datetime"] = datetime,
+				-- ["player"] = player,
+				-- ["value"] = value,
+				-- ["ty"] = ty,
+				-- ["itemid"] = itemid,
+				-- ["reason"] = reason,
+				-- ["waitlist"] = waitlist,
+				-- ["actiontime"] = actiontime,
+			-- }
+		-- )
+	end
+
 	for i=1, #playerlist do
 		found = false
 		if (self.activeraid[string.lower(playerlist[i].name)]) then
@@ -556,6 +664,48 @@ function RPB:CalculateLoss(points, cmd)
 	return loss
 end
 
+function RPB:CalculatePoints(player)
+	local pdata = self:GetPlayer(player)
+	local points = 0
+	local lifetime = 0
+	for i=1,#pdata.recenthistory do
+		points = points + pdata.recenthistory[i].value
+		if pdata.recenthistory[i].value > 0 then
+			lifetime = lifetime + pdata.recenthistory[i].value
+		end
+	end
+	for i=1,#pdata.recentactions do
+		points = points + pdata.recentactions[i].value
+		if pdata.recentactions[i].value > 0 then
+			lifetime = lifetime + pdata.recentactions[i].value
+		end
+	end
+	if points ~= pdata.points then
+		pdata.points = points
+	end
+	if lifetime ~= pdata.lifetime then
+		pdata.lifetime = lifetime
+	end
+end
+
+function RPB:CompressPoints(player)
+	self:CalculatePoints(player)
+	local pdata = self:GetPlayer(player)
+	local points = 0
+	for i=1,#pdata.recentactions do
+		if pdata.recentactions[i].ty == 'I' then
+			pdata.recenthistory[#pdata.recenthistory+1] = pdata.recentactions[i]
+		else
+			points = points + pdata.recentactions[i].value
+		end
+	end
+	for i=1,#pdata.recenthistory do
+		if pdata.recenthistory[i].datetime == 0 and pdata.recenthistory[i].reason == "Old Points" then
+			pdata.recenthistory[i].value = pdata.recenthistory[i].value + points
+		end
+	end
+end
+
 function RPB:PointsShow(player, channel, to, history)
 	local playerlist = self:PlayerToArray(player, to);
 	local playerdata
@@ -569,6 +719,9 @@ function RPB:PointsShow(player, channel, to, history)
 		local wait = ""
 		if playerlist[i].waitlist then
 			wait = "{star}"
+		end
+		if not self:GetPlayer(playerlist[i].name) then
+			self:CreatePlayer(playerlist[i].name)
 		end
 		msg = wait .. self:GetPlayer(playerlist[i].name,"fullname") .. ": " .. self:GetPlayer(playerlist[i].name,"points")
 		if not channel then
@@ -698,54 +851,330 @@ RPB.whisperCommands["?"] = function (self, msg, name)
 end
 RPB.whisperCommands["help"] = RPB.whisperCommands["?"]
 
-local cs =
-{
-	rolllistadd		= "rla",
-	rolllistremove	= "rlr",
-	pointsadd		= "pa",
-	pointsremove	= "pr",
-	pointsupdate	= "pu",
-	loot			= "lt",
-	database		= "db",
-	master			= "m",
-	logon			= "lo",
-}
-
 function RPB:SyncCommand()
 
 end
 
 function RPB:OnCommReceived(pre, message, distribution, sender)
-	success, cmd, msg = self:Deserialize(message)
-	--self:Print(pre, cmd, cansenderinvite, msg, distribution, sender)
-	if not cmd then return end
-	if cmd and self.syncCommands[string.lower(cmd)] then
-		if (not self.activeraid) then
-			self:UseDatabase(self.settings.raid)
+	if self.settings.syncIn == "0" then return end
+
+	if (not self.activeraid) then
+		if (not self:UseDatabase(self.settings.raid)) then
+			self:CreateDatabase(self.settings.raid)
 		end
-		self.syncCommands[string.lower(cmd)](msg, sender)
+	end
+	
+	success, password, cmd, msg = self:Deserialize(message)
+	if self.settings.syncPassword ~= password then return end
+	if not cmd then return end
+
+	--self:Print("RPB:OnCommReceived", cmd, msg, distribution, sender)
+	if self.syncHold then
+		if not (
+			cmd == cs.getmaster or
+			cmd == cs.setmaster or
+			cmd == cs.logon or
+			cmd == cs.alert or
+			cmd == cs.dboutdate or
+			cmd == cs.dbupdate or
+			cmd == cs.dbmd5 or
+			cmd == cs.dbrequest or
+			cmd == cs.dbsend
+		) then
+			self:Print(self.syncHold, cmd)			
+			if (
+				cmd == cs.pointsadd or
+				cmd == cs.pointsremove or
+				cmd == cs.pointsupdate
+			) then
+				self.syncResync = true
+				return false
+			else
+				self.syncQueue[#self.syncQueue+1] = {pre, message, distribution, sender}
+				return false
+			end
+		end
+	end
+
+	if cmd and self.syncCommands[string.lower(cmd)] then
+		self.syncCommands[string.lower(cmd)](self, msg, sender)
 	end	
 end
 
 RPB.syncCommands = {}
-RPB.syncCommands["add"] = function (self, from, datetime, player, points, ty, itemid, reason, waitlist)
-
+RPB.syncCommands[cs.logon] = function(self, msg, sender)
+	if sender ~= UnitName("player") then
+		--self:Print("Database:", msg.database, db.realm.version.database)
+		--self:Print("Lastaction:", msg.lastaction, db.realm.version.lastaction)
+		if msg.database > db.realm.version.database then
+			if msg.lastaction > db.realm.version.lastaction then
+				self:Send(cs.dbupdate, "you", sender)
+			elseif msg.lastaction < db.realm.version.lastaction then
+				self:Send(cs.alert, "Version missmatch, please make sure the latest database is uploaded.  Any sync requests with "..UnitName("player").." will be ignored until a new database is loaded.")
+			end
+			-- 2 cases
+			-- if msg.lastaction > db.realm.version.lastacction then we send for a sync
+			-- if msg.lastaction <= db.realm.version.lastaction then we need to alert everyone about the inconistant settings, IE the savedvariables need to be uploaded.
+		elseif msg.database == db.realm.version.database then
+			if msg.lastaction > db.realm.version.lastaction then
+				self:Send(cs.dbupdate, "you", sender)
+			elseif msg.lastaction < db.realm.version.lastaction then
+				self:Send(cs.dboutdate, "you", sender)
+			else
+				self.syncQueue = {}
+				self.syncHold = false
+				self.syncResync = false
+			end
+		elseif msg.database < db.realm.version.database then
+			if msg.lastaction < db.realm.version.lastaction then
+				self:Send(cs.alert, "Version missmatch, please make sure the latest database is uploaded.  Any sync requests with "..sender.." will be ignored until a new database is loaded.")
+			else
+				self:Send(cs.dboutdate, "you", sender)
+			end
+		end
+	end
 end
 
-RPB.syncCommands["remove"] = function (self, from, datetime, player)
-
+RPB.syncCommands[cs.alert] = function(self, msg, sender)
+	self:Print(msg)
 end
 
-RPB.syncCommands["update"] = function (self, from, datetime, player, points, ty, itemid, reason, waitlist)
-
+RPB.syncCommands[cs.dboutdate] = function(self, msg, sender)
+	self:Send(cs.dbupdate, "you", sender)
 end
 
-RPB.syncCommands["loot"] = function (self, from, datetime, player, itemid)
-
+local dbup = {}
+RPB.syncCommands[cs.dbupdate] = function(self, msg, sender)
+	if not self.dbupTimer then
+		self.dbupTimer = self:ScheduleTimer("DatabaseUpdate", 10)
+	end
+	dbup[sender] = 1
 end
 
-RPB.syncCommands["show"] = function (self, from, player, history)
+function RPB:DatabaseUpdate()
+	local md5Raid = {}
+	for k,v in pairs(self.activeraid) do
+		md5Raid[k] = MD5:MD5(self:Serialize(v))
+	end
+	
+	for k,v in pairs(dbup) do
+		self:Send(cs.dbmd5, md5Raid, k)
+	end
+	dbup = {}
+	self.dbupTimer = nil
+end
 
+RPB.syncCommands[cs.dbmd5] = function(self, msg, sender)
+	local md5Raid = {}
+	for k,v in pairs(self.activeraid) do
+		md5Raid[k] = MD5:MD5(self:Serialize(v))
+	end
+	
+	local requestRaid = {}
+	for k,v in pairs(msg) do
+		if not md5Raid[k] then
+			requestRaid[k] = true
+		elseif md5Raid[k] ~= v then
+			requestRaid[k] = true
+		end
+	end
+
+	self:Send(cs.dbrequest, requestRaid, sender)
+	
+	for k,v in pairs(md5Raid) do
+		if not msg[k] then
+			self.activeraid[k].recentactions = nil
+			self.activeraid[k].recenthistory = nil
+			self.activeraid[k] = nil
+		end
+	end
+end
+
+local dbrq = {}
+RPB.syncCommands[cs.dbrequest] = function(self, msg, sender)
+	if not self.dbrqTimer then
+		self.dbrqTimer = self:ScheduleTimer("DatabaseRequest", 10)
+	end
+	
+	dbrq[sender] = msg
+end
+
+function RPB:DatabaseRequest()
+	for k,v in pairs(dbrq) do
+		local dataRaid = {}
+		for key, value in pairs(v) do
+			if value == true then
+				dataRaid[key] = self.activeraid[key]
+			end
+		end
+		self:Send(cs.dbsend, {dataRaid, db.realm.version.database, db.realm.version.lastaction}, k)
+	end
+	dbrq = {}
+	self.dbrqTimer = nil
+end
+
+RPB.syncCommands[cs.dbsend] = function(self, msg, sender)
+	if self.syncResync then
+		self:Send(cs.logon, db.realm.version)
+	else
+		for k,v in pairs(msg[1]) do
+			self.activeraid[k] = v
+		end
+		db.realm.version.database = msg[2]
+		db.realm.version.lastaction = msg[3]
+		for i=1,#self.syncQueue do
+			RPB:OnCommReceived(unpack(self.syncQueue[i] or {}))
+		end
+		self.syncQueue = {}
+		self.syncHold = false
+	end
+	self.syncResync = false
+end
+
+--- syncCommand: cs.settings.
+-- Sent when the button to sync is clicked
+-- @param self Reference to the mod base, since this is a table of functions.
+-- @param msg The message given by the event
+-- @param sender Sender
+RPB.syncCommands[cs.settings] = function(self, msg, sender)
+	if sender == UnitName("player") then return end
+	local settings = self.settings
+	if (settings.syncSettings == "0") then return end
+	for k,v in pairs(settings) do
+		if (k ~= "syncPassword") then
+			if (settings[k] ~= msg[k]) then
+				settings[k] = msg[k]
+			end
+		end
+	end
+	self.options:refresh()
+end
+
+RPB.syncCommands[cs.pointsadd] = function(self, msg, sender)
+	if sender == UnitName("player") then return end
+	self:PointsAdd(unpack(msg or {}))
+end
+
+RPB.syncCommands[cs.pointsremove] = function(self, msg, sender)
+	if sender == UnitName("player") then return end
+	self:PointsRemove(unpack(msg or {}))
+end
+
+RPB.syncCommands[cs.pointsupdate] = function(self, msg, sender)
+	if sender == UnitName("player") then return end
+	self:PointsUpdate(unpack(msg or {}))
+end
+
+RPB.syncCommands[cs.getmaster] = function(self, msg, sender)
+	if self.master == UnitName("player") then
+		self:Send(cs.setmaster, "")
+	end
+end
+
+RPB.syncCommands[cs.setmaster] = function(self, msg, sender)
+	if sender == UnitName("player") then return end
+	RPB:SetMaster(sender, true)
+end
+
+RPB.syncCommands[cs.rolllistadd] = function(self, msg, sender)
+	if sender == UnitName("player") then return end
+	--self:Print(msg[1], msg[2], msg[3], #msg)
+	self:RollListAdd(unpack(msg or {}))
+	-- self:RollListAdd(msg[1], msg[2], msg[3])
+end
+
+RPB.syncCommands[cs.rolllistremove] = function(self, msg, sender)
+	if sender == UnitName("player") then return end
+	self:RollListRemove(unpack(msg or {}))
+	-- self:RollListRemove(msg[1], msg[2])
+end
+
+RPB.syncCommands[cs.rolllistupdate] = function(self, msg, sender)
+	if sender == UnitName("player") then return end
+	self:RollListUpdate(unpack(msg or {}))
+	-- self:RollListUpdate(msg[1], msg[2], msg[3], msg[4])
+end
+
+--  Constants Roll List
+local crl = 
+{
+	player = 1,
+	class = 2,
+	rank = 3,
+	ty = 4,
+	current = 5,
+	roll = 6,
+	loss = 7,
+}
+
+RPB.syncCommands[cs.rolllistclick] = function(self, msg, sender)
+	if sender == UnitName("player") then return end
+	local list = self.frames["RollWindow"].rollList
+	for i=1,#list do
+		if (list[i].cols[crl.player].value == msg[crl.player]) then
+			self.frames["RollWindow"].scrollFrame.selected = list[i]
+			break
+		end
+	end
+	self.frames["RollWindow"].scrollFrame:SortData()
+end
+
+-- Constants Loot List
+local cll = 
+{
+	link = 1,
+	item = 2,
+	count = 3,
+	quality = 4,
+}
+
+RPB.syncCommands[cs.itemlistclick] = function(self, msg, sender)
+	if sender == UnitName("player") then return end
+	local list = self.frames["RollWindow"].lootList
+	--self:Print(msg, unpack(msg or {}))
+	for i=1,#list do
+		if (list[i].cols[cll.item].value == msg[cll.item]) then
+			self.frames["RollWindow"].scrollFrameLoot.selected = list[i]
+			break
+		end
+	end
+	self.frames["RollWindow"].scrollFrameLoot:SortData()
+end
+
+RPB.syncCommands[cs.startbidding] = function(self, msg, sender)
+	if sender == UnitName("player") then return end
+	self:StartBidding(unpack(msg or {}))
+	-- self:StartBidding(msg[1])
+end
+
+RPB.syncCommands[cs.starttimedbidding] = function(self, msg, sender)
+	if sender == UnitName("player") then return end
+	self:StartTimedBidding(unpack(msg or {}))
+	-- self:StartTimedBidding(msg[1])
+end
+
+RPB.syncCommands[cs.rolllistaward] = function(self, msg, sender)
+	if sender == UnitName("player") then return end
+	self:RollListAward(unpack(msg or {}))
+	-- self:RollListAward(msg[1])
+end
+
+RPB.syncCommands[cs.itemlistadd] = function(self, msg, sender)
+	if sender == UnitName("player") then return end
+	--self:Print(unpack(msg or {}))
+	self:ItemListAdd(unpack(msg or {}))
+	-- self:Print(msg[1], msg[2], msg[3], msg[4], msg[5], #msg)
+	-- self:ItemListAdd(msg[1], msg[2], msg[3], msg[4], msg[5])
+end
+
+RPB.syncCommands[cs.itemlistremove] = function(self, msg, sender)
+	if sender == UnitName("player") then return end
+	self:ItemListRemove(unpack(msg or {}))
+	-- self:ItemListRemove(msg[1], msg[2])
+end
+
+function RPB:PushSettings(value, isGUI, isUpdate)
+	self:Send(cs.settings, self.settings)
 end
 
 function RPB:ViewPoints()
@@ -758,3 +1187,38 @@ function RPB:ViewHistory()
 	-- If Client, call sync history
 end
 
+
+function RPB:GetMaster()
+	if not self.master then
+		RPB:SetMaster(UnitName("player"))
+	end
+end
+
+function RPB:SetMaster(player, recieved)
+	if not player then player = UnitName("player") end
+	self.master = player
+	if not recieved then
+		self:Send(cs.setmaster, {player, true})
+	end
+	if player == UnitName("player") then
+		self.frames["RollWindow"].button["StartBidding"]:Enable()
+		self.frames["RollWindow"].button["StartTimedBidding"]:Enable()
+		self.frames["RollWindow"].button["StopBidding"]:Disable()
+		self.frames["RollWindow"].button["AwardItem"]:Enable()
+		self.frames["RollWindow"].button["ClearList"]:Enable()
+		self.frames["RollWindow"].button["AddItem"]:Enable()
+		self.frames["RollWindow"].button["RemoveItem"]:Enable()
+		self.frames["RollWindow"].button["RollClear"]:Enable()
+		self.frames["RollWindow"].button["Master"]:Disable()
+	else
+		self.frames["RollWindow"].button["StartBidding"]:Disable()
+		self.frames["RollWindow"].button["StartTimedBidding"]:Disable()
+		self.frames["RollWindow"].button["StopBidding"]:Disable()
+		self.frames["RollWindow"].button["AwardItem"]:Disable()
+		self.frames["RollWindow"].button["ClearList"]:Disable()
+		self.frames["RollWindow"].button["AddItem"]:Disable()
+		self.frames["RollWindow"].button["RemoveItem"]:Disable()
+		self.frames["RollWindow"].button["RollClear"]:Disable()
+		self.frames["RollWindow"].button["Master"]:Enable()
+	end
+end

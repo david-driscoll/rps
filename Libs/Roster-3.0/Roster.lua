@@ -1,17 +1,20 @@
 --[[
-	*******************
-	* Raid Points System *
-	*******************
-	* File-Revision:  22
-	* Project-Version:  r22
-	* Last edited by:  sithy on  2008-12-24T05:51:45Z 
-	* Last commit:  sithy on   2008-12-24T05:51:45Z 
-	* Filename: RPLibrary/RPLibrary.lua
-	* Component: Library
-	* Details:
-		This file deals with various functions that are shared between the RPBot and RPWaitlist.
-		Skining, lib-st building primarily.
+Name: Roster-2.1
+Revision: $Revision: 93 $
+X-ReleaseDate: $Date: 2008-11-22 23:06:16 +0000 (Sat, 22 Nov 2008) $
+Author: Maia (maia.proudmoore@gmail.com)
+Website: http://www.wowace.com/
+Documentation: http://www.wowace.com/wiki/Roster-2.1
+SVN: http://svn.wowace.com/wowace/trunk/RosterLib/
+Description: Party/raid roster management
+Dependencies: AceLibrary, AceOO-2.0, AceEvent-2.0
+
+Originally develped for Ace2 by Maia, I've updated the code for my uses. I claim no
+rights to the code, and when I get near to beta, I'll see about getting it placed in its
+own project if needed.
+
 ]]
+
 
 -- Leverage SVN
 --@alpha@
