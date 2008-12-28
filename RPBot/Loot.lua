@@ -119,7 +119,7 @@ function RPB:LOOT_OPENED()
 		end
 		-- avoid coins
 		if (count > 0) then
-			self:AddItem(link, item, count, quality)
+			self:ItemListAdd(link, item, count, quality)
 		end
 		--self:UpdateLoot(texture, item, count, quality)
 	end
@@ -130,7 +130,7 @@ function RPB:START_LOOT_ROLL()
 	local texture, name, count, quality, bop = GetLootRollItemInfo(arg1)
 	local item = string.gsub(link,".-\124H([^\124]*)\124h.*", "%1")
 	--self:UpdateLoot(texture, item, count, quality)
-	self:AddItem(link, item, count, quality)
+	self:ItemListAdd(link, item, count, quality)
 end
 
 function RPB:UpdateLoot(texture, item, count, quality)
