@@ -748,6 +748,7 @@ function RPB:ContinueBidding()
 			self:Broadcast("Bidding on " .. item[cll.link].value .. ".  Closing in " .. timeleft .. " seconds.")
 		elseif (timeleft == lastcall+1) then
 			self:CancelTimer(self.frames["RollWindow"].timer)
+			self.frames["RollWindow"].timer = nil
 			RPB:StopBidding()
 		end
 		
@@ -775,6 +776,7 @@ function RPB:StopBidding(recieved)
 		end
 		if (timeleft == 1) then
 			self:CancelTimer(self.frames["RollWindow"].timer)
+			self.frames["RollWindow"].timer = nil
 		end
 		-- At the 10 second mark
 			-- If bonus/upgrade bids, call 'Bidding on [item]. Closing in 10 seconds.'
@@ -816,6 +818,7 @@ function RPB:RollListAward(recieved)
 		self.frames["RollWindow"].button["StopBidding"]:Disable()
 		self:RollListUpdate(player)
 	end
+	self.frames["RollWindow"].timer = nil
 end
 
 function RPB:ItemListAdd(link, item, count, quality, recieved)
@@ -837,7 +840,7 @@ function RPB:ItemListAdd(link, item, count, quality, recieved)
 	if link == "" then return false end
 	if not count then count = 0 end
 	if not quality then quality = 0 end
-	self:Print(link, item, count, quality, true)
+	--self:Print(link, item, count, quality, true)
 	if not recieved then
 		self:Send(cs.itemlistadd, {link, item, count, quality, true})
 	end

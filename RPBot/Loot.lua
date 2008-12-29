@@ -118,7 +118,7 @@ function RPB:LOOT_OPENED()
 			item = string.gsub(link,".-\124H([^\124]*)\124h.*", "%1")
 		end
 		-- avoid coins
-		if (count > 0) then
+		if (self.master == UnitName("player") and count > 0 and quality > 3) then
 			self:ItemListAdd(link, item, count, quality)
 		end
 		--self:UpdateLoot(texture, item, count, quality)
@@ -130,7 +130,9 @@ function RPB:START_LOOT_ROLL()
 	local texture, name, count, quality, bop = GetLootRollItemInfo(arg1)
 	local item = string.gsub(link,".-\124H([^\124]*)\124h.*", "%1")
 	--self:UpdateLoot(texture, item, count, quality)
-	self:ItemListAdd(link, item, count, quality)
+	if self.master == UnitName("player") and quality > 3 then
+		self:ItemListAdd(link, item, count, quality)
+	end
 end
 
 function RPB:UpdateLoot(texture, item, count, quality)
