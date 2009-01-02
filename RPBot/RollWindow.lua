@@ -634,7 +634,7 @@ function RPB:CHAT_MSG_SYSTEM()
 end
 
 function rollWindowScrollFrameOnClick(rowFrame, cellFrame, data, cols, row, realrow, column, button, down)
-	if RPB.master == UnitName("player") then
+	if RPB.rpoSettings.master == UnitName("player") then
 		if button == "LeftButton" then
 			if data[realrow] then
 				RPB.frames["RollWindow"].scrollFrame.selected = data[realrow]
@@ -654,7 +654,7 @@ function rollWindowScrollFrameOnClick(rowFrame, cellFrame, data, cols, row, real
 end
 
 function rollWindowItemScrollFrameOnClick(rowFrame, cellFrame, data, cols, row, realrow, column, button, down)
-	if RPB.master == UnitName("player") then
+	if RPB.rpoSettings.master == UnitName("player") then
 		if button == "LeftButton" then
 			if data[realrow] then
 				RPB.frames["RollWindow"].scrollFrameLoot.selected = data[realrow]

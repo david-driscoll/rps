@@ -539,9 +539,12 @@ end
 -- @param from Sender
 function RPWL:OnCommReceived(pre, message, distribution, sender)
 	if self.rpoSettings.syncIn == "0" then return end
-	success, password, cmd, msg = self:Deserialize(message)
+	local success, sentpassword, senttime, cmd, msg = self:Deserialize(message)
 	self:Print(pre, password, self.rpoSettings.syncPassword, self.rpoSettings.syncPassword == password, cmd, msg, distribution, sender)
-	if dself.rpoSettings.syncPassword ~= password then return end
+	local ourpassword = self.rpoSettings.syncPassword
+	ourpassword = MD5:MD5(ourpassword .. senttime)
+	
+	if ourpassword ~= sentpassword then return end
 	if not cmd then return end
 	if cmd and self.syncCommands[string.lower(cmd)] then
 		self.syncCommands[string.lower(cmd)](self, msg, sender)
