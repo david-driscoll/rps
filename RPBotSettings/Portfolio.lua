@@ -80,7 +80,7 @@ function RPBS:RegisterPortfolio()
 	local optionTable = {
 		id="RPBotSettings",
 		text="Bot Settings",
-		addon="RPBotSettings",
+		--addon="RPBotSettings",
 		parent="Raid Points System",
 		savedVarTable = rpbSettings,
 		options = {
@@ -100,17 +100,17 @@ function RPBS:RegisterPortfolio()
 			},
 			{
 				id = "compress",
-				headerText = "Compress",
+				text = "Compress",
 				type = CONTROLTYPE_BUTTON,
 				callback = function(value, isGUI, isUpdate) RPB:CompressDatabase(value, isGUI, isUpdate) end,
-				point = {"TOPLEFT", "mode", "TOPRIGHT", 40, 0},
+				point = {"TOPLEFT", "mode", "TOPRIGHT", 40, -6},
 			},
 			{
 				id = "botHeader",
 				text = "Bot Settings",
 				subText = "Misc. settings.",
 				type = CONTROLTYPE_HEADER,
-				point = {nil, "compress", nil, nil, nil},
+				point = {nil, "mode", nil, nil, nil},
 			},
 			{
 				id = "bidtime",
@@ -141,30 +141,44 @@ function RPBS:RegisterPortfolio()
 				type = CONTROLTYPE_HEADER,
 				point = {nil, "broadcast", nil, nil, nil},
 			},
-			{
-				id = "maxclass",
-				text = "Max Class Cost",
-				type = CONTROLTYPE_EDITBOX,
-				defaultValue = rpbSettings["maxclass"],
+			-- {
+				-- id = "maxclass",
+				-- text = "Max Class Cost",
+				-- type = CONTROLTYPE_EDITBOX,
+				-- defaultValue = rpbSettings["maxclass"],
 				
-			},
-			{
-				id = "minclass",
-				text = "Max Class Cost",
-				type = CONTROLTYPE_EDITBOX,
-				defaultValue = rpbSettings["minclass"],
+			-- },
+			-- {
+				-- id = "minclass",
+				-- text = "Max Class Cost",
+				-- type = CONTROLTYPE_EDITBOX,
+				-- defaultValue = rpbSettings["minclass"],
 				
-			},
+			-- },
+			-- {
+				-- id = "maxnonclass",
+				-- text = "Max Non-Class Cost",
+				-- type = CONTROLTYPE_EDITBOX,
+				-- defaultValue = rpbSettings["maxnonclass"],
+				
+			-- },
+			-- {
+				-- id = "minnonclass",
+				-- text = "Min Non-Class Cost",
+				-- type = CONTROLTYPE_EDITBOX,
+				-- defaultValue = rpbSettings["maxnonclass"],
+				
+			-- },
 			{
 				id = "maxnonclass",
-				text = "Max Non-Class Cost",
+				text = "Max Cost",
 				type = CONTROLTYPE_EDITBOX,
 				defaultValue = rpbSettings["maxnonclass"],
 				
 			},
 			{
 				id = "minnonclass",
-				text = "Min Non-Class Cost",
+				text = "Min Cost",
 				type = CONTROLTYPE_EDITBOX,
 				defaultValue = rpbSettings["maxnonclass"],
 				

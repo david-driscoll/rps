@@ -166,12 +166,12 @@ function Portfolio.RegisterOptionSet(optionSetTable)
 	InterfaceOptions_AddCategory(optionsFrame)
 	
 	-- If the addon name is valid, add an about page
-	if (optionsFrame.addon) then
-		LibStub("InterfaceOptionAboutPanel").new(optionsFrame.name, optionsFrame.addon)
-		LibStub("LibDefaults"):SetScript(optionsFrame.addon, function() 
-			optionsFrame:CallCallbacks() 
-		end)
-	end
+	-- if (optionsFrame.addon) then
+		-- LibStub("InterfaceOptionAboutPanel").new(optionsFrame.name, optionsFrame.addon)
+		-- LibStub("LibDefaults"):SetScript(optionsFrame.addon, function() 
+			-- optionsFrame:CallCallbacks() 
+		-- end)
+	-- end
 	
 	return optionsFrame
 end

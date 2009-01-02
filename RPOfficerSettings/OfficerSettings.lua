@@ -246,15 +246,14 @@ end
 --- Enable processes
 -- Register all events, setup inital state and load featureset
 function RPOS:OnEnable()
-	self:AddFeatureSet(db.realm.settings.featureSet)
 	self.options = self:RegisterPortfolio()
 	self.options:refresh()
 	db.realm.settings.master = ""
-	
 	--SetGuildRosterShowOffline(true)
 	--self:Send("syncrequest", "to me")
 	--enablecomm = false
 	--AceComm:RegisterComm("wlupdate")
+	self:AddFeatureSet(db.realm.settings.featureSet)
 	
 end
 

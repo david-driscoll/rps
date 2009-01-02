@@ -39,7 +39,7 @@ function RPWL:RegisterPortfolio()
 	local optionTable = {
 		id="RPWaitlist",
 		text="Waitlist Settings",
-		addon="RPWaitlist",
+		--addon="RPWaitlist",
 		parent="Raid Points System",
 		savedVarTable = rpwlSettings,
 		options = {

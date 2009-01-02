@@ -54,7 +54,7 @@ function RPOS:RegisterPortfolio()
 	local optionTable = {
 		id="RPClientSettings",
 		text="Client Settings",
-		addon="RPClientSettings",
+		--addon="RPClientSettings",
 		parent="Raid Points System",
 		savedVarTable = rpoSettings,
 		options = {
@@ -82,7 +82,7 @@ function RPOS:RegisterPortfolio()
 				text = "Push Settings",
 				type = CONTROLTYPE_BUTTON,
 				callback = function(value, isGUI, isUpdate) RPOS:PushSettings(value, isGUI, isUpdate) end,
-				point = {"TOPLEFT", "syncSettings", "TOPRIGHT", 40, 0},
+				point = {"TOPLEFT", "syncSettings", "TOPRIGHT", 100, 0},
 			},
 			{
 				id = "syncIn",
@@ -131,7 +131,7 @@ function RPOS:RegisterPortfolio()
 				type = CONTROLTYPE_DROPDOWN,
 				defaultValue = rpoSettings["raid"],
 				menuList = raidDropDown,
-				callback = function(value, isGUI, isUpdate) if not isUpdate then RPOS:UseDatabase(value) end end,
+				callback = function(value, isGUI, isUpdate) if not isUpdate then RPB:UseDatabase(value) end end,
 			},
 			{
 				id = "featureSet",

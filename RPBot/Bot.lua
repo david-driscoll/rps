@@ -273,9 +273,17 @@ function RPB:CreateDatabase(database, nouse)
 		}
 		self:Print("Database",database,"created!")
 		local t = time()
+		
+	
+		local rdd = self.rpoSettings.raidDropDown
+		for i=1,#rdd do
+			tremove(rdd,1)
+		end
+		for k,v in pairs(db.realm.raid) do
+			RPOS:AddRaid(k)
+		end
 		--db.realm.version.lastaction = t
 		--db.realm.version.database = t
-		RPBS:AddRaid(database)
 		if not nouse then
 			RPB:UseDatabase(database)
 		end
@@ -305,13 +313,15 @@ function RPB:CreatePlayerHistory(player, raid)
 				lifetime		= 0,
 				recenthistory = 
 				{
-					datetime 	= 0,
-					ty			= 'P',
-					itemid		= 0,
-					reason		= "Old Points",
-					value		= 0,
-					waitlist	= false,
-					action		= "Insert",
+					[0] = {
+						datetime 	= 0,
+						ty			= 'P',
+						itemid		= 0,
+						reason		= "Old Points",
+						value		= 0,
+						waitlist	= false,
+						action		= "Insert",
+					},
 				},
 				recentactions 	= {},
 			}
@@ -733,15 +743,15 @@ function RPB:CalculatePoints(player)
 	local points = 0
 	local lifetime = 0
 	for k,v in pairs(phistory.recenthistory) do
-		points = points + phistory.recenthistory[k].value
-		if phistory.recenthistory[k].value > 0 then
-			lifetime = lifetime + phistory.recenthistory[k].value
+		points = points + v.value
+		if v.value > 0 then
+			lifetime = lifetime + v.value
 		end
 	end
 	for k,v in pairs(phistory.recentactions) do
-		points = points + phistory.recentactions[k].value
-		if phistory.recentactions[k].value > 0 then
-			lifetime = lifetime + phistory.recentactions[k].value
+		points = points + v.value
+		if v.value > 0 then
+			lifetime = lifetime + v.value
 		end
 	end
 	if points ~= phistory.points then
@@ -752,8 +762,8 @@ function RPB:CalculatePoints(player)
 	end
 end
 
-function RPB:CompressPoints(player)
-	local phistory = self:GetPlayerHistory(player)
+function RPB:CompressPoints(player, raid)
+	local phistory = self:GetPlayerHistory(player, raid)
 	local points = 0
 	for k,v in pairs(phistory.recentactions) do
 		if phistory.recentactions[k].ty == 'I' then
@@ -762,11 +772,7 @@ function RPB:CompressPoints(player)
 			points = points + phistory.recentactions[k].value
 		end
 	end
-	for k,v in pairs(phistory.recenthistory) do
-		if phistory.recenthistory[k].datetime == 0 and phistory.recenthistory[k].reason == "Old Points" then
-			phistory.recenthistory[k].value = phistory.recenthistory[k].value + points
-		end
-	end
+	phistory.recenthistory[0].value = phistory.recenthistory[0].value + points
 	phistory.recentactions = {}
 	self:CalculatePoints(player)
 end
@@ -774,8 +780,13 @@ end
 function RPB:CompressDatabase()
 	if self.rpbSettings.mode == "WEB" then self:Print("You can only compress in Standalone Mode"); return end
 	for k,v in pairs(db.realm.raid) do
-		RPB:CompressPoints(key)
+		for key, value in pairs(v) do
+			RPB:CompressPoints(key, k)
+		end
 	end
+	local ti = time()
+	db.realm.version.database = ti
+	db.realm.version.lastaction = ti
 end
 
 function RPB:ConvertDatabase()
@@ -804,7 +815,8 @@ function RPB:ConvertDatabase()
 				points			= 0,
 				lifetime		= 0,
 				recenthistory 	=
-					{
+				{
+					[9] = {
 						datetime 	= 0,
 						ty			= 'P',
 						itemid		= 0,
@@ -813,6 +825,7 @@ function RPB:ConvertDatabase()
 						waitlist	= false,
 						action		= "Insert",
 					},
+				},
 				recentactions 	= {},
 			}
 			for id, data in pairs(v[kplayer]) do
@@ -923,9 +936,10 @@ RPB.chatCommands["additem"] = function (self, msg)
 	local _, value, player, pos = self:GetArgs(msg, 3, 1)
 	--playerlist = RPB:PlayerToArray(player)
 	--local itemid = RPB:GetItemid(reason) or 0
+	local reason = string.sub(msg, pos)
 	datetime = time()
 	wl = wl or false
-	RPB:PointsAdd(self.rpoSettings.raid, datetime, playerlist, value, 'I', 0, reason, wl, true)
+	RPB:PointsAdd(self.rpoSettings.raid, datetime, player, value, 'I', 0, reason, wl, true)
 end
 
 RPB.chatCommands["show"] = function (self, msg)
@@ -1071,7 +1085,7 @@ RPB.syncCommands[cs.logon] = function(self, msg, sender)
 					if self.rpoSettings.dbinfo[sender].lastaction < msg.lastaction then
 						--self:Print("if self.settings.dbinfo[sender].lastaction < msg.lastaction")
 						--self:Send(cs.dboutdate, "you", sender)
-						self:Send(cs.sendla, { RPB:GetLatestActions(self.settings.dbinfo[sender].lastaction), self.settings.dbinfo[sender], msg }, sender)
+						self:Send(cs.sendla, { RPB:GetLatestActions(self.rpoSettings.dbinfo[sender].lastaction), self.rpoSettings.dbinfo[sender], msg }, sender)
 						--self.timer = self:ScheduleTimer("DatabaseSync", 10)
 					else
 						--self:Print("if self.settings.dbinfo[sender].lastaction < msg.lastaction  else")
@@ -1097,7 +1111,7 @@ RPB.syncCommands[cs.logon] = function(self, msg, sender)
 					--self:Print("elseif msg.lastaction < db.realm.version.lastaction")
 					--if self.settings.dbinfo[sender].lastaction <= db.realm.version.lastaction then
 					--self:Send(cs.dboutdate, "you", sender)
-					self:Send(cs.sendla, { RPB:GetLatestActions(self.settings.dbinfo[sender].lastaction), self.settings.dbinfo[sender], msg }, sender)
+					self:Send(cs.sendla, { RPB:GetLatestActions(self.rpoSettings.dbinfo[sender].lastaction), self.rpoSettings.dbinfo[sender], msg }, sender)
 					--self.timer = self:ScheduleTimer("DatabaseSync", 10)
 					--else
 						--self:Send(cs.dbupdate, "you", sender)
@@ -1178,18 +1192,11 @@ RPB.syncCommands[cs.sendla] = function(self, msg, sender)
 		for player, value in pairs(v) do
 			if not db.realm.raid[k][player] then
 				db.realm.raid[k][player] = {
-					id 				= value.id,
-					name 			= value.name,
-					fullname 		= value.fullname,
-					class			= value.class,
-					rank			= value.rank,
-					gender			= value.gender,
-					race			= value.race,
-					talent			= value.talent,
 					points			= value.points,
 					lifetime		= value.lifetime,
 					recenthistory 	=
-						{
+					{
+						[0] = {
 							datetime 	= 0,
 							ty			= 'P',
 							itemid		= 0,
@@ -1198,6 +1205,7 @@ RPB.syncCommands[cs.sendla] = function(self, msg, sender)
 							waitlist	= false,
 							action		= "Insert",
 						},
+					},
 					recentactions 	= {},
 				}
 			end
@@ -1220,7 +1228,7 @@ RPB.syncCommands[cs.sendla] = function(self, msg, sender)
 		end
 	end
 	--self:Print(msg)
-	self.latimer = self:ScheduleTimer("LastActionSync", 10)
+	--self.latimer = self:ScheduleTimer("LastActionSync", 10)
 	self.db.realm.version.database = msg[3].database
 	self.db.realm.version.lastaction = msg[3].lastaction
 	self:Send(cs.dboutdate, "you", sender)
@@ -1236,7 +1244,9 @@ RPB.syncCommands[cs.dboutdate] = function(self, msg, sender)
 end
 
 RPB.syncCommands[cs.dballupdate] = function(self, msg, sender)
-	self:Send(cs.dbupdate, "you", sender)
+	if self.rpoSettings.master ~= UnitName("player") then
+		self:Send(cs.dbupdate, "you", sender)
+	end
 end
 
 local dbup = {}
@@ -1404,7 +1414,28 @@ RPB.syncCommands[cs.rpoSettings] = function(self, msg, sender)
 			end
 		end
 	end
-	self.options:refresh()
+	RPOS.options:refresh()
+	RPBS.options:refresh()
+end
+
+--- syncCommand: cs.settings.
+-- Sent when the button to sync is clicked
+-- @param self Reference to the mod base, since this is a table of functions.
+-- @param msg The message given by the event
+-- @param sender Sender
+RPB.syncCommands[cs.rpbSettings] = function(self, msg, sender)
+	if sender == UnitName("player") then return end
+	local settings = self.rpbSettings
+	if (settings.syncSettings == "0") then return end
+	for k,v in pairs(settings) do
+		if (k ~= "syncPassword" and k ~= "dbinfo") then
+			if (settings[k] ~= msg[k]) then
+				settings[k] = msg[k]
+			end
+		end
+	end
+	RPOS.options:refresh()
+	RPBS.options:refresh()
 end
 
 RPB.syncCommands[cs.pointsadd] = function(self, msg, sender)
@@ -1560,10 +1591,11 @@ end
 
 function RPB:GuildLib_Update()
 	local guildRoster = self:GuildRoster()
-	for key, value in pairs(guildRoster) do
-		if string.lower(key) == string.lower(self.rpoSettings.master) and not value["online"] then
-			self.rpoSettings.master = nil
-			self:ScheduleTimer("GetMaster", math.random(1, 15))
+	if not self.rpoSettings.master then
+		for key, value in pairs(guildRoster) do
+			if string.lower(key) == string.lower(self.rpoSettings.master) and not value["online"] then
+				self:ScheduleTimer("GetMaster", math.random(1, 15))
+			end
 		end
 	end
 end
