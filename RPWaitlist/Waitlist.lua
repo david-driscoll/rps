@@ -91,7 +91,7 @@ local cs =
 	["syncrequest"]	= "sr",
 	["syncowner"]	= "so",
 	["sync"]		= "s",
-	["rpoSettings"]	= "so",
+	["rpoSettings"]	= "set",
 }
 
 local function whisperFilter()
@@ -113,7 +113,7 @@ end
 function RPWL:OnInitialize()
 	-- Leverage SVN
 	--@alpha@
-	db = LibStub("AceDB-3.0"):New("rpDEBUGWaitlistDB", defaults, "Default")
+	db = LibStub("AceDB-3.0"):New("rpDEBUGWaitlistDB")
 	--@end-alpha@. 
 	--[===[@non-alpha@
 	db = LibStub("AceDB-3.0"):New("rpwaitlistDB", defaults, "Default")
@@ -643,7 +643,7 @@ RPWL.syncCommands[cs.rpoSettings] = function(self, msg, sender)
 end
 
 function RPWL:PushSettings(value, isGUI, isUpdate)
-	self:Send(cs.settings, self.rpoSettings)
+	self:Send(cs.rpoSettings, self.rpoSettings)
 end
 
 --- Force the waitlist scrolling table to refresh.

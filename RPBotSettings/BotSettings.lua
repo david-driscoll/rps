@@ -21,7 +21,7 @@ RPBS = LibStub("AceAddon-3.0"):NewAddon("Raid Points Bot Settings")
 function RPBS:OnInitialize()
 	-- Leverage SVN
 	--@alpha@
-	db = LibStub("AceDB-3.0"):New("rpDEBUGBotSettingsDB", defaults, "Default")
+	db = LibStub("AceDB-3.0"):New("rpDEBUGBotSettingsDB")
 	--@end-alpha@. 
 	--[===[@non-alpha@
 	db = LibStub("AceDB-3.0"):New("rpBotSettingsDB", defaults, "Default")
@@ -256,8 +256,4 @@ function RPBS:OnEnable()
 	--enablecomm = false
 	--AceComm:RegisterComm("wlupdate")
 	
-end
-
-function RPBS:AddRaid(raid)
-	db.realm.settings.raidDropDown[#db.realm.settings.raidDropDown+1] = {text = raid, value = raid}
 end

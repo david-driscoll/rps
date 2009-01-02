@@ -38,7 +38,7 @@ function RPOS:RegisterPortfolio()
 	end
 	
 	local featureDropDown = {}
-	for k,v in pairs(self.db.featureSets) do
+	for k,v in pairs(self.db.realm.featureSets) do
 		-- if self.currentFeature == k then
 			
 		-- end
@@ -49,6 +49,7 @@ function RPOS:RegisterPortfolio()
 		}
 	end
 		
+	self.db.realm.settings.raidDropDown = {}
 	local raidDropDown = self.db.realm.settings.raidDropDown
 	
 	local optionTable = {
@@ -143,5 +144,5 @@ function RPOS:RegisterPortfolio()
 			},
 		}
 	}
-	return Portfolio.RegisterOptionSet(optionTable)
+	--return Portfolio.RegisterOptionSet(optionTable)
 end

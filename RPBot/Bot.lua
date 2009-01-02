@@ -103,7 +103,7 @@ RPB.syncHold = true
 function RPB:OnInitialize()
 	-- Leverage SVN
 	--@alpha@
-	db = LibStub("AceDB-3.0"):New("rpDEBUGBotDB", defaults, "Default")
+	db = LibStub("AceDB-3.0"):New("rpDEBUGBotDB")
 	--@end-alpha@. 
 	--[===[@non-alpha@
 	db = LibStub("AceDB-3.0"):New("rpbDB", defaults, "Default")
@@ -275,13 +275,13 @@ function RPB:CreateDatabase(database, nouse)
 		local t = time()
 		
 	
-		local rdd = self.rpoSettings.raidDropDown
-		for i=1,#rdd do
-			tremove(rdd,1)
-		end
-		for k,v in pairs(db.realm.raid) do
-			RPOS:AddRaid(k)
-		end
+		-- local rdd = self.rpoSettings.raidDropDown
+		-- for i=1,#rdd do
+			-- tremove(rdd,1)
+		-- end
+		-- for k,v in pairs(db.realm.raid) do
+			-- RPOS:AddRaid(k)
+		-- end
 		--db.realm.version.lastaction = t
 		--db.realm.version.database = t
 		if not nouse then
@@ -306,6 +306,7 @@ end
 
 function RPB:CreatePlayerHistory(player, raid)
 	if not raid then raid = self.rpoSettings.raid end
+	--if not db.realm.raid[raid] then self:CreateDatabase(raid) end
 	if raid and db.realm.raid[raid] then
 		db.realm.raid[raid][string.lower(player)] = 
 			{
@@ -325,8 +326,9 @@ function RPB:CreatePlayerHistory(player, raid)
 				},
 				recentactions 	= {},
 			}
+		return db.realm.raid[raid][string.lower(player)]
 	end
-	return db.realm.raid[raid][string.lower(player)]
+	return nil
 end
 
 function RPB:GetPlayer(player, col)

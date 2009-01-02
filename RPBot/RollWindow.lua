@@ -488,6 +488,9 @@ end
 
 function RPB:RollListAdd(player, cmd, recieved)
 	--local pinfo = self:GetInfo(player)
+	if (not self:GetPlayer(player)) then
+		self:CreatePlayer(player)
+	end
 	local pinfo = self:GuildRosterByName(player) or self:RosterByName(player:gsub("^%l", string.upper))
 	
 	--self:Print("RPB:RollListAdd", player, cmd, recieved)
@@ -500,13 +503,9 @@ function RPB:RollListAdd(player, cmd, recieved)
 		rank = pinfo["rank"] or ""
 	end	
 	
-	pdata = self:GetPlayer(player)
-	if not pdata then
-		self:CreatePlayer(player)
-		pdata = self:GetPlayer(player)
-	end
+	pdata = self:GetPlayerHistory(player)
 	current = pdata.points
-	player = pdata.fullname
+	player = pinfo.name
 	
 	ty = feature.name
 	local rollList = self.frames["RollWindow"].rollList
@@ -521,9 +520,6 @@ function RPB:RollListAdd(player, cmd, recieved)
 	
 	if not recieved then
 		self:Send(cs.rolllistadd, {player, cmd, true})
-	end
-	if (not self:GetPlayer(player)) then
-		self:CreatePlayer(player)
 	end
 
 	loss = self:CalculateLoss(current, cmd)
@@ -589,9 +585,9 @@ function RPB:RollListUpdate(player, roll, ty, recieved)
 			end
 			if roll then
 				rollList[i].cols[crl.roll].value = roll
-				rollList[i].cols[crl.current].value = self:GetPlayer(player,"points") + roll
+				rollList[i].cols[crl.current].value = self:GetPlayerHistory(player).points + roll
 			else
-				rollList[i].cols[crl.current].value = self:GetPlayer(player,"points") + rollList[i].cols[crl.roll].value
+				rollList[i].cols[crl.current].value = self:GetPlayerHistory(player).points + rollList[i].cols[crl.roll].value
 			end
 			if ty then
 				rollList[i].cols[crl.ty].value = ty
@@ -680,7 +676,7 @@ end
 function rollWindowScrollFrameColor(roll)
 	local feature = RPB.feature[string.lower(roll.cols[crl.ty].value)]
 	-- Make this loaclizable, for generic changes.
-	local diff = tonumber(feature.diff) or tonumber(self.settings.diff)
+	local diff = tonumber(feature.diff) or tonumber(RPB.rpbSettings.diff)
 	local high = roll.cols[crl.current].value
 
 	local rollList = RPB.frames["RollWindow"].rollList
@@ -731,7 +727,7 @@ function RPB:StartTimedBidding(recieved)
 		end
 		self.frames["RollWindow"].inProgress = true
 		if self.rpoSettings.master == UnitName("player") then
-			self:Broadcast("Declare on " .. item[cll.link].value .. ".  Closing in " .. (tonumber(self.settings.bidtime) or 30) .. " seconds.")
+			self:Broadcast("Declare on " .. item[cll.link].value .. ".  Closing in " .. (tonumber(RPB.rpbSettings.bidtime) or 30) .. " seconds.")
 			self.frames["RollWindow"].tm = (tonumber(self.rpbSettings.bidtime) or 30) - 1
 			self.frames["RollWindow"].timer = self:ScheduleRepeatingTimer("ContinueBidding", 1)
 			self.frames["RollWindow"].button["StartBidding"]:Disable()
@@ -805,7 +801,7 @@ function RPB:RollListAward(recieved)
 	--loss = winner[crl.loss].value
 	loss = tonumber(editbox:GetText())
 	roll = winner[crl.roll].value
-	pcurrent = self:GetPlayer(player,"points")
+	pcurrent = self:GetPlayerHistory(player).points
 	if not recieved then
 		self:Send(cs.rolllistaward, { true })
 	end
@@ -907,7 +903,7 @@ RPB.syncCommands[cs.itemlistset] = function(self, msg, sender)
 	local temp = self:BuildTable(msg[1], cllArg)
 	self.frames["RollWindow"].lootList = temp
 	for i=1,#temp do
-		if temp[i].cols[crl.player].value == msg[2][cll.link] then
+		if msg[2] and msg[2][cll.link] and temp[i].cols[cll.link].value == msg[2][cll.link] then
 			self.frames["RollWindow"].scrollFrameLoot.selected = temp[i]
 		end
 	end
@@ -930,7 +926,7 @@ RPB.syncCommands[cs.rolllistset] = function(self, msg, sender)
 	local temp = self:BuildTable(msg[1], crlArg, rollWindowScrollFrameColor)
 	self.frames["RollWindow"].rollList = temp
 	for i=1,#temp do
-		if string.lower(temp[i].cols[crl.player].value) == string.lower(msg[2][crl.player]) then
+		if msg[2] and msg[2][crl.player] and string.lower(temp[i].cols[crl.player].value) == string.lower(msg[2][crl.player]) then
 			self.frames["RollWindow"].scrollFrame.selected = temp[i]
 		end
 	end

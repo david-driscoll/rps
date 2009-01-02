@@ -21,14 +21,14 @@ RPOS = LibStub("AceAddon-3.0"):NewAddon("Raid Points Officer Settings")
 function RPOS:OnInitialize()
 	-- Leverage SVN
 	--@alpha@
-	db = LibStub("AceDB-3.0"):New("rpDEBUGOfficerSettingsDB", defaults, "Default")
+	db = LibStub("AceDB-3.0"):New("rpDEBUGOfficerSettingsDB")
 	--@end-alpha@. 
 	--[===[@non-alpha@
 	db = LibStub("AceDB-3.0"):New("rpOfficerSettingsDB", defaults, "Default")
 	--@end-non-alpha@]===]
 	self.db = db
 	if not db.realm.settings then
-		db.realm.settings = 
+		db.realm.settings  = 
 		{
 			syncPassword	= "",
 			syncSettings	= "1",
@@ -37,15 +37,29 @@ function RPOS:OnInitialize()
 			filterIn		= "0",
 			filterOut		= "1",
 			raid 			= "di",
-			raidDropDown	= {},
 			featureSet		= "deus",
+			raidDropDown	= {},
 			dbinfo			= {},
 		}
 	end
-	
-	if not db.featureSets then
-		db.featureSets = {}
-		local featureSets = db.featureSets
+	if not db.realm.settings.featureSet or db.realm.settings.featureSet == "" then
+		db.realm.settings.featureSet = "deus"
+	end
+	if not db.realm.settings.dbinfo then
+		db.realm.settings.dbinfo = {}
+	end
+	if not db.realm.settings.raidDropDown then
+		db.realm.settings.raidDropDown = 
+		{
+			{
+				text = "di",
+				value = "di",
+			},
+		}
+	end
+	if not db.realm.featureSets then
+		db.realm.featureSets = {}
+		local featureSets = db.realm.featureSets
 		featureSets["deus"] = 
 		{
 			["name"]		= "Deus Invictus",
@@ -247,7 +261,7 @@ end
 -- Register all events, setup inital state and load featureset
 function RPOS:OnEnable()
 	self.options = self:RegisterPortfolio()
-	self.options:refresh()
+	--self.options:refresh()
 	db.realm.settings.master = ""
 	--SetGuildRosterShowOffline(true)
 	--self:Send("syncrequest", "to me")

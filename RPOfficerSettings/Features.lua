@@ -222,7 +222,7 @@ function RPOS:AddFeatureSet(name)
 		db = self.db
 	end
 	db.realm.settings.featureSet = name
-	for key,value in pairs(db.featureSets[name]) do
+	for key,value in pairs(db.realm.featureSets[name]) do
 		--self:Print(key)
 		if (key ~= "name" and key ~= "description") then
 			self:AddFeature(value)

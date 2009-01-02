@@ -34,7 +34,7 @@ if not Portfolio then return end
 
 function RPWL:RegisterPortfolio()
 	if not rpwlSettings then
-		rpwlSettings = RPWL.db.realm.settings
+		rpwlSettings = self.db.realm.settings
 	end
 	local optionTable = {
 		id="RPWaitlist",
