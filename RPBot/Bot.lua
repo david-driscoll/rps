@@ -1596,7 +1596,7 @@ function RPB:GuildLib_Update()
 	local guildRoster = self:GuildRoster()
 	if not self.rpoSettings.master then
 		for key, value in pairs(guildRoster) do
-			if string.lower(key) == string.lower(self.rpoSettings.master) and not value["online"] then
+			if self.rpoSettings.master and string.lower(key) == string.lower(self.rpoSettings.master) and not value["online"] then
 				self:ScheduleTimer("GetMaster", math.random(1, 15))
 			end
 		end

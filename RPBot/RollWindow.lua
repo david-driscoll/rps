@@ -501,6 +501,10 @@ function RPB:RollListAdd(player, cmd, recieved)
 	end	
 	
 	pdata = self:GetPlayer(player)
+	if not pdata then
+		self:CreatePlayer(player)
+		pdata = self:GetPlayer(player)
+	end
 	current = pdata.points
 	player = pdata.fullname
 	
@@ -828,7 +832,7 @@ function RPB:ItemListAdd(link, item, count, quality, recieved)
 		local itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemCount, itemEquipLoc, itemTexture = GetItemInfo(editbox:GetText())
 		--RPB:Print(GetItemInfo(editbox:GetText()))
 		link = editbox:GetText()
-		local item = self:GetItemID(link)
+		item = self:GetItemID(link)
 		--_, _, item  = string.find(link, "item:(%d+)");
 		if not item then
 			item = 0
