@@ -6,7 +6,7 @@
 	* Project-Version: @project-version@
 	* Last edited by: @file-author@ on @file-date-iso@ 
 	* Last commit by: @project-author@ on @project-date-iso@ 
-	* Filename: RPBotSettings/BotSettings.lua
+	* Filename: RPClientSettings/ClientSettings.lua
 	* Component: Core
 	* Details:
 		This file contains the core of the RPBot. Handles start up, database initialization,
@@ -14,34 +14,32 @@
 ]]
 
 local db
-RPBS = LibStub("AceAddon-3.0"):NewAddon("Raid Points Bot Settings")
+RPOS = LibStub("AceAddon-3.0"):NewAddon("Raid Points Officer Settings")
 
 --- Initial start up processes.
 -- Register chat commands, minor events and setup AceDB
-function RPBS:OnInitialize()
+function RPOS:OnInitialize()
 	-- Leverage SVN
 	--@alpha@
-	db = LibStub("AceDB-3.0"):New("rpDEBUGBotSettingsDB", defaults, "Default")
+	db = LibStub("AceDB-3.0"):New("rpDEBUGOfficerSettingsDB", defaults, "Default")
 	--@end-alpha@. 
 	--[===[@non-alpha@
-	db = LibStub("AceDB-3.0"):New("rpBotSettingsDB", defaults, "Default")
+	db = LibStub("AceDB-3.0"):New("rpOfficerSettingsDB", defaults, "Default")
 	--@end-non-alpha@]===]
 	self.db = db
 	if not db.realm.settings then
 		db.realm.settings = 
 		{
-			mode 			= "WEB",
-			broadcast 		= "AUTO",
-			bidtime 		= "30",
-			lastcall	 	= "5",
-			maxclass 		= "100",
-			minclass 		= "50",
-			maxnonclass 	= "100",
-			minnonclass 	= "50",
-			divisor 		= "2",
-			diff 			= "50",
-			allownegative 	= "1",
-			rounding 		= "5",
+			syncPassword	= "",
+			syncSettings	= "1",
+			syncIn			= "1",
+			syncOut			= "1",
+			filterIn		= "0",
+			filterOut		= "1",
+			raid 			= "di",
+			raidDropDown	= {},
+			featureSet		= "deus",
+			dbinfo			= {},
 		}
 	end
 	
@@ -247,9 +245,11 @@ end
 
 --- Enable processes
 -- Register all events, setup inital state and load featureset
-function RPBS:OnEnable()
+function RPOS:OnEnable()
+	self:AddFeatureSet(db.realm.settings.featureSet)
 	self.options = self:RegisterPortfolio()
 	self.options:refresh()
+	db.realm.settings.master = ""
 	
 	--SetGuildRosterShowOffline(true)
 	--self:Send("syncrequest", "to me")
@@ -258,6 +258,15 @@ function RPBS:OnEnable()
 	
 end
 
-function RPBS:AddRaid(raid)
+function RPOS:AddRaid(raid)
 	db.realm.settings.raidDropDown[#db.realm.settings.raidDropDown+1] = {text = raid, value = raid}
+end
+
+function RPOS:PushSettings()
+	if RPB then
+		RPB:Send("so", db.realm.settings, nil, nil, "rpos")
+		RPB:PushSettings()
+	elseif RPWL then
+		RPWL:Send("so", db.realm.settings, nil, nil, "rpos")
+	end
 end

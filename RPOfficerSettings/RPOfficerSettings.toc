@@ -1,9 +1,9 @@
-## Title: RPWaitList 0.1
+## Title: RPOfficerSettings 0.1
 ## Author: Sithy
 ## Version: 0.1
 ## Interface: 30000
-## Notes: A waitlist addon.
-## SavedVariables: rpwaitlistDB, rpDEBUGwaitlistDB
+## Notes: Raid Points Automation
+## SavedVariables: rpOfficerSettingsDB, rpDEBUGOfficerSettingsDB
 ## X-Misc
 ## * File-Revision: @file-revision@ 
 ## * Project-Version: @project-revision@ 
@@ -15,18 +15,9 @@
 Libs\LibStub\LibStub.lua
 Libs\CallbackHandler-1.0\CallbackHandler-1.0.xml
 Libs\AceAddon-3.0\AceAddon-3.0.xml
-Libs\AceComm-3.0\AceComm-3.0.xml
-Libs\AceConsole-3.0\AceConsole-3.0.xml
-Libs\AceDB-3.0\AceDB-3.0.xml
-Libs\AceEvent-3.0\AceEvent-3.0.xml
-Libs\AceBucket-3.0\AceBucket-3.0.xml
-Libs\AceSerializer-3.0\AceSerializer-3.0.xml
-Libs\lib-st\Core.lua
 #@end-no-lib-strip@
-Libs\GuildLib\GuildLib.lua
-Libs\BLib\BLib.lua
 Libs\Portfolio\Loader.xml
 
-Waitlist.lua
-Frame.lua
+OfficerSettings.lua
+Features.lua
 Portfolio.lua

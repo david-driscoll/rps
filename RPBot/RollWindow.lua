@@ -414,7 +414,7 @@ end
 		editbox:SetHeight(32)
 		editbox:SetWidth(130)
 		
-		editbox:SetScript("OnEnterPressed", function(self) if RPB.master == UnitName("Player") then RPB:ItemListAdd() end end)
+		editbox:SetScript("OnEnterPressed", function(self) if RPB.rpoSettings.master == UnitName("Player") then RPB:ItemListAdd() end end)
 		editbox:SetPoint("TOPLEFT", f.scrollFrameLoot.frame, "BOTTOMLEFT", 10, 6)
 		
 		self:SkinEditBox(editbox)
@@ -566,7 +566,7 @@ function RPB:RollListClear(recieved)
 	self.frames["RollWindow"].scrollFrame.selected = nil
 	self:RollListSort()
 	self.frames["RollWindow"].inProgress = false
-	if self.master == UnitName("player") then
+	if self.rpoSettings.master == UnitName("player") then
 		self.frames["RollWindow"].button["StartBidding"]:Enable()
 		self.frames["RollWindow"].button["StartTimedBidding"]:Enable()
 		self.frames["RollWindow"].button["StopBidding"]:Disable()
@@ -603,7 +603,7 @@ function RPB:RollListUpdate(player, roll, ty, recieved)
 	if (found) then
 		self:RollListSort()
 	else
-		if self.master == UnitName("player") then
+		if self.rpoSettings.master == UnitName("player") then
 			self:Broadcast(player.." is not currently bidding, roll ignored.")
 		end
 	end
@@ -706,9 +706,9 @@ function RPB:StartBidding(recieved)
 			self:Send(cs.startbidding, { true })
 		end
 		self.frames["RollWindow"].inProgress = true
-		if self.master == UnitName("player") then
+		if self.rpoSettings.master == UnitName("player") then
 			self:Broadcast("Declare on " .. item[cll.link].value .. ".")
-			self.frames["RollWindow"].tm = (tonumber(self.settings.lastcall) or 5) + 1
+			self.frames["RollWindow"].tm = (tonumber(self.rpbSettings.lastcall) or 5) + 1
 			self.frames["RollWindow"].button["StartBidding"]:Disable()
 			self.frames["RollWindow"].button["StartTimedBidding"]:Disable()
 			self.frames["RollWindow"].button["StopBidding"]:Enable()
@@ -726,9 +726,9 @@ function RPB:StartTimedBidding(recieved)
 			self:Send(cs.starttimedbidding, { true })
 		end
 		self.frames["RollWindow"].inProgress = true
-		if self.master == UnitName("player") then
+		if self.rpoSettings.master == UnitName("player") then
 			self:Broadcast("Declare on " .. item[cll.link].value .. ".  Closing in " .. (tonumber(self.settings.bidtime) or 30) .. " seconds.")
-			self.frames["RollWindow"].tm = (tonumber(self.settings.bidtime) or 30) - 1
+			self.frames["RollWindow"].tm = (tonumber(self.rpbSettings.bidtime) or 30) - 1
 			self.frames["RollWindow"].timer = self:ScheduleRepeatingTimer("ContinueBidding", 1)
 			self.frames["RollWindow"].button["StartBidding"]:Disable()
 			self.frames["RollWindow"].button["StartTimedBidding"]:Disable()
@@ -742,7 +742,7 @@ function RPB:ContinueBidding()
 		self.frames["RollWindow"].tm = self.frames["RollWindow"].tm - 1
 		local timeleft = self.frames["RollWindow"].tm
 		local item = RPB.frames["RollWindow"].scrollFrameLoot.selected.cols
-		local lastcall = tonumber(self.settings.lastcalltonumber) or 5
+		local lastcall = tonumber(self.rpbSettings.lastcalltonumber) or 5
 		
 		if (timeleft > lastcall and timeleft % lastcall*2 == 0) then
 			self:Broadcast("Bidding on " .. item[cll.link].value .. ".  Closing in " .. timeleft .. " seconds.")
@@ -767,7 +767,7 @@ function RPB:StopBidding(recieved)
 		self.frames["RollWindow"].tm = self.frames["RollWindow"].tm - 1
 		local timeleft = self.frames["RollWindow"].tm
 		local item = RPB.frames["RollWindow"].scrollFrameLoot.selected.cols
-		local lastcall = tonumber(self.settings.lastcall) or 5
+		local lastcall = tonumber(self.rpbSettings.lastcall) or 5
 		
 		if (timeleft == lastcall) then
 			self:Broadcast("Last call on " .. item[cll.link].value .. ".  Closing in "..lastcall.." seconds.")
@@ -806,7 +806,7 @@ function RPB:RollListAward(recieved)
 		self:Send(cs.rolllistaward, { true })
 	end
 	self.frames["RollWindow"].inProgress = false
-	if self.master == UnitName("player") then
+	if self.rpoSettings.master == UnitName("player") then
 		local dt = time()
 
 		self:Print(dt, player, -(loss), 'I', item[cll.item].value, item[cll.link].value, false, true)
@@ -828,7 +828,8 @@ function RPB:ItemListAdd(link, item, count, quality, recieved)
 		local itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemCount, itemEquipLoc, itemTexture = GetItemInfo(editbox:GetText())
 		--RPB:Print(GetItemInfo(editbox:GetText()))
 		link = editbox:GetText()
-		_, _, item  = string.find(link, "item:(%d+)");
+		local item = self:GetItemID(link)
+		--_, _, item  = string.find(link, "item:(%d+)");
 		if not item then
 			item = 0
 		end
@@ -888,7 +889,7 @@ function RPB:ItemListClear(recieved)
 end
 
 RPB.syncCommands[cs.itemlistget] = function(self, msg, sender)
-	if self.master == UnitName("player") then
+	if self.rpoSettings.master == UnitName("player") then
 		local sendTable = self:StripTable(self.frames["RollWindow"].lootList or {})
 		local selectedTable = {}
 		if self.frames["RollWindow"].scrollFrameLoot.selected then
@@ -911,7 +912,7 @@ RPB.syncCommands[cs.itemlistset] = function(self, msg, sender)
 end
 	
 RPB.syncCommands[cs.rolllistget] = function(self, msg, sender)
-	if self.master == UnitName("player") then
+	if self.rpoSettings.master == UnitName("player") then
 		local sendTable = self:StripTable(self.frames["RollWindow"].rollList or {})
 		local selectedTable = {}
 		if self.frames["RollWindow"].scrollFrame.selected then

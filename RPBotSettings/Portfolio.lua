@@ -36,21 +36,7 @@ function RPBS:RegisterPortfolio()
 	if not rpbSettings then
 		rpbSettings = self.db.realm.settings
 	end
-	
-	local featureDropDown = {}
-	for k,v in pairs(self.db.featureSets) do
-		-- if self.currentFeature == k then
-			
-		-- end
-		featureDropDown[#featureDropDown+1] = 
-		{
-			text = v.name,
-			value = k,
-		}
-	end
-		
-	local raidDropDown = self.db.realm.settings.raidDropDown
-	
+
 	local broadcastDropDown = 
 	{
 		{
@@ -79,6 +65,18 @@ function RPBS:RegisterPortfolio()
 		}
 	}
 	
+	local modeDropDown =
+	{
+		{
+			text = "Web Based",
+			value = "WEB",
+		},
+		{
+			text = "Standalone",
+			value = "STANDALONE",
+		},
+	}
+	
 	local optionTable = {
 		id="RPBotSettings",
 		text="Bot Settings",
@@ -87,87 +85,32 @@ function RPBS:RegisterPortfolio()
 		savedVarTable = rpbSettings,
 		options = {
 			{
-				id = "syncHeader",
-				text = "Synchronization Settings",
+				id = "modeHeader",
+				text = "Database Settings",
 				subText = "Show or Hide inbound or outbound whispers.",
 				type = CONTROLTYPE_HEADER,
 			},
 			{
-				id = "syncPassword",
-				text = "Password",
-				type = CONTROLTYPE_EDITBOX,
-				defaultValue = rpbSettings["syncPassword"],
-				init = function(frame) frame:SetPassword(); --[===[settingInit(frame)]===] end,
+				id = "mode",
+				headerText = "Mode",
+				type = CONTROLTYPE_DROPDOWN,
+				defaultValue = rpbSettings["mode"],
+				menuList = modeDropDown,
+				--callback = function(value, isGUI, isUpdate) if not isUpdate then RPB:UseDatabase(value) end end,
 			},
 			{
-				id = "pushSettings",
-				text = "Push Settings",
+				id = "compress",
+				headerText = "Compress",
 				type = CONTROLTYPE_BUTTON,
-				callback = function(value, isGUI, isUpdate) RPB:PushSettings(value, isGUI, isUpdate) end,
-			},
-			{
-				id = "syncSettings",
-				text = "Recieve Settings",
-				type = CONTROLTYPE_CHECKBOX,
-				defaultValue = rpbSettings["syncSettings"],
-				point = {"TOPLEFT", "pushSettings", "TOPRIGHT", 20, 0},
-			},
-			{
-				id = "syncIn",
-				text = "Enable Inbound",
-				type = CONTROLTYPE_CHECKBOX,
-				defaultValue = rpbSettings["syncIn"],
-				point = {"TOPLEFT", "pushSettings", "TOPLEFT", 0, -40},
-				--dependentControls = {"syncSettings"},
-			},
-			{
-				id = "syncOut",
-				text = "Enable Outbound",
-				type = CONTROLTYPE_CHECKBOX,
-				defaultValue = rpbSettings["syncOut"],
-				--dependentControls = {"pushSettings"},
-			},
-			{
-				id = "whisperHeader",
-				text = "Whisper Settings",
-				subText = "Show or Hide inbound or outbound whispers.",
-				type = CONTROLTYPE_HEADER,
-				point = {nil, "syncOut", nil, nil, nil},
-			},
-			{
-				id = "filterIn",
-				text = "Enable Inbound Filter",
-				type = CONTROLTYPE_CHECKBOX,
-				defaultValue = rpbSettings["filterIn"],
-			},
-			{
-				id = "filterOut",
-				text = "Enable Outbound Filter",
-				type = CONTROLTYPE_CHECKBOX,
-				defaultValue = rpbSettings["filterOut"],
+				callback = function(value, isGUI, isUpdate) RPB:CompressDatabase(value, isGUI, isUpdate) end,
+				point = {"TOPLEFT", "mode", "TOPRIGHT", 40, 0},
 			},
 			{
 				id = "botHeader",
 				text = "Bot Settings",
 				subText = "Misc. settings.",
 				type = CONTROLTYPE_HEADER,
-				point = {nil, "filterOut", nil, nil, nil},
-			},
-			{
-				id = "raid",
-				headerText = "Current Raid",
-				type = CONTROLTYPE_DROPDOWN,
-				defaultValue = rpbSettings["raid"],
-				menuList = raidDropDown,
-				callback = function(value, isGUI, isUpdate) if not isUpdate then RPB:UseDatabase(value) end end,
-			},
-			{
-				id = "featureSet",
-				headerText = "Current Feature Set",
-				type = CONTROLTYPE_DROPDOWN,
-				defaultValue = rpbSettings["featureSet"],
-				menuList = featureDropDown,
-				callback = function(value, isGUI, isUpdate) if not isUpdate then RPBS:RemoveFeatureSet(rpbSettings["featureSet"]); RPBS:AddFeatureSet(value) end end,
+				point = {nil, "compress", nil, nil, nil},
 			},
 			{
 				id = "bidtime",

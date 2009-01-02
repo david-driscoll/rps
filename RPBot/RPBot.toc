@@ -3,7 +3,7 @@
 ## Version: 0.1
 ## Interface: 30000
 ## Notes: Raid Points Automation
-## SavedVariables: rpBotDB
+## SavedVariables: rpBotDB, rpDEBUGBotDB
 ## X-Misc
 ## * File-Revision: @file-revision@ 
 ## * Project-Version: @project-revision@ 
@@ -25,8 +25,8 @@ Libs\AceTimer-3.0\AceTimer-3.0.xml
 Libs\lib-st\Core.lua
 Libs\MD5-1.0\MD5-1.0.lua
 #@end-no-lib-strip@
-Libs\GuildRoster-3.0\GuildRoster.lua
-Libs\Roster-3.0\Roster.lua
+Libs\GuildLib\GuildLib.lua
+Libs\BLib\BLib.lua
 Libs\Portfolio\Loader.xml
 
 Bot.lua

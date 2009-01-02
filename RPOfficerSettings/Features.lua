@@ -6,7 +6,7 @@
 	* Project-Version: @project-version@
 	* Last edited by: @file-author@ on @file-date-iso@ 
 	* Last commit: @project-author@ on @project-date-iso@ 
-	* Filename: RPBot/Features.lua
+	* Filename: RPClient/Features.lua
 	* Component: Features
 	* Details:
 		Features is an odd name, this file defines how the bot will respond to certian tells, what
@@ -15,7 +15,7 @@
 			that will get shipped around, the format here should not change signficantly once a release hits.
 ]]
 
-local db = RPBS.db
+local db = RPOS.db
 --local RPLibrary = LibStub:GetLibrary("RPLibrary")
 local featureSets = {}
 --local featureSets = db.featureSets
@@ -216,7 +216,7 @@ featureSets["nikarma"] =
 -- Currently wont fuction correctly, would require a rewrite of GetArgs, that is something that is planned in the future.
 --featureSets["nikarma"]["nobonus"] = featureSets["nikarma"]["no bonus"]
 
-function RPBS:AddFeatureSet(name)
+function RPOS:AddFeatureSet(name)
 	--self:Print(name)
 	if not db then
 		db = self.db
@@ -230,7 +230,7 @@ function RPBS:AddFeatureSet(name)
 	end
 end
 
-function RPBS:AddFeature(data)
+function RPOS:AddFeature(data)
 	if not self.feature then
 		self.feature = {}
 	end
@@ -269,13 +269,13 @@ function RPBS:AddFeature(data)
 	end
 end
 
-function RPBS:RemoveFeatureSet(data)
+function RPOS:RemoveFeatureSet()
 	for key,value in ipairs(self.feature) do
 		self:RemoveFeature(key)
 	end
 end
 
-function RPBS:RemoveFeature(data)
+function RPOS:RemoveFeature(data)
 	if self.feature[data.command] then
 		self.feature[data.command] = nil
 	end

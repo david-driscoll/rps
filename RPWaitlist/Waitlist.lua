@@ -29,7 +29,8 @@ local rosterupdate
 local minRank = 2
 --local RPLibrary = LibStub:GetLibrary("RPLibrary")
 
-RPWL = LibStub("AceAddon-3.0"):NewAddon("Raid Points Waitlist", "AceConsole-3.0", "AceEvent-3.0", "AceComm-3.0", "AceSerializer-3.0", "RPLibrary", "GuildRoster-3.0", "Roster-3.0")
+RPWL = LibStub("AceAddon-3.0"):NewAddon("Raid Points Waitlist", "AceConsole-3.0", "AceEvent-3.0", "AceComm-3.0", "AceSerializer-3.0", "RPLibrary", "GuildLib", "BLib")
+local MD5 = LibStub:GetLibrary("MDFive-1.0")
 
 -- Local Table Constants
 -- To use the grid properly, we need numbered index's.
@@ -90,11 +91,11 @@ local cs =
 	["syncrequest"]	= "sr",
 	["syncowner"]	= "so",
 	["sync"]		= "s",
-	["settings"]	= "se",
+	["rpoSettings"]	= "so",
 }
 
 local function whisperFilter()
-	local settings = db.realm.settings
+	local settings = RPWL.rpoSettings
 	if 		event == "CHAT_MSG_WHISPER_INFORM"
 			and settings.filterOut == "1"
 			and strfind(arg1, "^"..prefix) then
@@ -126,17 +127,6 @@ function RPWL:OnInitialize()
 	if not db.realm.waitlist then
 		db.realm.waitlist = {}
 	end
-	if not db.realm.settings then
-		db.realm.settings =
-		{
-			syncIn			= "1",
-			syncOut			= "1",
-			syncPassword	= "",
-			filterIn		= "0",
-			filterOut		= "1",
-			syncSettings	= "1",
-		}
-	end
 end
 
 --- Enable processes
@@ -145,8 +135,9 @@ function RPWL:OnEnable()
 	self:RegisterEvent("CHAT_MSG_WHISPER")
 	ChatFrame_AddMessageEventFilter("CHAT_MSG_WHISPER", whisperFilter)
 	ChatFrame_AddMessageEventFilter("CHAT_MSG_WHISPER_INFORM", whisperFilter)
-	self:RegisterMessage("GuildRosterLib_Update")
+	self:RegisterMessage("GuildLib_Update")
 	self:RegisterComm(CommCmd)
+	self:RegisterComm("rpos")
 	syncrequest = nil
 	syncowner = nil
 	syncdone = false
@@ -166,8 +157,10 @@ function RPWL:OnEnable()
 	self.options = self:RegisterPortfolio()
 	self.options:refresh()
 	
+	self.rpoSettings = RPOS.db.realm.settings
 	SetGuildRosterShowOffline(true)
 	self:Send(cs.syncrequest, "to me")
+	
 	
 	--enablecomm = false
 	--AceComm:RegisterComm("wlupdate")
@@ -176,7 +169,7 @@ end
 --- Event: GuildRosterLib_Update.
 -- Fires when the guild roster has been updated.
 -- @param arg1 Unknown
-function RPWL:GuildRosterLib_Update(arg1)
+function RPWL:GuildLib_Update(arg1)
 	RPWL:RosterUpdate()
 end
 
@@ -200,10 +193,22 @@ end
 -- Serialized data on send so it can be retrieved as it was.
 -- @param cmd The command to be sent with the data
 -- @param data The data to send
-function RPWL:Send(cmd, data)
-	if db.realm.settings.syncOut == "0" then return end
+function RPWL:Send(cmd, data, player, nopwp, comm)
 	--if not enablecomm then return end
-	self:SendCommMessage(CommCmd, self:Serialize(db.realm.settings.syncPassword,cmd,data), "GUILD")
+	if self.rpoSettings.syncOut == "0" then return end
+	if not comm then comm = CommCmd end
+	local channel = "GUILD"
+	if player then
+		channel = "WHISPER"
+	end
+	--if not enablecomm then return end
+	--if data and type(data) == "table" then self:Print(unpack(data)) end
+	local senttime = time()
+	local sendpassword = ""
+	if not nopwp then
+		sendpassword = MD5:MD5(self.rpoSettings.syncPassword .. senttime)
+	end
+	self:SendCommMessage(CommCmd, self:Serialize(sendpassword,senttime,cmd,data), channel, player)
 end
 
 --- Sends a chat message
@@ -334,6 +339,7 @@ function RPWL:Show(channel, to)
 		-- Some better logic to handle comma's could be helpful I guess
 		msg = msg .. db.realm.waitlist[i].cols[cwl.name].value .. ", "
 	end
+	msg:sub(-1)
 	
 	-- Send to the right channel
 	-- nil = Chatwindow
@@ -620,8 +626,8 @@ end
 -- @param self Reference to the mod base, since this is a table of functions.
 -- @param msg The message given by the event
 -- @param sender Sender
-RPWL.syncCommands[cs.settings] = function(self, msg, sender)
-	local settings = db.realm.settings
+RPWL.syncCommands[cs.rpoSettings] = function(self, msg, sender)
+	local settings = self.rpoSettings
 	if (settings.syncSettings == "0") then return end
 	for k,v in pairs(settings) do
 		if (k ~= "syncPassword") then
@@ -634,7 +640,7 @@ RPWL.syncCommands[cs.settings] = function(self, msg, sender)
 end
 
 function RPWL:PushSettings(value, isGUI, isUpdate)
-	self:Send(cs.settings, self.db.realm.settings)
+	self:Send(cs.settings, self.rpoSettings)
 end
 
 --- Force the waitlist scrolling table to refresh.

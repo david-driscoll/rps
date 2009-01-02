@@ -45,6 +45,7 @@ local mixins = {
 	"Split",
 	"classList",
 	"tierList",
+	"GetItemID",
 } 
 
 -- Copied from XLoot, makes my life that much easier.
@@ -426,22 +427,6 @@ RPLibrary.tierList =
 ["WARRIOR"] 	 = {"WARRIOR", "HUNTER", "SHAMAN"},
 }
 
--- String Split function
-function RPLibrary:Split (s,t)
-	local l = {n=0}
-	local f = function (s)
-		l.n = l.n + 1
-		l[l.n] = s
-	end
-	local p = "%s*(.-)%s*"..t.."%s*"
-	s = string.gsub(s,"^%s+","")
-	s = string.gsub(s,"%s+$","")
-	s = string.gsub(s,p,f)
-	l.n = l.n + 1
-	l[l.n] = string.gsub(s,"(%s%s*)$","")
-	return l
-end
-
 function ClassColor(class)
 	if (class and classColors[string.upper(class)]) then
 		return classColors[string.upper(class)]
@@ -480,6 +465,11 @@ DoTimestampUpdate = function(rowFrame, cellFrame, data, cols, row, realrow, colu
 	else
 		cellFrame.text:SetText("");
 	end
+end
+
+function RPLibrary:GetItemID(link)
+	local _, _, itemid  = string.find(link, "item:(%d+)")
+	return itemid
 end
 
 function RPLibrary:Embed(target)
