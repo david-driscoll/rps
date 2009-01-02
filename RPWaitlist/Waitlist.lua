@@ -538,10 +538,10 @@ end
 -- @param msg The message given by the event
 -- @param from Sender
 function RPWL:OnCommReceived(pre, message, distribution, sender)
-	if db.realm.settings.syncIn == "0" then return end
+	if self.rpoSettings.syncIn == "0" then return end
 	success, password, cmd, msg = self:Deserialize(message)
-	self:Print(pre, password, db.realm.settings.syncPassword, db.realm.settings.syncPassword == password, cmd, msg, distribution, sender)
-	if db.realm.settings.syncPassword ~= password then return end
+	self:Print(pre, password, self.rpoSettings.syncPassword, self.rpoSettings.syncPassword == password, cmd, msg, distribution, sender)
+	if dself.rpoSettings.syncPassword ~= password then return end
 	if not cmd then return end
 	if cmd and self.syncCommands[string.lower(cmd)] then
 		self.syncCommands[string.lower(cmd)](self, msg, sender)
