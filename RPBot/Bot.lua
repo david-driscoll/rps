@@ -1053,6 +1053,9 @@ end
 RPB.syncCommands = {}
 RPB.syncCommands[cs.logon] = function(self, msg, sender)
 	--if sender ~= UnitName("player") then
+		if not self.rpoSettings.dbinfo then
+			self.rpoSettings.dbinfo = {}
+		end
 		if not self.rpoSettings.dbinfo[sender] then 
 			self.rpoSettings.dbinfo[sender] = 
 			{
