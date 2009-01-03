@@ -261,7 +261,7 @@ end
 -- Register all events, setup inital state and load featureset
 function RPOS:OnEnable()
 	self.options = self:RegisterPortfolio()
-	--self.options:refresh()
+	self.options:refresh()
 	db.realm.settings.master = ""
 	--SetGuildRosterShowOffline(true)
 	--self:Send("syncrequest", "to me")

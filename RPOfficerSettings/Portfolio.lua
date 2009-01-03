@@ -144,5 +144,5 @@ function RPOS:RegisterPortfolio()
 			},
 		}
 	}
-	--return Portfolio.RegisterOptionSet(optionTable)
+	return Portfolio.RegisterOptionSet(optionTable)
 end
