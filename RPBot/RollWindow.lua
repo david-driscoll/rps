@@ -513,6 +513,7 @@ function RPB:RollListAdd(player, cmd, recieved)
 		if (string.lower(rollList[i].cols[crl.player].value) == string.lower(player)) then
 			if (string.lower(rollList[i].cols[crl.ty].value) ~= string.lower(ty)) then
 				self:RollListUpdate(player, nil, ty)
+				return true
 			end
 			return false
 		end
@@ -809,9 +810,9 @@ function RPB:RollListAward(recieved)
 	if self.rpoSettings.master == UnitName("player") then
 		local dt = time()
 
-		self:Print(dt, player, -(loss), 'I', item[cll.item].value, item[cll.link].value, false, true)
+		self:Print(self.rpoSettings.raid, dt, player, -(loss), 'I', item[cll.item].value, item[cll.link].value, false, true)
 		self:Broadcast(	player .. " wins " .. item[cll.link].value .. " with a total of " .. current .. " (" .. pcurrent .. " points + " .. roll .. " roll).")
-		self:PointsAdd(dt, player, -(loss), 'I', item[cll.item].value, item[cll.link].value, false, true)
+		self:PointsAdd(self.rpoSettings.raid, dt, player, -(loss), 'I', item[cll.item].value, item[cll.link].value, true, true)
 		self:ItemListRemove(item[cll.link].value)
 		self.frames["RollWindow"].button["StartBidding"]:Enable()
 		self.frames["RollWindow"].button["StartTimedBidding"]:Enable()

@@ -286,6 +286,7 @@ function BLib:ProcessRoster()
 	if next(unknownUnits, nil) then
 		if timerHandle then
 			self:CancelTimer(timerHandle)
+			timerHandle = nil
 		end
 		timerHandle = self:ScheduleTimer("ScanUnknownUnits", 1)
 	end

@@ -368,10 +368,12 @@ function RPB:PlayerToArray(player, to)
 		if player == "all" then
 			local roster = self:Roster()
 			for k, v in pairs(roster) do
-				list[#list+1] = {
-					name = v.name,
-					waitlist = false
-				}
+				if v.class ~= "PET" then
+					list[#list+1] = {
+						name = v.name,
+						waitlist = false
+					}
+				end
 			end
 			if RPWL then
 				local waitlist, cwl = RPWL:Waitlist()
@@ -868,15 +870,13 @@ function RPB:PointsShow(player, channel, to, history)
 		if playerlist[i].waitlist then
 			wait = "{star}"
 		end
-		if not self:GetPlayer(playerlist[i].name) then
-			self:CreatePlayer(playerlist[i].name)
+		if self:GetPlayer(playerlist[i].name) and self:GetPlayerHistory(playerlist[i].name) then
+			local history = self:GetPlayerHistory(playerlist[i].name,self.rpoSettings.raid)
+			local player = self:GetPlayer(playerlist[i].name)
+			msg = player.fullname .. ": " .. history.points
+		else
+			msg = player .. ": " .. "0"
 		end
-		if not self:GetPlayerHistory(playerlist[i].name) then
-			self:CreatePlayerHistory(playerlist[i].name)
-		end
-		local history = self:GetPlayerHistory(playerlist[i].name,self.rpoSettings.raid)
-		local player = self:GetPlayer(playerlist[i].name)
-		msg = wait .. player.fullname .. ": " .. history.points
 		if not channel then
 			if wait == "{star}" then
 				wait = "(wl)"

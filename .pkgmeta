@@ -36,4 +36,90 @@ externals:
     libs/MD5-1.0:
         url: svn://svn.wowace.com/wow/md5lib/mainline/trunk/MD5-1.0
         tag: latest
+    RPLibrary/libs/LibStub:
+        url: svn://svn.wowace.com/wow/libstub/mainline/trunk
+        tag: latest
+    RPLibrary/libs/CallbackHandler-1.0:
+        url: svn://svn.wowace.com/wow/callbackhandler/mainline/trunk/CallbackHandler-1.0
+        tag: latest
+    RPLibrary/libs/Portfolio:
+        url: svn://svn.curseforge.net/wow/rps/mainline/trunk/Libs/Portfolio
+		#tag: latest
+    RPBotSettings/libs/LibStub:
+        url: svn://svn.wowace.com/wow/libstub/mainline/trunk
+        tag: latest
+    RPBotSettings/libs/CallbackHandler-1.0:
+        url: svn://svn.wowace.com/wow/callbackhandler/mainline/trunk/CallbackHandler-1.0
+        tag: latest
+    RPBotSettings/libs/AceAddon-3.0:
+        url: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceAddon-3.0
+        tag: latest
+    RPBotSettings/libs/Portfolio:
+        url: svn://svn.curseforge.net/wow/rps/mainline/trunk/Libs/Portfolio
+		#tag: latest
+    RPOfficerSettings/libs/LibStub:
+        url: svn://svn.wowace.com/wow/libstub/mainline/trunk
+        tag: latest
+    RPOfficerSettings/libs/CallbackHandler-1.0:
+        url: svn://svn.wowace.com/wow/callbackhandler/mainline/trunk/CallbackHandler-1.0
+        tag: latest
+    RPOfficerSettings/libs/AceAddon-3.0:
+        url: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceAddon-3.0
+        tag: latest
+    RPOfficerSettings/libs/Portfolio:
+        url: svn://svn.curseforge.net/wow/rps/mainline/trunk/Libs/Portfolio
+		#tag: latest
+    RPWaitlist/libs/LibStub:
+        url: svn://svn.wowace.com/wow/libstub/mainline/trunk
+        tag: latest
+    RPWaitlist/libs/CallbackHandler-1.0:
+        url: svn://svn.wowace.com/wow/callbackhandler/mainline/trunk/CallbackHandler-1.0
+        tag: latest
+    RPWaitlist/libs/AceAddon-3.0:
+        url: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceAddon-3.0
+        tag: latest
+    RPWaitlist/libs/AceComm-3.0:
+        url: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceComm-3.0
+        tag: latest
+    RPWaitlist/libs/AceConsole-3.0:
+        url: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceConsole-3.0
+        tag: latest
+    RPWaitlist/libs/AceDB-3.0:
+        url: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceDB-3.0
+        tag: latest
+	RPWaitlist/libs/AceEvent-3.0:
+        url: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceEvent-3.0
+        tag: latest
+	RPWaitlist/libs/AceBucket-3.0:
+        url: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceBucket-3.0
+        tag: latest
+	RPWaitlist/libs/AceSerializer-3.0:
+        url: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceSerializer-3.0
+        tag: latest
+    RPWaitlist/libs/AceTimer-3.0:
+        url: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceTimer-3.0
+        tag: latest
+    RPWaitlist/libs/lib-st:
+        url: svn://svn.wowace.com/wow/lib-st/sithy/trunk
+    RPWaitlist/libs/Portfolio:
+        url: svn://svn.curseforge.net/wow/rps/mainline/trunk/Libs/Portfolio
+		#tag: latest
+    RPWaitlist/libs/GuildLib:
+        url: svn://svn.curseforge.net/wow/rps/mainline/trunk/Libs/GuildLib
+		#tag: latest
+    RPWaitlist/libs/BLib:
+        url: svn://svn.curseforge.net/wow/rps/mainline/trunk/Libs/BLib
+		#tag: latest
 
+move-folders:
+    RPS/RPLibrary: RPLibrary
+	RPS/Libs: RPBot/Libs
+	RPS/libs: RPBot/Libs
+    RPS/RPBot: RPBot
+    RPS/RPBotSettings: RPBotSettings
+    RPS/RPWaitlist: RPWaitlist
+    RPS/RPOfficerSettings: RPOfficerSettings
+
+ignore:
+    - RPS.toc
+	- RPS
