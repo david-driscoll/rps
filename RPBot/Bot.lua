@@ -1069,9 +1069,7 @@ RPB.syncCommands[cs.logon] = function(self, msg, sender)
 		self:Print("Database:", "   msg.database:", msg.database, "   db.realm.version.database:", db.realm.version.database, "   self.settings.dbinfo[sender].database:", self.rpoSettings.dbinfo[sender].database)
 		self:Print("Lastaction:", "   msg.lastaction:", msg.lastaction, "   db.realm.version.lastaction:", db.realm.version.lastaction, "   self.settings.dbinfo[sender].lastaction:", self.rpoSettings.dbinfo[sender].lastaction)
 		if msg.database == db.realm.version.database then
-			--self:Print("if msg.database == db.realm.version.database")
 			if msg.lastaction == db.realm.version.lastaction then
-				--self:Print("if msg.lastaction == db.realm.version.lastaction")
 				self.syncQueue = {}
 				self.syncHold = false
 				self.syncResync = false
@@ -1086,63 +1084,36 @@ RPB.syncCommands[cs.logon] = function(self, msg, sender)
 		if self.rpoSettings.master == UnitName("player") then
 			if msg.database == db.realm.version.database then
 				if msg.lastaction < db.realm.version.lastaction then
-					--self:Print("elseif msg.lastaction < db.realm.version.lastaction")
 					if self.rpoSettings.dbinfo[sender].lastaction < msg.lastaction then
-						--self:Print("if self.settings.dbinfo[sender].lastaction < msg.lastaction")
-						--self:Send(cs.dboutdate, "you", sender)
 						self:Send(cs.sendla, { RPB:GetLatestActions(self.rpoSettings.dbinfo[sender].lastaction), self.rpoSettings.dbinfo[sender], msg }, sender)
-						--self.timer = self:ScheduleTimer("DatabaseSync", 10)
 					else
-						--self:Print("if self.settings.dbinfo[sender].lastaction < msg.lastaction  else")
 						self:Send(cs.dboutdate, "you", sender)
 					end
 				elseif msg.lastaction > db.realm.version.lastaction then
-					--self:Print("elseif msg.lastaction > db.realm.version.lastaction")
 					if self.rpoSettings.dbinfo[sender].lastaction < db.realm.version.lastaction then
-						--self:Print("if self.settings.dbinfo[sender].lastaction < db.realm.version.lastaction")
 						self:Send(cs.getla, { self.rpoSettings.dbinfo[sender].lastaction, msg }, sender)
-						--self.timer = self:ScheduleTimer("DatabaseSync", 10)
 					else
-						--self:Print("if self.settings.dbinfo[sender].lastaction < db.realm.version.lastaction  else")
 						self:Send(cs.dbupdate, "you", sender)
 					end
 				end
 			elseif msg.database > db.realm.version.database then
-				--self:Print("elseif msg.database > db.realm.version.database")
 				if msg.lastaction == db.realm.version.lastaction then
-					--self:Print("if msg.lastaction == db.realm.version.lastaction")
 					self:Send(cs.dbupdate, "you", sender)
 				elseif msg.lastaction < db.realm.version.lastaction then
-					--self:Print("elseif msg.lastaction < db.realm.version.lastaction")
-					--if self.settings.dbinfo[sender].lastaction <= db.realm.version.lastaction then
-					--self:Send(cs.dboutdate, "you", sender)
 					self:Send(cs.sendla, { RPB:GetLatestActions(self.rpoSettings.dbinfo[sender].lastaction), self.rpoSettings.dbinfo[sender], msg }, sender)
-					--self.timer = self:ScheduleTimer("DatabaseSync", 10)
-					--else
-						--self:Send(cs.dbupdate, "you", sender)
-					--end
 				elseif msg.lastaction > db.realm.version.lastaction then
-					--self:Print("elseif msg.lastaction > db.realm.version.lastaction")
 					self:Send(cs.dbupdate, "you", sender)
 				end
 				-- 2 cases
 				-- if msg.lastaction > db.realm.version.lastacction then we send for a sync
 				-- if msg.lastaction <= db.realm.version.lastaction then we need to alert everyone about the inconistant settings, IE the savedvariables need to be uploaded.
 			elseif msg.database < db.realm.version.database then
-				--self:Print("elseif msg.database > db.realm.version.database")
 				if msg.lastaction == db.realm.version.lastaction then
-					--self:Print("if msg.lastaction == db.realm.version.lastaction")
 					self:Send(cs.dboutdate, "you", sender)
 				elseif msg.lastaction < db.realm.version.lastaction then
-					--self:Print("if msg.lastaction < db.realm.version.lastaction")
 					self:Send(cs.dboutdate, "you", sender)
 				elseif msg.lastaction > db.realm.version.lastaction then
-					--if self.settings.dbinfo[sender].lastaction <= db.realm.version.lastaction then
-						self:Send(cs.getla, { self.rpoSettings.dbinfo[sender].lastaction, msg }, sender)
-						--self.timer = self:ScheduleTimer("DatabaseSync", 10)
-					--else
-						--self:Send(cs.dbupdate, "you", sender)
-					--end
+					self:Send(cs.getla, { self.rpoSettings.dbinfo[sender].lastaction, msg }, sender)
 				end
 			end
 		end

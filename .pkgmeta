@@ -44,7 +44,7 @@ externals:
         tag: latest
     RPLibrary/libs/Portfolio:
         url: svn://svn.curseforge.net/wow/rps/mainline/trunk/Libs/Portfolio
-		#tag: latest
+		tag: latest
     RPBotSettings/libs/LibStub:
         url: svn://svn.wowace.com/wow/libstub/mainline/trunk
         tag: latest
@@ -56,7 +56,7 @@ externals:
         tag: latest
     RPBotSettings/libs/Portfolio:
         url: svn://svn.curseforge.net/wow/rps/mainline/trunk/Libs/Portfolio
-		#tag: latest
+		tag: latest
     RPOfficerSettings/libs/LibStub:
         url: svn://svn.wowace.com/wow/libstub/mainline/trunk
         tag: latest
@@ -68,7 +68,7 @@ externals:
         tag: latest
     RPOfficerSettings/libs/Portfolio:
         url: svn://svn.curseforge.net/wow/rps/mainline/trunk/Libs/Portfolio
-		#tag: latest
+		tag: latest
     RPWaitlist/libs/LibStub:
         url: svn://svn.wowace.com/wow/libstub/mainline/trunk
         tag: latest
@@ -103,13 +103,13 @@ externals:
         url: svn://svn.wowace.com/wow/lib-st/sithy/trunk
     RPWaitlist/libs/Portfolio:
         url: svn://svn.curseforge.net/wow/rps/mainline/trunk/Libs/Portfolio
-		#tag: latest
+		tag: latest
     RPWaitlist/libs/GuildLib:
         url: svn://svn.curseforge.net/wow/rps/mainline/trunk/Libs/GuildLib
-		#tag: latest
+		tag: latest
     RPWaitlist/libs/BLib:
         url: svn://svn.curseforge.net/wow/rps/mainline/trunk/Libs/BLib
-		#tag: latest
+		tag: latest
 
 move-folders:
     RPS/RPLibrary: RPLibrary
