@@ -4,6 +4,7 @@
 ## Interface: 30000
 ## Notes: Raid Points Automation
 ## SavedVariables: rpBotDB, rpDEBUGBotDB
+## RequiredDeps: RPLibrary, RPOfficerSettings, RPBotSettings
 ## X-Misc
 ## * File-Revision: @file-revision@ 
 ## * Project-Version: @project-revision@ 
