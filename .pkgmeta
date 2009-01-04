@@ -113,12 +113,12 @@ externals:
 
 move-folders:
     RPS/RPLibrary: RPLibrary
-	RPS/Libs: RPBot/Libs
-	RPS/libs: RPBot/Libs
-    RPS/RPBot: RPBot
     RPS/RPBotSettings: RPBotSettings
     RPS/RPWaitlist: RPWaitlist
     RPS/RPOfficerSettings: RPOfficerSettings
+    RPS/RPBot: RPBot
+	RPS/Libs: RPBot/Libs
+	RPS/libs: RPBot/Libs
 
 ignore:
     - RPS.toc

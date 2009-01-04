@@ -241,7 +241,7 @@ function RPOS:AddFeature(data)
 			if not self:RollListAdd(name, data.command) then
 				self:Whisper("You are already bidding on that item.", name)
 			else
-				self:Whisper(data.name .. " bid recieved." ,name)
+				self:Whisper(data.name .. " bid recieved.", name)
 			end
 		else
 			self:Whisper("No item is up for bidding.", name)
