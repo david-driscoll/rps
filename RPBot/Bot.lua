@@ -30,6 +30,9 @@ local rollList
 
 local MD5 = LibStub:GetLibrary("MDFive-1.0")
 
+LoadAddon("RPLibrary")
+LoadAddon("RPBotSettings")
+
 RPB = LibStub("AceAddon-3.0"):NewAddon("Raid Points Bot", "AceConsole-3.0", "AceEvent-3.0", "AceComm-3.0", "AceSerializer-3.0", "AceTimer-3.0", "RPLibrary", "GuildLib", "BLib")
 RPB.frames = {}
 
