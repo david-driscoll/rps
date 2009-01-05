@@ -71,6 +71,7 @@ function RPOS:RegisterPortfolio()
 				type = CONTROLTYPE_EDITBOX,
 				defaultValue = rpoSettings["syncPassword"],
 				init = function(frame) frame:SetPassword(); --[===[settingInit(frame)]===] end,
+				callback = function(value, isGUI, isUpdate) if not isUpdate then RPOS:ChangePassword(); end end,
 			},
 			{
 				id = "syncSettings",

@@ -30,9 +30,6 @@ local rollList
 
 local MD5 = LibStub:GetLibrary("MDFive-1.0")
 
-LoadAddon("RPLibrary")
-LoadAddon("RPBotSettings")
-
 RPB = LibStub("AceAddon-3.0"):NewAddon("Raid Points Bot", "AceConsole-3.0", "AceEvent-3.0", "AceComm-3.0", "AceSerializer-3.0", "AceTimer-3.0", "RPLibrary", "GuildLib", "BLib")
 RPB.frames = {}
 
@@ -185,8 +182,8 @@ function RPB:OnEnable()
 	
 	self:CreateFrameRollWindow()
 	self.timer = self:ScheduleTimer("DatabaseSync", 10)
-	self:Send(cs.getmaster)
 	self.masterTimer = self:ScheduleTimer("GetMaster", math.random(15, 25))
+	self:Send(cs.getmaster)
 end
 
 function RPB:DatabaseSync()
@@ -745,8 +742,8 @@ function RPB:CalculateLoss(points, cmd)
 	return loss
 end
 
-function RPB:CalculatePoints(player)
-	local phistory = self:GetPlayerHistory(player)
+function RPB:CalculatePoints(player, raid)
+	local phistory = self:GetPlayerHistory(player, raid)
 	local points = 0
 	local lifetime = 0
 	for k,v in pairs(phistory.recenthistory) do
@@ -794,36 +791,34 @@ function RPB:CompressDatabase()
 	local ti = time()
 	db.realm.version.database = ti
 	db.realm.version.lastaction = ti
+	self:Print("Database Compressed!")
 end
 
 function RPB:ConvertDatabase()
 	if not KarmaList then return end
+	db.realm.player = {}
 	db.realm.raid = {}
-	db.realm.version =
-	{
-		database = 0, -- date and time downloaded from the website,
-		lastaction = 0, -- date and time the last action was taken
-		lastloot = 0, -- date and time last looted item was taken
-	}
 	for key, value in pairs(KarmaList) do
 		self:CreateDatabase(key, true)
 		for k, v in pairs (value) do
-			db.realm.player[string.lower(k)] = {
-				id 				= -1,
-				name 			= string.lower(k),
-				fullname 		= v.fullname or player:gsub("^%l", string.upper),
-				class			= v.class or "Unknown",
-				rank			= "Unknown",
-				gender			= "Unknown",
-				race			= "Unknown",
-				talent			= "Unknown",
-			}
-			db.realm.raid[key][string.lower(k)].recenthistory[0] = {
+			if not db.realm.player[string.lower(k)] then
+				db.realm.player[string.lower(k)] = {
+					id 				= -1,
+					name 			= string.lower(k),
+					fullname 		= v.fullname or player:gsub("^%l", string.upper),
+					class			= v.class or "Unknown",
+					rank			= "Unknown",
+					gender			= "Unknown",
+					race			= "Unknown",
+					talent			= "Unknown",
+				}
+			end
+			db.realm.raid[string.lower(key)][string.lower(k)] = {
 				points			= 0,
 				lifetime		= 0,
 				recenthistory 	=
 				{
-					[9] = {
+					[0] = {
 						datetime 	= 0,
 						ty			= 'P',
 						itemid		= 0,
@@ -835,18 +830,27 @@ function RPB:ConvertDatabase()
 				},
 				recentactions 	= {},
 			}
-			for id, data in pairs(v[kplayer]) do
+			for id, data in pairs(v) do
 				if (tonumber(id)) then
-					if data.reason == "Karma From Old Entries" or data.reason == "RP From Old Entries"  then
-						db.realm.raid[key][string.lower(k)].recenthistory[0].value = data.value
-						db.realm.raid[key][string.lower(k)].lifetime = data.value
+					if data.reason == "Karma From Old Entries" then
+						db.realm.raid[string.lower(key)][string.lower(k)].recenthistory[0].value = data.value
+						db.realm.raid[string.lower(key)][string.lower(k)].lifetime = data.value
 					else
-						local itemid = self:GetItemID(reason)
-						db.realm.raid[key][string.lower(k)].recentactions[time(data.DT)] = {
-							datetime 	= time(data.DT),
+						local timetable = 
+						{
+							year 	= tonumber("20"..string.sub(data.DT,7,8)),
+							month 	= tonumber(string.sub(data.DT,1,2)),
+							day 	= tonumber(string.sub(data.DT,4,5)),
+							hour 	= tonumber(string.sub(data.DT,10,11)),
+							min 	= tonumber(string.sub(data.DT,13,14)),
+							sec 	= tonumber(string.sub(data.DT,16,17)),
+						}
+						local itemid = self:GetItemID(data.reason)
+						db.realm.raid[string.lower(key)][string.lower(k)].recentactions[time(timetable)] = {
+							datetime 	= time(timetable),
 							ty			= data.type,
 							itemid		= itemid or 0,
-							reason		= reason,
+							reason		= data.reason,
 							value		= tonumber(data.value),
 							waitlist	= false,
 							action		= "Insert",
@@ -854,9 +858,18 @@ function RPB:ConvertDatabase()
 					end
 				end
 			end
-			self:CalculatePoints(string.lower(k))
+			self:CalculatePoints(string.lower(k), string.lower(key))
 		end
 	end
+	local t = time()
+	self.rpoSettings.dbinfo = {}
+	db.realm.version =
+	{
+		database = t, -- date and time downloaded from the website,
+		lastaction = t, -- date and time the last action was taken
+		lastloot = 0, -- date and time last looted item was taken
+	}
+	self:Print("Database Converted!");
 end
 
 function RPB:PointsShow(player, channel, to, history)
@@ -926,6 +939,8 @@ RPB.chatCommands["roll"] = function (self, msg)
 		self:CreateFrameRollWindow()
 	end
 	self.frames["RollWindow"]:Show()
+	self:Send(cs.itemlistget, "")
+	self:Send(cs.rolllistget, "")
 end
 
 RPB.chatCommands["add"] = function (self, msg)
@@ -950,6 +965,10 @@ end
 RPB.chatCommands["show"] = function (self, msg)
 	_, player, history, pos = self:GetArgs(msg, 3, 1)
 	self:PointsShow(player, nil, nil, history)
+end
+
+RPB.chatCommands["convert"] = function (self, msg)
+	self:ConvertDatabase()
 end
 
 RPB.chatCommands["force"] = function (self, msg)
@@ -1058,6 +1077,7 @@ end
 RPB.syncCommands = {}
 RPB.syncCommands[cs.logon] = function(self, msg, sender)
 	--if sender ~= UnitName("player") then
+		--self:Print("Checking database version...");
 		if not self.rpoSettings.dbinfo then
 			self.rpoSettings.dbinfo = {}
 		end
@@ -1069,8 +1089,8 @@ RPB.syncCommands[cs.logon] = function(self, msg, sender)
 				lastloot = msg.lastloot, -- date and time last looted item was taken
 			}
 		end
-		self:Print("Database:", "   msg.database:", msg.database, "   db.realm.version.database:", db.realm.version.database, "   self.settings.dbinfo[sender].database:", self.rpoSettings.dbinfo[sender].database)
-		self:Print("Lastaction:", "   msg.lastaction:", msg.lastaction, "   db.realm.version.lastaction:", db.realm.version.lastaction, "   self.settings.dbinfo[sender].lastaction:", self.rpoSettings.dbinfo[sender].lastaction)
+		--self:Print("Database:", "   msg.database:", msg.database, "   db.realm.version.database:", db.realm.version.database, "   self.settings.dbinfo[sender].database:", self.rpoSettings.dbinfo[sender].database)
+		--self:Print("Lastaction:", "   msg.lastaction:", msg.lastaction, "   db.realm.version.lastaction:", db.realm.version.lastaction, "   self.settings.dbinfo[sender].lastaction:", self.rpoSettings.dbinfo[sender].lastaction)
 		if msg.database == db.realm.version.database then
 			if msg.lastaction == db.realm.version.lastaction then
 				self.syncQueue = {}
@@ -1082,6 +1102,7 @@ RPB.syncCommands[cs.logon] = function(self, msg, sender)
 					lastaction = db.realm.version.lastaction, -- date and time the last action was taken
 					lastloot = db.realm.version.lastloot, -- date and time last looted item was taken
 				}
+				--self:Print("Database is up to date")
 			end
 		end
 		if self.rpoSettings.master == UnitName("player") then
@@ -1282,6 +1303,9 @@ RPB.syncCommands[cs.dbmd5] = function(self, msg, sender)
 	}
 	for k,v in pairs(msg.raid) do
 		requestRaid.raid[k] = {}
+		if not md5Raid.raid[k] then
+			md5Raid.raid[k] = {}
+		end
 		for player, value in pairs(v) do
 			if not md5Raid.raid[k][player] then
 				requestRaid.raid[k][player] = true
@@ -1327,15 +1351,17 @@ function RPB:DatabaseRequest()
 			raid   = {},
 		}
 		for key, val in pairs(v.raid) do
-			dataRaid.raid[key] = {}
-			for player, value in pairs(val) do
-				if value == true then
-					dataRaid.raid[key][player] = db.realm.raid[key][player]
+			if db.realm.raid[key] then
+				dataRaid.raid[key] = {}
+				for player, value in pairs(val) do
+					if value == true then
+						dataRaid.raid[key][player] = db.realm.raid[key][player]
+					end
 				end
 			end
 		end
 		for key, val in pairs(v.player) do
-			if val == true then
+			if val == true and db.realm.player[player] then
 				dataRaid.player[key] = db.realm.player[player]
 			end
 		end
@@ -1373,6 +1399,7 @@ RPB.syncCommands[cs.dbsend] = function(self, msg, sender)
 		if (self.rpoSettings.master == UnitName("player")) then
 			self:Send(cs.dballupdate, "go")
 		end
+		self:Print("Database has been updated!")
 	end
 	self.syncResync = false
 end
@@ -1430,19 +1457,6 @@ end
 RPB.syncCommands[cs.pointsupdate] = function(self, msg, sender)
 	if sender == UnitName("player") then return end
 	self:PointsUpdate(unpack(msg or {}))
-end
-
-RPB.syncCommands[cs.getmaster] = function(self, msg, sender)
-	if self.rpoSettings.master == UnitName("player") then
-		self:Send(cs.setmaster, UnitName("player"))
-	elseif self.rpoSettings.master == sender then
-		self:Send(cs.setmaster, sender)
-	end
-end
-
-RPB.syncCommands[cs.setmaster] = function(self, msg, sender)
-	if sender == UnitName("player") then return end
-	RPB:SetMaster(msg, true)
 end
 
 RPB.syncCommands[cs.rolllistadd] = function(self, msg, sender)
@@ -1570,21 +1584,45 @@ end
 
 function RPB:GuildLib_Update()
 	local guildRoster = self:GuildRoster()
-	if not self.rpoSettings.master then
+	--if not self.rpoSettings.master then
 		for key, value in pairs(guildRoster) do
 			if self.rpoSettings.master and string.lower(key) == string.lower(self.rpoSettings.master) and not value["online"] then
 				self:ScheduleTimer("GetMaster", math.random(1, 15))
 			end
 		end
+	--end
+end
+
+function RPB:ChangePassword()
+	self.rpoSettings.master = nil
+	self:Send(cs.getmaster)
+	if not self.masterTimer then
+		self.masterTimer = self:ScheduleTimer("GetMaster", 10)
 	end
 end
 
+RPB.syncCommands[cs.getmaster] = function(self, msg, sender)
+	if self.rpoSettings.master == UnitName("player") then
+		self:Send(cs.setmaster, UnitName("player"))
+	elseif self.rpoSettings.master == sender then
+		self:Send(cs.setmaster, sender)
+	else
+		if not self.masterTimer then
+			self.timer = self:ScheduleTimer("DatabaseSync", 10)
+		end
+	end
+end
+
+RPB.syncCommands[cs.setmaster] = function(self, msg, sender)
+	if sender == UnitName("player") then return end
+	RPB:SetMaster(msg, true)
+end
+
 function RPB:GetMaster()
+	self.masterTimer = nil
 	if not self.rpoSettings.master or self.rpoSettings.master == "" then
 		RPB:SetMaster(UnitName("player"))
 	end
-	self:Send(cs.itemlistget, "")
-	self:Send(cs.rolllistget, "")
 end
 
 function RPB:SetMaster(player, recieved)

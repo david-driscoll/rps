@@ -283,3 +283,13 @@ function RPOS:PushSettings()
 		RPWL:Send("so", db.realm.settings, nil, nil, "rpos")
 	end
 end
+
+function RPOS:ChangePassword()
+	if RPB then
+		RPB.rpoSettings.master = ""
+		RPB:Send("getmaster")
+		if not self.masterTimer then
+			RPB.masterTimer = RPB:ScheduleTimer("GetMaster", 10)
+		end
+	end
+end
