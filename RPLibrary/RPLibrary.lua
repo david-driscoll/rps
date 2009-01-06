@@ -46,6 +46,7 @@ local mixins = {
 	"classList",
 	"tierList",
 	"GetItemID",
+	"GetColor",
 } 
 
 -- Copied from XLoot, makes my life that much easier.
@@ -470,6 +471,26 @@ end
 function RPLibrary:GetItemID(link)
 	local _, _, itemid  = string.find(link, "item:(%d+)")
 	return itemid
+end
+
+-- Taken from Prat 3.0, credits to Sylvanaar and the entire Prat Team
+function RPLibrary:GetColor(Name)
+	local hash = 17
+	for i=1,string.len(Name) do
+		hash = hash * 37 * string.byte(Name, i);
+	end
+
+	local r = math.floor(math.fmod(hash / string.byte(Name, 1), 255));
+	local g = math.floor(math.fmod(hash / string.byte(Name, 2), 255));
+	local b = math.floor(math.fmod(hash / string.byte(Name, 3), 255));
+
+    if ((r * 299 + g * 587 + b * 114) / 1000) < 105 then
+    	r = math.abs(r - 255);
+        g = math.abs(g - 255);
+        b = math.abs(b - 255);
+    end
+	RPB:Print(r,g,b)
+	return {["r"] = r / 255.0, ["g"] = g / 255.0, ["b"] = b / 255.0, ["a"] = 0.7}
 end
 
 function RPLibrary:Embed(target)

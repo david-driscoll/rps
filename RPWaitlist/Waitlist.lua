@@ -30,7 +30,16 @@ local minRank = 2
 --local RPLibrary = LibStub:GetLibrary("RPLibrary")
 
 RPWL = LibStub("AceAddon-3.0"):NewAddon("Raid Points Waitlist", "AceConsole-3.0", "AceEvent-3.0", "AceComm-3.0", "AceSerializer-3.0", "RPLibrary", "GuildLib", "BLib")
-local MD5 = LibStub:GetLibrary("MDFive-1.0")
+--local MD5 = LibStub:GetLibrary("MDFive-1.0")
+local LibCompress = LibStub:GetLibrary("LibCompress")
+local EncodeTable
+
+local function MD5(data)
+	local code = LibCompress:fcs16init()
+	code = LibCompress:fcs16update(code, data)
+	code = LibCompress:fcs16final(code)
+	return code
+end
 
 -- Local Table Constants
 -- To use the grid properly, we need numbered index's.
@@ -137,6 +146,7 @@ function RPWL:OnEnable()
 	ChatFrame_AddMessageEventFilter("CHAT_MSG_WHISPER_INFORM", whisperFilter)
 	self:RegisterMessage("GuildLib_Update")
 	self:RegisterComm(CommCmd)
+	self:RegisterComm(CommCmd.."LC")
 	self:RegisterComm("rpos")
 	syncrequest = nil
 	syncowner = nil
@@ -148,6 +158,7 @@ function RPWL:OnEnable()
 	-- end
 	--self.guildRoster = {}
 	self.guildRosterIndex = {}
+	EncodeTable = LibCompress:GetAddonEncodeTable()
 	
 	db.realm.waitlist = self:StripTable(db.realm.waitlist)
 	local temp = db.realm.waitlist
@@ -206,7 +217,7 @@ function RPWL:Send(cmd, data, player, nopwp, comm)
 	local senttime = time()
 	local sendpassword = ""
 	if not nopwp then
-		sendpassword = MD5:MD5(self.rpoSettings.syncPassword .. senttime)
+		sendpassword = MD5(self.rpoSettings.syncPassword .. senttime)
 	end
 	self:SendCommMessage(CommCmd, self:Serialize(sendpassword,senttime,cmd,data), channel, player)
 end
@@ -542,7 +553,7 @@ function RPWL:OnCommReceived(pre, message, distribution, sender)
 	local success, sentpassword, senttime, cmd, msg = self:Deserialize(message)
 	self:Print(pre, password, self.rpoSettings.syncPassword, self.rpoSettings.syncPassword == password, cmd, msg, distribution, sender)
 	local ourpassword = self.rpoSettings.syncPassword
-	ourpassword = MD5:MD5(ourpassword .. senttime)
+	ourpassword = MD5(ourpassword .. senttime)
 	
 	if ourpassword ~= sentpassword then return end
 	if not cmd then return end

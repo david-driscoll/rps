@@ -40,6 +40,7 @@ function RPOS:OnInitialize()
 			featureSet		= "deus",
 			raidDropDown	= {},
 			dbinfo			= {},
+			versioninfo		= {},
 		}
 	end
 	if not db.realm.settings.featureSet or db.realm.settings.featureSet == "" then
@@ -277,10 +278,10 @@ end
 
 function RPOS:PushSettings()
 	if RPB then
-		RPB:Send("so", db.realm.settings, nil, nil, "rpos")
+		RPB:Send("set", db.realm.settings)
 		RPB:PushSettings()
 	elseif RPWL then
-		RPWL:Send("so", db.realm.settings, nil, nil, "rpos")
+		RPWL:Send("set", db.realm.settings)
 	end
 end
 

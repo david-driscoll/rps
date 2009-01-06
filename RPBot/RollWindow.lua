@@ -641,12 +641,19 @@ function rollWindowScrollFrameOnClick(rowFrame, cellFrame, data, cols, row, real
 	if RPB.rpoSettings.master == UnitName("player") then
 		if button == "LeftButton" then
 			if data[realrow] then
+				if RPB.frames["RollWindow"].scrollFrame.selected then
+					RPB.frames["RollWindow"].scrollFrame.selected.selected = false
+					RPB.frames["RollWindow"].scrollFrame.selected.highlight = nil
+				end
 				RPB.frames["RollWindow"].scrollFrame.selected = data[realrow]
+				RPB.frames["RollWindow"].scrollFrame.selected.selected = true
+				RPB.frames["RollWindow"].scrollFrame.selected.highlight = RPB:GetColor(UnitName("player"))
+
 				RPB.frames["RollWindow"].scrollFrame:Refresh()
 				local sendData = RPB:StripRow(data[realrow])
 				--RPB:Print(unpack(sendData))
 				RPB.frames["RollWindow"].editbox["AwardItem"]:SetText(data[realrow].cols[crl.loss].value)
-				RPB:Send(cs.rolllistclick, sendData)
+				RPB:Send(cs.rolllistclick, {sendData, RPB:GetColor(UnitName("player"))})
 			end
 		elseif button == "RightButton" then
 			if data[realrow] then
@@ -658,14 +665,20 @@ function rollWindowScrollFrameOnClick(rowFrame, cellFrame, data, cols, row, real
 end
 
 function rollWindowItemScrollFrameOnClick(rowFrame, cellFrame, data, cols, row, realrow, column, button, down)
-	if RPB.rpoSettings.master == UnitName("player") then
+	if RPB.rpoSettings.master == UnitName("player") and not RPB.frames["RollWindow"].inProgress then
 		if button == "LeftButton" then
 			if data[realrow] then
+				if RPB.frames["RollWindow"].scrollFrameLoot.selected then
+					RPB.frames["RollWindow"].scrollFrameLoot.selected.selected = false
+					RPB.frames["RollWindow"].scrollFrameLoot.selected.highlight = nil
+				end
 				RPB.frames["RollWindow"].scrollFrameLoot.selected = data[realrow]
+				RPB.frames["RollWindow"].scrollFrameLoot.selected.selected = true
+				RPB.frames["RollWindow"].scrollFrameLoot.selected.highlight = RPB:GetColor(UnitName("player"))
 				RPB.frames["RollWindow"].scrollFrameLoot:Refresh()
 				local sendData = RPB:StripRow(data[realrow])
 				--RPB:Print(unpack(sendData))
-				RPB:Send(cs.itemlistclick, sendData)
+				RPB:Send(cs.itemlistclick, {sendData, RPB:GetColor(UnitName("player"))})
 			end
 		elseif button == "RightButton" then
 			if data[realrow] then
@@ -893,11 +906,13 @@ function RPB:ItemListClear(recieved)
 end
 
 RPB.syncCommands[cs.itemlistget] = function(self, msg, sender)
-	if self.rpoSettings.master == UnitName("player") then
+	if (self.rpoSettings.master == UnitName("player") and self.rpoSettings.master ~= sender) or (self.rpoSettings.master == sender and sender ~= UnitName("player")) then
 		local sendTable = self:StripTable(self.frames["RollWindow"].lootList or {})
 		local selectedTable = {}
-		if self.frames["RollWindow"].scrollFrameLoot.selected then
-			selectedTable = self:StripRow(self.frames["RollWindow"].scrollFrameLoot.selected)
+		for i=1,#self.frames["RollWindow"].lootList do
+			if self.frames["RollWindow"].lootList[i].selected then
+				selectedTable[#selectedTable] = {self:StripRow(self.frames["RollWindow"].lootList[i]),self.frames["RollWindow"].lootList[i].highlight}
+			end
 		end
 		self:Send(cs.itemlistset, {sendTable, selectedTable})
 	end
@@ -907,20 +922,31 @@ RPB.syncCommands[cs.itemlistset] = function(self, msg, sender)
 	local temp = self:BuildTable(msg[1], cllArg)
 	self.frames["RollWindow"].lootList = temp
 	for i=1,#temp do
-		if msg[2] and msg[2][cll.link] and temp[i].cols[cll.link].value == msg[2][cll.link] then
-			self.frames["RollWindow"].scrollFrameLoot.selected = temp[i]
+		if msg[2][1] then
+			for j=1,#msg[2][1] do
+				if msg[2][j][1][cll.link] and string.lower(temp[i].cols[cll.link].value) == string.lower(msg[2][j][1][cll.link] ) then
+					temp.selected = list[i]
+					temp[i].selected = true
+					temp[i].highlight = msg[2][j][2]
+				--elseif not (list[i].selected and list[i].highlight ~= RPB:GetColor(UnitName("player"))) then
+				else
+					temp[i].selected = false
+					temp[i].highlight = nil
+				end
+			end
 		end
 	end
-
 	self.frames["RollWindow"].scrollFrameLoot:SetData(self.frames["RollWindow"].lootList)
 end
 	
 RPB.syncCommands[cs.rolllistget] = function(self, msg, sender)
-	if self.rpoSettings.master == UnitName("player") then
+	if (self.rpoSettings.master == UnitName("player") and self.rpoSettings.master ~= sender) or (self.rpoSettings.master == sender and sender ~= UnitName("player")) then
 		local sendTable = self:StripTable(self.frames["RollWindow"].rollList or {})
 		local selectedTable = {}
-		if self.frames["RollWindow"].scrollFrame.selected then
-			selectedTable = self:StripRow(self.frames["RollWindow"].scrollFrame.selected)
+		for i=1,#self.frames["RollWindow"].rollList do
+			if self.frames["RollWindow"].rollList[i].selected then
+				selectedTable[#selectedTable] = {self:StripRow(self.frames["RollWindow"].rollList[i]),self.frames["RollWindow"].rollList[i].highlight}
+			end
 		end
 		self:Send(cs.rolllistset, {sendTable, selectedTable})
 	end
@@ -930,12 +956,67 @@ RPB.syncCommands[cs.rolllistset] = function(self, msg, sender)
 	local temp = self:BuildTable(msg[1], crlArg, rollWindowScrollFrameColor)
 	self.frames["RollWindow"].rollList = temp
 	for i=1,#temp do
-		if msg[2] and msg[2][crl.player] and string.lower(temp[i].cols[crl.player].value) == string.lower(msg[2][crl.player]) then
-			self.frames["RollWindow"].scrollFrame.selected = temp[i]
+		if msg[2][1] then
+			for j=1,#msg[2][1] do
+				if msg[2][j][1][crl.player] and string.lower(temp[i].cols[crl.player].value) == string.lower(msg[2][j][1][crl.player] ) then
+					temp.selected = list[i]
+					temp[i].selected = true
+					temp[i].highlight = msg[2][j][2]
+				--elseif not (list[i].selected and list[i].highlight ~= RPB:GetColor(UnitName("player"))) then
+				else
+					temp[i].selected = false
+					temp[i].highlight = nil
+				end
+			end
 		end
 	end
 	self.frames["RollWindow"].scrollFrame:SetData(self.frames["RollWindow"].rollList)
 	self:RollListSort()
 end
 
+RPB.syncCommands[cs.rolllistclick] = function(self, msg, sender)
+	if sender == UnitName("player") then return end
+	local list = self.frames["RollWindow"].rollList
+	local frame = RPB.frames["RollWindow"].scrollFrame
+	if frame.selected then
+		frame.selected.selected = false
+		frame.selected.highlight = nil
+		frame.selected = nil
+	end
+	for i=1,#list do
+		if (list[i].cols[crl.player].value == msg[1][crl.player]) then
+			frame.selected = list[i]
+			list[i].selected = true
+			list[i].highlight = msg[2]
+		--elseif not (list[i].selected and list[i].highlight ~= RPB:GetColor(UnitName("player"))) then
+		else
+			list[i].selected = false
+			list[i].highlight = nil
+		end
+	end
+	self.frames["RollWindow"].scrollFrame:SortData()
+end
 
+RPB.syncCommands[cs.itemlistclick] = function(self, msg, sender)
+	if sender == UnitName("player") then return end
+	local list = self.frames["RollWindow"].lootList
+	local frame = RPB.frames["RollWindow"].scrollFrameLoot
+	--self:Print(msg, unpack(msg or {}))
+	if frame.selected then
+		frame.selected.selected = false
+		frame.selected.highlight = nil
+		frame.selected = nil
+	end
+	for i=1,#list do
+		if (list[i].cols[cll.item].value == msg[1][cll.item]) then
+			frame.selected = list[i]
+			list[i].selected = true
+			list[i].highlight = msg[2]
+		--elseif not (list[i].selected and list[i].highlight ~= RPB:GetColor(UnitName("player"))) then
+		else
+			list[i].selected = false
+			list[i].highlight = nil
+		end
+	end
+	self.frames["RollWindow"].scrollFrameLoot:SortData()
+end

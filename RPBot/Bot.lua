@@ -22,13 +22,20 @@ local CommCmd = "rpbDEBUG"
 --[===[@non-alpha@
 local CommCmd = "rpb"
 --@end-non-alpha@]===]
-local enablecomm = true
-local syncrequest, syncowner, syncdone
-local caninvite = false
-local bidtime
-local rollList
 
-local MD5 = LibStub:GetLibrary("MDFive-1.0")
+local version = tonumber("@file-revision@") or 10000
+local compversion = 67
+
+--local MD5 = LibStub:GetLibrary("MDFive-1.0")
+local LibCompress = LibStub:GetLibrary("LibCompress")
+local EncodeTable
+
+local function MD5(data)
+	local code = LibCompress:fcs16init()
+	code = LibCompress:fcs16update(code, data)
+	code = LibCompress:fcs16final(code)
+	return code
+end
 
 RPB = LibStub("AceAddon-3.0"):NewAddon("Raid Points Bot", "AceConsole-3.0", "AceEvent-3.0", "AceComm-3.0", "AceSerializer-3.0", "AceTimer-3.0", "RPLibrary", "GuildLib", "BLib")
 RPB.frames = {}
@@ -43,12 +50,12 @@ local function whisperFilter()
 	elseif 	event == "CHAT_MSG_WHISPER"
 			and settings.filterIn == "1"
 			and (
-				strfind(arg1, "^rp")
-				or strfind(arg1, "^bonus")
-				or strfind(arg1, "^upgrade")
-				or strfind(arg1, "^offspec")
-				or strfind(arg1, "^sidegrade")
-				or strfind(arg1, "^rot")
+				strfind(string.lower(arg1), "^rp")
+				or strfind(string.lower(arg1), "^bonus")
+				or strfind(string.lower(arg1), "^upgrade")
+				or strfind(string.lower(arg1), "^offspec")
+				or strfind(string.lower(arg1), "^sidegrade")
+				or strfind(string.lower(arg1), "^rot")
 			)
 	then
 		return true
@@ -91,7 +98,7 @@ local cs =
 	dbsend			= "dbsend",
 	getla			= "getla",
 	sendla			= "sendla",
-	rpoSettings		= "so",
+	rpoSettings		= "set",
 	rpbSettings		= "sb",
 	dballupdate		= "dballupdate"
 }
@@ -106,7 +113,7 @@ function RPB:OnInitialize()
 	db = LibStub("AceDB-3.0"):New("rpDEBUGBotDB")
 	--@end-alpha@. 
 	--[===[@non-alpha@
-	db = LibStub("AceDB-3.0"):New("rpbDB", defaults, "Default")
+	db = LibStub("AceDB-3.0"):New("rpbDB")
 	--@end-non-alpha@]===]
 	self.db = db
 	self:RegisterChatCommand("rp", "ChatCommand")
@@ -115,7 +122,9 @@ function RPB:OnInitialize()
 	ChatFrame_AddMessageEventFilter("CHAT_MSG_WHISPER", whisperFilter)
 	ChatFrame_AddMessageEventFilter("CHAT_MSG_WHISPER_INFORM", whisperFilter)
 	self:RegisterComm(CommCmd)
+	self:RegisterComm(CommCmd.."LC")
 	self:RegisterComm("rpos")
+	EncodeTable = LibCompress:GetAddonEncodeTable()
 	if not db.realm.version then
 		--self.activeraid = nil
 		db.realm.raid = {} 
@@ -207,7 +216,7 @@ function RPB:CHAT_MSG_WHISPER()
 	self:WhisperCommand(arg1, arg2)
 end
 
-function RPB:Send(cmd, data, player, nopwp, comm)
+function RPB:Send(cmd, data, player, compress, nopwp, comm)
 	--if not enablecomm then return end
 	if self.rpoSettings.syncOut == "0" then return end
 	if not comm then comm = CommCmd end
@@ -220,9 +229,21 @@ function RPB:Send(cmd, data, player, nopwp, comm)
 	local senttime = time()
 	local sendpassword = ""
 	if not nopwp then
-		sendpassword = MD5:MD5(self.rpoSettings.syncPassword .. senttime)
+		sendpassword = MD5(self.rpoSettings.syncPassword .. senttime)
 	end
-	self:SendCommMessage(comm, self:Serialize(sendpassword,senttime,cmd,data), channel, player)
+	local senddata
+	if compress then
+		comm = comm .. "LC"
+		senddata = self:Serialize(sendpassword,senttime,version,cmd,data)
+		senddata = LibCompress:Compress(senddata)
+		senddata = EncodeTable:Encode(senddata)
+	else
+		senddata = self:Serialize(sendpassword,senttime,version,cmd,data)
+		compress = false
+	end
+	self:Print(comm, sendpassword,senttime,version,cmd,compress)
+	
+	self:SendCommMessage(comm, senddata, channel, player)
 end
 
 function RPB:Message(channel, message, to)
@@ -1051,14 +1072,31 @@ function RPB:OnCommReceived(pre, message, distribution, sender)
 	if (not db.realm.raid[self.rpoSettings.raid]) then
 		self:CreateDatabase(self.rpoSettings.raid)
 	end
-	
-	local success, sentpassword, senttime, cmd, msg = self:Deserialize(message)
+	self:Print("RPB:OnCommReceived", pre, CommCmd.."LC", distribution, sender)
+	local success, sentpassword, senttime, ver, cmd, ms
+	if pre == CommCmd.."LC" then
+		local data
+		data = EncodeTable:Decode(message)
+		data = LibCompress:Decompress(data)
+		success, sentpassword, senttime, ver, cmd, msg = self:Deserialize(data)
+	else
+		success, sentpassword, senttime, ver, cmd, msg = self:Deserialize(message)
+	end
+	self:Print(sentpassword, senttime, ver, cmd)
 	local ourpassword = self.rpoSettings.syncPassword
-	ourpassword = MD5:MD5(ourpassword .. senttime)
-	
+	ourpassword = MD5(ourpassword .. senttime)
+	-- Add command "by" here.
+	-- If a command can be given without a password, ie for data query from a client.
 	if ourpassword ~= sentpassword then return end
 	if not cmd then return end
 
+	if not self.rpoSettings.versioninfo then self.rpoSettings.versioninfo = {} end
+	if not self.rpoSettings.versioninfo[sender] then self.rpoSettings.versioninfo[sender] = ver end
+	if ver < compversion then
+		self:Send(cs.alert, "Your bot version is out of date.  Version: "..version.." Your Version: "..ver.." Compatible Version: "..compversion..".", sender);
+		return
+	end
+	
 	self:Print("RPB:OnCommReceived", cmd, msg, distribution, sender)
 	if self.syncHold then
 		if not (
@@ -1112,6 +1150,9 @@ RPB.syncCommands[cs.logon] = function(self, msg, sender)
 		--self:Print("Lastaction:", "   msg.lastaction:", msg.lastaction, "   db.realm.version.lastaction:", db.realm.version.lastaction, "   self.settings.dbinfo[sender].lastaction:", self.rpoSettings.dbinfo[sender].lastaction)
 		if msg.database == db.realm.version.database then
 			if msg.lastaction == db.realm.version.lastaction then
+				for i=1,#self.syncQueue do
+					RPB:OnCommReceived(unpack(self.syncQueue[i] or {}))
+				end
 				self.syncQueue = {}
 				self.syncHold = false
 				self.syncResync = false
@@ -1199,7 +1240,7 @@ end
 RPB.syncCommands[cs.getla] = function(self, msg, sender)
 	self.syncQueue = {}
 	self.syncHold = true
-	self:Send(cs.sendla, { RPB:GetLatestActions(self.rpoSettings.dbinfo[sender].lastaction), self.rpoSettings.dbinfo[sender], msg[2] }, sender)
+	self:Send(cs.sendla, { RPB:GetLatestActions(self.rpoSettings.dbinfo[sender].lastaction), self.rpoSettings.dbinfo[sender], msg[2] }, sender, true)
 	--self.latimer = self:ScheduleTimer("LastActionSync", 10, msg[2])
 end
 
@@ -1286,15 +1327,15 @@ function RPB:DatabaseUpdate()
 	for k,v in pairs(db.realm.raid) do
 		md5Raid.raid[k] = {}
 		for player, value in pairs(v) do
-			md5Raid.raid[k][player] = MD5:MD5(self:Serialize(value))
+			md5Raid.raid[k][player] = MD5(self:Serialize(value))
 		end
 	end
 	for k,v in pairs(db.realm.player) do
-		md5Raid.player[k] = MD5:MD5(self:Serialize(value))
+		md5Raid.player[k] = MD5(self:Serialize(value))
 	end
 	
 	for k,v in pairs(dbup) do
-		self:Send(cs.dbmd5, md5Raid, k)
+		self:Send(cs.dbmd5, md5Raid, k, true)
 	end
 	dbup = {}
 end
@@ -1308,11 +1349,11 @@ RPB.syncCommands[cs.dbmd5] = function(self, msg, sender)
 	for k,v in pairs(db.realm.raid) do
 		md5Raid.raid[k] = {}
 		for player, value in pairs(v) do
-			md5Raid.raid[k][player] = MD5:MD5(self:Serialize(value))
+			md5Raid.raid[k][player] = MD5(self:Serialize(value))
 		end
 	end
 	for k,v in pairs(db.realm.player) do
-		md5Raid.player[k] = MD5:MD5(self:Serialize(value))
+		md5Raid.player[k] = MD5(self:Serialize(value))
 	end
 	
 	local requestRaid =
@@ -1342,7 +1383,7 @@ RPB.syncCommands[cs.dbmd5] = function(self, msg, sender)
 		end
 	end
 
-	self:Send(cs.dbrequest, requestRaid, sender)
+	self:Send(cs.dbrequest, requestRaid, sender, true)
 	
 	-- for k,v in pairs(md5Raid) do
 		-- if not msg[k] then
@@ -1385,7 +1426,7 @@ function RPB:DatabaseRequest()
 				dataRaid.player[key] = db.realm.player[key]
 			end
 		end
-		self:Send(cs.dbsend, {dataRaid, db.realm.version.database, db.realm.version.lastaction}, k)
+		self:Send(cs.dbsend, {dataRaid, db.realm.version.database, db.realm.version.lastaction}, k, true)
 	end
 	dbrq = {}
 end
@@ -1454,7 +1495,7 @@ RPB.syncCommands[cs.rpbSettings] = function(self, msg, sender)
 	local settings = self.rpbSettings
 	if (settings.syncSettings == "0") then return end
 	for k,v in pairs(settings) do
-		if (k ~= "syncPassword" and k ~= "dbinfo") then
+		if (k ~= "syncPassword" and k ~= "dbinfo" and k ~= "versioninfo") then
 			if (settings[k] ~= msg[k]) then
 				settings[k] = msg[k]
 			end
@@ -1502,52 +1543,6 @@ RPB.syncCommands[cs.rolllistclear] = function(self, msg, sender)
 	if sender == UnitName("player") then return end
 	self:RollListClear(unpack(msg or {}))
 	-- self:RollListUpdate(msg[1], msg[2], msg[3], msg[4])
-end
-
---  Constants Roll List
-local crl = 
-{
-	player = 1,
-	class = 2,
-	rank = 3,
-	ty = 4,
-	current = 5,
-	roll = 6,
-	loss = 7,
-}
-
-RPB.syncCommands[cs.rolllistclick] = function(self, msg, sender)
-	if sender == UnitName("player") then return end
-	local list = self.frames["RollWindow"].rollList
-	for i=1,#list do
-		if (list[i].cols[crl.player].value == msg[crl.player]) then
-			self.frames["RollWindow"].scrollFrame.selected = list[i]
-			break
-		end
-	end
-	self.frames["RollWindow"].scrollFrame:SortData()
-end
-
--- Constants Loot List
-local cll = 
-{
-	link = 1,
-	item = 2,
-	count = 3,
-	quality = 4,
-}
-
-RPB.syncCommands[cs.itemlistclick] = function(self, msg, sender)
-	if sender == UnitName("player") then return end
-	local list = self.frames["RollWindow"].lootList
-	--self:Print(msg, unpack(msg or {}))
-	for i=1,#list do
-		if (list[i].cols[cll.item].value == msg[cll.item]) then
-			self.frames["RollWindow"].scrollFrameLoot.selected = list[i]
-			break
-		end
-	end
-	self.frames["RollWindow"].scrollFrameLoot:SortData()
 end
 
 RPB.syncCommands[cs.startbidding] = function(self, msg, sender)
