@@ -885,6 +885,7 @@ function RPB:ItemListAdd(link, item, count, quality, recieved)
 end
 
 function RPB:ItemListRemove(link, recieved)
+	if not self.frames["RollWindow"].scrollFrame.selected then return end
 	if not link then
 		link = RPB.frames["RollWindow"].scrollFrameLoot.selected.cols[cll.link].value
 	end
