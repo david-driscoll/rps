@@ -491,6 +491,9 @@ function RPB:RollListAdd(player, cmd, recieved)
 	if (not self:GetPlayer(player)) then
 		self:CreatePlayer(player)
 	end
+	if not self:RosterByName(player:gsub("^%l", string.upper)) then
+		return nil
+	end
 	local pinfo = self:GuildRosterByName(player) or self:RosterByName(player:gsub("^%l", string.upper))
 	
 	--self:Print("RPB:RollListAdd", player, cmd, recieved)

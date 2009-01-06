@@ -295,13 +295,31 @@ function RPB:CreatePlayer(player)
 	db.realm.player[string.lower(player)] = {
 		id 				= -1,
 		name 			= string.lower(pinfo.name or player),
-		fullname 		= pinfo.name or player,
+		fullname 		= pinfo.name or player:gsub("^%l", string.upper),
 		class			= pinfo.class or "Unknown",
 		rank			= pinfo.rank or "Unknown",
 		gender			= "Unknown",
 		race			= "Unknown",
 		talent			= "Unknown",
 	}
+end
+
+function RPB:UpdatePlayer(player)
+	local pinfo = self:GuildRosterByName(player) or self:RosterByName(player:gsub("^%l", string.upper)) or {}
+	db.realm.player[string.lower(player)].id 			= db.realm.player[string.lower(player)].id or -1
+	db.realm.player[string.lower(player)].name 			= string.lower(pinfo.name or player)
+	db.realm.player[string.lower(player)].fullname 		= pinfo.name or player:gsub("^%l", string.upper)
+	db.realm.player[string.lower(player)].class			= pinfo.class or db.realm.player[string.lower(player)].class
+	db.realm.player[string.lower(player)].rank			= pinfo.rank or db.realm.player[string.lower(player)].rank
+	db.realm.player[string.lower(player)].gender		= db.realm.player[string.lower(player)].gender or "Unknown"
+	db.realm.player[string.lower(player)].race			= db.realm.player[string.lower(player)].race or "Unknown"
+	db.realm.player[string.lower(player)].talent		= db.realm.player[string.lower(player)].talent or "Unknown"
+end
+
+function RPB:UpdateAllPlayers()
+	for k,v in pairs(db.realm.player) do
+		self:UpdatePlayer(k)
+	end
 end
 
 function RPB:CreatePlayerHistory(player, raid)
@@ -886,7 +904,8 @@ function RPB:PointsShow(player, channel, to, history)
 		if playerlist[i].waitlist then
 			wait = "{star}"
 		end
-		if self:GetPlayer(playerlist[i].name) and self:GetPlayerHistory(playerlist[i].name) then
+		self:Print(playerlist[i].name, self:GetPlayer(playerlist[i].name),  self:GetPlayerHistory(playerlist[i].name,self.rpoSettings.raid) )
+		if self:GetPlayer(playerlist[i].name) and self:GetPlayerHistory(playerlist[i].name,self.rpoSettings.raid) then
 			local history = self:GetPlayerHistory(playerlist[i].name,self.rpoSettings.raid)
 			local player = self:GetPlayer(playerlist[i].name)
 			msg = player.fullname .. ": " .. history.points
@@ -1210,7 +1229,7 @@ RPB.syncCommands[cs.sendla] = function(self, msg, sender)
 				}
 			end
 			for actiontime,recenta in pairs(value.recentactions) do
-				self:Print("actiontime:",actiontime,"msg[2].lastaction",msg[2].lastaction)
+				--self:Print("actiontime:",actiontime,"msg[2].lastaction",msg[2].lastaction)
 				if actiontime > msg[2].lastaction then
 					db.realm.raid[k][player].recentactions[actiontime] = {
 						datetime 	= recenta.datetime,
@@ -1305,6 +1324,7 @@ RPB.syncCommands[cs.dbmd5] = function(self, msg, sender)
 		requestRaid.raid[k] = {}
 		if not md5Raid.raid[k] then
 			md5Raid.raid[k] = {}
+			--db.realm.raid[k] = {}
 		end
 		for player, value in pairs(v) do
 			if not md5Raid.raid[k][player] then
@@ -1361,8 +1381,8 @@ function RPB:DatabaseRequest()
 			end
 		end
 		for key, val in pairs(v.player) do
-			if val == true and db.realm.player[player] then
-				dataRaid.player[key] = db.realm.player[player]
+			if val == true and db.realm.player[key] then
+				dataRaid.player[key] = db.realm.player[key]
 			end
 		end
 		self:Send(cs.dbsend, {dataRaid, db.realm.version.database, db.realm.version.lastaction}, k)
@@ -1607,7 +1627,7 @@ RPB.syncCommands[cs.getmaster] = function(self, msg, sender)
 	elseif self.rpoSettings.master == sender then
 		self:Send(cs.setmaster, sender)
 	else
-		if not self.masterTimer then
+		if not self.masterTimer and not self.rpoSettings.master then
 			self.timer = self:ScheduleTimer("DatabaseSync", 10)
 		end
 	end
