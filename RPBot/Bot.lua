@@ -100,7 +100,8 @@ local cs =
 	sendla			= "sendla",
 	rpoSettings		= "set",
 	rpbSettings		= "sb",
-	dballupdate		= "dballupdate"
+	dballupdate		= "dballupdate",
+	setraid			= "setraid",
 }
 RPB.syncQueue = {}
 RPB.syncHold = true
@@ -275,9 +276,17 @@ function RPB:Broadcast(message)
 	end
 end
 
-function RPB:UseDatabase(database)
-	if (database and db.realm.raid[string.lower(database)]) then
+function RPB:UseDatabase(database, recieved)
+	if (
+		database
+		and db.realm.raid[string.lower(database)]
+		and self.rpoSettings.master == UnitName("player")
+		or recieved
+	) then
 		self.rpoSettings.raid = string.lower(database)
+		if (not recieved) then
+			RPB:Send(cs.setraid, database)
+		end
 		--self.activeraid = db.realm.raid[string.lower(database)]
 		self:Print("Now running database", string.lower(database))
 		return true
@@ -1011,6 +1020,16 @@ RPB.chatCommands["convert"] = function (self, msg)
 	self:ConvertDatabase()
 end
 
+RPB.chatCommands["master"] = function (self, msg)
+	self:SetMaster()
+end
+
+RPB.chatCommands["dbupdate"] = function (self, msg)
+	if self.rpoSettings.master ~= UnitName("player") then
+		self:Send(db.dboutdate, "you", self.rpoSettings.master)
+	end
+end
+
 RPB.chatCommands["force"] = function (self, msg)
 	_, player, cmd, pos = self:GetArgs(msg, 3, 1)
 	self:RollListAdd(player, cmd)
@@ -1629,8 +1648,16 @@ RPB.syncCommands[cs.getmaster] = function(self, msg, sender)
 end
 
 RPB.syncCommands[cs.setmaster] = function(self, msg, sender)
-	if sender == UnitName("player") then return end
+	if sender == UnitName("player") then self:Send(cs.setraid, self.rpoSettings.raid); return end
 	RPB:SetMaster(msg, true)
+end
+
+RPB.syncCommands[cs.setraid] = function(self, msg, sender)
+	if sender == UnitName("player") then return end
+	if not db.realm.raid[msg] then
+		RPB:CreateDatabase(msg, true)
+	end
+	self.rpoSettings.raid = msg
 end
 
 function RPB:GetMaster()
