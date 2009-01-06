@@ -805,6 +805,17 @@ function RPB:StopBidding(recieved)
 end
 
 function RPB:RollListAward(recieved)
+	if not recieved then
+		self:Send(cs.rolllistaward, { true })
+	end
+	self.frames["RollWindow"].inProgress = false
+	if recieved then
+		return
+	end
+	
+	if not self.frames["RollWindow"].scrollFrameLoot.selected then return end
+	if not self.frames["RollWindow"].scrollFrame.selected then return end
+
 	local item = self.frames["RollWindow"].scrollFrameLoot.selected.cols
 	local winner = self.frames["RollWindow"].scrollFrame.selected.cols
 	local class, rank, ty, current, loss, roll, pcurrent, player
@@ -816,13 +827,12 @@ function RPB:RollListAward(recieved)
 	ty = winner[crl.ty].value
 	current = winner[crl.current].value
 	--loss = winner[crl.loss].value
-	loss = tonumber(editbox:GetText())
+	loss = tonumber(editbox:GetText()) or 0
 	roll = winner[crl.roll].value
 	pcurrent = self:GetPlayerHistory(player).points
 	if not recieved then
 		self:Send(cs.rolllistaward, { true })
 	end
-	self.frames["RollWindow"].inProgress = false
 	if self.rpoSettings.master == UnitName("player") then
 		local dt = time()
 
@@ -914,18 +924,19 @@ RPB.syncCommands[cs.itemlistget] = function(self, msg, sender)
 				selectedTable[#selectedTable] = {self:StripRow(self.frames["RollWindow"].lootList[i]),self.frames["RollWindow"].lootList[i].highlight}
 			end
 		end
-		self:Send(cs.itemlistset, {sendTable, selectedTable})
+		self:Send(cs.itemlistset, {sendTable, selectedTable}, sender)
 	end
 end
 
 RPB.syncCommands[cs.itemlistset] = function(self, msg, sender)
 	local temp = self:BuildTable(msg[1], cllArg)
 	self.frames["RollWindow"].lootList = temp
+	local frame = RPB.frames["RollWindow"].scrollFrameLoot
 	for i=1,#temp do
 		if msg[2][1] then
 			for j=1,#msg[2][1] do
 				if msg[2][j][1][cll.link] and string.lower(temp[i].cols[cll.link].value) == string.lower(msg[2][j][1][cll.link] ) then
-					temp.selected = list[i]
+					frame.selected = list[i]
 					temp[i].selected = true
 					temp[i].highlight = msg[2][j][2]
 				--elseif not (list[i].selected and list[i].highlight ~= RPB:GetColor(UnitName("player"))) then
@@ -948,18 +959,19 @@ RPB.syncCommands[cs.rolllistget] = function(self, msg, sender)
 				selectedTable[#selectedTable] = {self:StripRow(self.frames["RollWindow"].rollList[i]),self.frames["RollWindow"].rollList[i].highlight}
 			end
 		end
-		self:Send(cs.rolllistset, {sendTable, selectedTable})
+		self:Send(cs.rolllistset, {sendTable, selectedTable}, sender)
 	end
 end
 
 RPB.syncCommands[cs.rolllistset] = function(self, msg, sender)
 	local temp = self:BuildTable(msg[1], crlArg, rollWindowScrollFrameColor)
 	self.frames["RollWindow"].rollList = temp
+	local frame = RPB.frames["RollWindow"].scrollFrame
 	for i=1,#temp do
 		if msg[2][1] then
 			for j=1,#msg[2][1] do
 				if msg[2][j][1][crl.player] and string.lower(temp[i].cols[crl.player].value) == string.lower(msg[2][j][1][crl.player] ) then
-					temp.selected = list[i]
+					frame.selected = list[i]
 					temp[i].selected = true
 					temp[i].highlight = msg[2][j][2]
 				--elseif not (list[i].selected and list[i].highlight ~= RPB:GetColor(UnitName("player"))) then
