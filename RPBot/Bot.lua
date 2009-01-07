@@ -242,7 +242,7 @@ function RPB:Send(cmd, data, player, compress, nopwp, comm)
 		senddata = self:Serialize(sendpassword,senttime,version,cmd,data)
 		compress = false
 	end
-	self:Print(comm, sendpassword,senttime,version,cmd,compress)
+	--self:Print(comm, sendpassword,senttime,version,cmd,compress)
 	
 	self:SendCommMessage(comm, senddata, channel, player)
 end
@@ -1554,7 +1554,7 @@ end
 
 RPB.syncCommands[cs.rolllistupdate] = function(self, msg, sender)
 	if sender == UnitName("player") then return end
-	self:RollListUpdate(unpack(msg or {}))
+	self:RollListUpdate(msg[1], msg[2], msg[3], true)
 	-- self:RollListUpdate(msg[1], msg[2], msg[3], msg[4])
 end
 
