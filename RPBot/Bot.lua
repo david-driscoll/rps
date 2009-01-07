@@ -937,8 +937,8 @@ function RPB:PointsShow(player, channel, to, history)
 		--self:Print(playerlist[i].name, self:GetPlayer(playerlist[i].name),  self:GetPlayerHistory(playerlist[i].name,self.rpoSettings.raid) )
 		if self:GetPlayer(playerlist[i].name) and self:GetPlayerHistory(playerlist[i].name,self.rpoSettings.raid) then
 			local history = self:GetPlayerHistory(playerlist[i].name,self.rpoSettings.raid)
-			local player = self:GetPlayer(playerlist[i].name)
-			msg = player.fullname .. ": " .. history.points
+			local p = self:GetPlayer(playerlist[i].name)
+			msg = p.fullname .. ": " .. history.points
 		else
 			msg = player .. ": " .. "0"
 		end
