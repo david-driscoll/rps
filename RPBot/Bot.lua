@@ -1350,7 +1350,7 @@ function RPB:DatabaseUpdate()
 		end
 	end
 	for k,v in pairs(db.realm.player) do
-		md5Raid.player[k] = MD5(self:Serialize(value))
+		md5Raid.player[k] = MD5(self:Serialize(v))
 	end
 	
 	for k,v in pairs(dbup) do
