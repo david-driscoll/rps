@@ -934,7 +934,7 @@ function RPB:PointsShow(player, channel, to, history)
 		if playerlist[i].waitlist then
 			wait = "{star}"
 		end
-		self:Print(playerlist[i].name, self:GetPlayer(playerlist[i].name),  self:GetPlayerHistory(playerlist[i].name,self.rpoSettings.raid) )
+		--self:Print(playerlist[i].name, self:GetPlayer(playerlist[i].name),  self:GetPlayerHistory(playerlist[i].name,self.rpoSettings.raid) )
 		if self:GetPlayer(playerlist[i].name) and self:GetPlayerHistory(playerlist[i].name,self.rpoSettings.raid) then
 			local history = self:GetPlayerHistory(playerlist[i].name,self.rpoSettings.raid)
 			local player = self:GetPlayer(playerlist[i].name)
@@ -946,7 +946,7 @@ function RPB:PointsShow(player, channel, to, history)
 			if wait == "{star}" then
 				wait = "(wl)"
 			end
-			self:Print(wait .. msg)
+			--self:Print(wait .. msg)
 		elseif not to then
 			RPB:Message(channel, wait .. msg)
 		else
@@ -1091,7 +1091,7 @@ function RPB:OnCommReceived(pre, message, distribution, sender)
 	if (not db.realm.raid[self.rpoSettings.raid]) then
 		self:CreateDatabase(self.rpoSettings.raid)
 	end
-	self:Print("RPB:OnCommReceived", pre, CommCmd.."LC", distribution, sender)
+	--self:Print("RPB:OnCommReceived", pre, CommCmd.."LC", distribution, sender)
 	local success, sentpassword, senttime, ver, cmd, ms
 	if pre == CommCmd.."LC" then
 		local data
@@ -1101,7 +1101,7 @@ function RPB:OnCommReceived(pre, message, distribution, sender)
 	else
 		success, sentpassword, senttime, ver, cmd, msg = self:Deserialize(message)
 	end
-	self:Print(sentpassword, senttime, ver, cmd)
+	--self:Print(sentpassword, senttime, ver, cmd)
 	local ourpassword = self.rpoSettings.syncPassword
 	ourpassword = MD5(ourpassword .. senttime)
 	-- Add command "by" here.
@@ -1116,7 +1116,7 @@ function RPB:OnCommReceived(pre, message, distribution, sender)
 		return
 	end
 	
-	self:Print("RPB:OnCommReceived", cmd, msg, distribution, sender)
+	--self:Print("RPB:OnCommReceived", cmd, msg, distribution, sender)
 	if self.syncHold then
 		if not (
 			cmd == cs.getla or
@@ -1130,7 +1130,7 @@ function RPB:OnCommReceived(pre, message, distribution, sender)
 			cmd == cs.dbrequest or
 			cmd == cs.dbsend
 		) then
-			self:Print(self.syncHold, cmd)			
+			--self:Print(self.syncHold, cmd)			
 			if (
 				cmd == cs.pointsadd or
 				cmd == cs.pointsremove or

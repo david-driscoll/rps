@@ -804,6 +804,8 @@ function RPB:StopBidding(recieved)
 end
 
 function RPB:RollListAward(recieved)
+	if not self.frames["RollWindow"].scrollFrameLoot.selected then return end
+	if not self.frames["RollWindow"].scrollFrame.selected then return end
 	if not recieved then
 		self:Send(cs.rolllistaward, { true })
 	end
@@ -811,9 +813,6 @@ function RPB:RollListAward(recieved)
 	if recieved then
 		return
 	end
-	
-	if not self.frames["RollWindow"].scrollFrameLoot.selected then return end
-	if not self.frames["RollWindow"].scrollFrame.selected then return end
 
 	local item = self.frames["RollWindow"].scrollFrameLoot.selected.cols
 	local winner = self.frames["RollWindow"].scrollFrame.selected.cols
@@ -835,7 +834,7 @@ function RPB:RollListAward(recieved)
 	if self.rpoSettings.master == UnitName("player") then
 		local dt = time()
 
-		self:Print(self.rpoSettings.raid, dt, player, -(loss), 'I', item[cll.item].value, item[cll.link].value, false, true)
+		--self:Print(self.rpoSettings.raid, dt, player, -(loss), 'I', item[cll.item].value, item[cll.link].value, false, true)
 		self:Broadcast(	player .. " wins " .. item[cll.link].value .. " for cost of ".. -(loss) .." with a total of " .. current .. " (" .. pcurrent .. " points + " .. roll .. " roll).")
 		self:PointsAdd(self.rpoSettings.raid, dt, player, -(loss), 'I', item[cll.item].value, item[cll.link].value, true, true)
 		self:ItemListRemove(item[cll.link].value)
