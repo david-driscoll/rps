@@ -655,6 +655,9 @@ function RPB:UpdateUI()
 				if (f.nameList[i].cols[con.name].value == k) then
 					found = true
 				end
+				if (f.nameList[i].cols[con.name].value == self.rpoSettings.master) then
+					f.nameList[i].cols[con.name].selected = true
+				end
 			end
 		end
 		--self:Print(k)
