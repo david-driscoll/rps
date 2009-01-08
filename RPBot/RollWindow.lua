@@ -20,7 +20,9 @@ local cs =
 {
 	rolllistadd		= "rolllistadd",
 	rolllistremove	= "rolllistremove",
-	rolllistupdate	= "rolllistupdate",
+	rolllistupdatetype	= "rolllistupdatetype",
+	rolllistupdateroll	= "rolllistupdateroll",
+	rolllistdisenchant	= "rolllistdisenchant",
 	rolllistaward	= "rolllistaward",
 	rolllistclear	= "rolllistclear",
 	startbidding	= "startbidding",
@@ -42,7 +44,7 @@ RPB.columnDefinitons["RollWindow"] =
 {
 	{
 	    ["name"] = "Name",
-	    ["width"] = 90,
+	    ["width"] = 80,
 	    ["align"] = "CENTER",
 	    -- ["color"] = { 
 	        -- ["r"] = 0.5, 
@@ -62,7 +64,7 @@ RPB.columnDefinitons["RollWindow"] =
 	},
 	{
 	    ["name"] = "Class",
-	    ["width"] = 80,
+	    ["width"] = 70,
 	    ["align"] = "CENTER",
 	    -- ["color"] = { 
 	        -- ["r"] = 0.5, 
@@ -81,7 +83,7 @@ RPB.columnDefinitons["RollWindow"] =
 	},
 	{
 	    ["name"] = "Rank",
-	    ["width"] = 100,
+	    ["width"] = 80,
 	    ["align"] = "CENTER",
 	    -- ["color"] = { 
 	        -- ["r"] = 0.5, 
@@ -100,7 +102,7 @@ RPB.columnDefinitons["RollWindow"] =
 	},
 	{
 	    ["name"] = "Type",
-	    ["width"] = 100,
+	    ["width"] = 70,
 	    ["align"] = "CENTER",
 	    -- ["color"] = { 
 	        -- ["r"] = 0.5, 
@@ -119,7 +121,7 @@ RPB.columnDefinitons["RollWindow"] =
 	    
 	},
 	{
-	    ["name"] = "Currrent",
+	    ["name"] = "Points",
 	    ["width"] = 60,
 	    ["align"] = "CENTER",
 	    -- ["color"] = { 
@@ -139,6 +141,25 @@ RPB.columnDefinitons["RollWindow"] =
 	},
 	{
 	    ["name"] = "Roll",
+	    ["width"] = 60,
+	    ["align"] = "CENTER",
+	    -- ["color"] = { 
+	        -- ["r"] = 0.5, 
+	        -- ["g"] = 0.5, 
+	        -- ["b"] = 1.0, 
+	        -- ["a"] = 1.0 
+	    -- },
+	    ["colorargs"] = nil,
+	    ["bgcolor"] = {
+	        ["r"] = 0.0, 
+	        ["g"] = 0.0, 
+	        ["b"] = 0.0, 
+	        ["a"] = 1.0 
+	    },
+	    --["defaultsort"] = "asc",
+	},
+	{
+	    ["name"] = "Total",
 	    ["width"] = 60,
 	    ["align"] = "CENTER",
 	    -- ["color"] = { 
@@ -199,6 +220,29 @@ RPB.columnDefinitons["RollWindowLootList"] =
 	},
 }
 
+RPB.columnDefinitons["RollWindowNameList"] = 
+{
+	{
+	    ["name"] = "Officers",
+	    ["width"] = 80,
+	    ["align"] = "CENTER",
+	    -- ["color"] = { 
+	        -- ["r"] = 0.5, 
+	        -- ["g"] = 0.5, 
+	        -- ["b"] = 1.0, 
+	        -- ["a"] = 1.0 
+	    -- },
+	    ["colorargs"] = nil,
+	    ["bgcolor"] = {
+	        ["r"] = 0.0, 
+	        ["g"] = 0.0, 
+	        ["b"] = 0.0, 
+	        ["a"] = 1.0 
+	    },
+	    --["defaultsort"] = "asc",
+	},
+}
+
 --  Constants Roll List
 local crl = 
 {
@@ -206,9 +250,10 @@ local crl =
 	class = 2,
 	rank = 3,
 	ty = 4,
-	current = 5,
+	points = 5,
 	roll = 6,
-	loss = 7,
+	total = 7,
+	loss = 8,
 }
 
 local crlArg = 
@@ -217,7 +262,7 @@ local crlArg =
 	[crl.class]		= { nil, ClassColor },
 	[crl.rank]		= { },
 	[crl.ty]		= { },
-	[crl.current]	= { },
+	[crl.total]		= { },
 	[crl.roll]		= { },
 	[crl.loss]		= { },
 }
@@ -237,6 +282,21 @@ local cllArg =
 	[cll.item]		= { },
 	[cll.count]		= { },
 	[cll.quality]	= { },
+}
+
+local function GetColor(Name)
+	return RPB:GetColor(Name)
+end
+
+-- Constants  Officer Names
+local con = 
+{
+	name = 1,
+}
+
+local conArg =
+{
+	[con.name]		= { nil, GetColor },
 }
 
 function RPB:CreateFrameRollWindow()
@@ -265,35 +325,35 @@ function RPB:CreateFrameRollWindow()
 	do
 		self:Skin(f);
 	   
-	   local button = CreateFrame("Button", f:GetName() .. "_CloseButton", f, "UIPanelCloseButton")
-	   button:SetPoint("TOPRIGHT", f, "TOPRIGHT", 5, 4)
-	   button:Show()
-	   f.CloseButton = button
-	   
-	   local drag = CreateFrame("Button", f:GetName() .. "_DragHeader", f)
-	   drag:SetHeight(24)
-	   drag:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
-	   drag:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, 0)
-	   drag:SetScript("OnMouseDown",
+		local button = CreateFrame("Button", f:GetName() .. "_CloseButton", f, "UIPanelCloseButton")
+		button:SetPoint("TOPRIGHT", f, "TOPRIGHT", -2, -2)
+		button:Show()
+		f.CloseButton = button
+
+		local drag = CreateFrame("Button", f:GetName() .. "_DragHeader", f)
+		drag:SetHeight(24)
+		drag:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
+		drag:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, 0)
+		drag:SetScript("OnMouseDown",
 		  function(self)
 			 local parent = self:GetParent()
 			 if parent:IsMovable() then
 				parent:StartMoving()
 			 end
 		  end
-	   )
-	   drag:SetScript("OnMouseUp",
+		)
+		drag:SetScript("OnMouseUp",
 		  function(self)
 			 local parent = self:GetParent()
 			 parent:StopMovingOrSizing()
 		  end
-	   )
-	   f.dragheader = drag
-	   
-	   local title = f:CreateFontString("Title", "ARTWORK", "GameFontNormal")
-	   title:SetPoint("TOP", f, "TOP", 0, -6)
-	   title:SetText("Raid Points - Roll Window")
-	   f.title = title
+		)
+		f.dragheader = drag
+
+		local title = f:CreateFontString("Title", "ARTWORK", "GameFontNormal")
+		title:SetPoint("TOP", f, "TOP", 0, -6)
+		title:SetText("Raid Points - Roll Window")
+		f.title = title
 	end
 
     -- Scroll Frame
@@ -304,6 +364,34 @@ function RPB:CreateFrameRollWindow()
 		f.scrollFrame:SetData(f.rollList)
 		f.scrollFrame:RegisterEvents({
 			["OnClick"] = rollWindowScrollFrameOnClick,
+			["OnEnter"] = 
+			function(rowFrame, cellFrame, data, cols, row, realrow, column, ...) 
+				if row and realrow then
+					local selectedby = ""
+					if data[realrow].selected then
+						local color = GetColor(UnitName("player"))
+						--selectedby = string.format("|cff%02x%02x%02x|r", color.r, color.g, color.b)
+						selectedby = UnitName("player")
+					end
+					GameTooltip:SetOwner(rowFrame, "ANCHOR_CURSOR")
+					GameTooltip:ClearLines()
+					GameTooltip:AddDoubleLine("Player", data[realrow].cols[crl.player].value)
+					GameTooltip:AddDoubleLine("Class", data[realrow].cols[crl.class].value)
+					GameTooltip:AddDoubleLine("Rank", data[realrow].cols[crl.rank].value)
+					GameTooltip:AddDoubleLine("Type", data[realrow].cols[crl.ty].value)
+					GameTooltip:AddDoubleLine("Total", data[realrow].cols[crl.total].value)
+					GameTooltip:AddDoubleLine("Roll", data[realrow].cols[crl.roll].value)
+					GameTooltip:AddDoubleLine("Total", data[realrow].cols[crl.loss].value)
+					if data[realrow].selected and data[realrow].highlight then
+						GameTooltip:AddDoubleLine("Selected by:", selectedby, nil, nil, nil, data[realrow].highlight.r, data[realrow].highlight.g, data[realrow].highlight.b)
+					end
+					GameTooltip:Show()
+				end
+			end,
+			["OnLeave"] = 
+			function(rowFrame, cellFrame, data, cols, row, realrow, column, ...) 
+				GameTooltip:Hide()
+			end,
 		});
 
 		-- f.item = {}
@@ -316,7 +404,52 @@ function RPB:CreateFrameRollWindow()
 		f.scrollFrameLoot:SetData(f.lootList)
 		f.scrollFrameLoot:RegisterEvents({
 			["OnClick"] = rollWindowItemScrollFrameOnClick,
+			["OnEnter"] = 
+			function(rowFrame, cellFrame, data, cols, row, realrow, column, ...) 
+				if data[realrow] then
+					GameTooltip:SetOwner(rowFrame, "ANCHOR_CURSOR")
+					GameTooltip:ClearLines()
+					GameTooltip:SetHyperlink(data[realrow].cols[cll.link].value)
+					GameTooltip:Show()
+				end
+			end,
+			["OnLeave"] = 
+			function(rowFrame, cellFrame, data, cols, row, realrow, column, ...) 
+				GameTooltip:Hide()
+			end,
 		});
+		getglobal("ScrollTable2HeadCol1"):SetScript("OnClick", nil);
+		
+		-- f.item = {}
+		-- for i=1, 1 do 
+			-- f.item[i] = self:CreateLootFrame(f, i)
+		-- end
+		f.nameList = {}
+	    f.scrollFrameName = ScrollingTable:CreateST(RPB.columnDefinitons["RollWindowNameList"], 9, nil, nil, f, true);
+		f.scrollFrameName.frame:SetPoint("TOPRIGHT", f, "TOPRIGHT", -10, -45)
+		f.scrollFrameName:SetData(f.nameList)
+		f.scrollFrameName:RegisterEvents({
+			--["OnClick"] = rollWindowItemScrollFrameOnClick,
+			["OnEnter"] = 
+			function(rowFrame, cellFrame, data, cols, row, realrow, column, ...) 
+				if data[realrow] then
+					GameTooltip:SetOwner(rowFrame, "ANCHOR_CURSOR")
+					GameTooltip:ClearLines()
+					local color = GetColor(data[realrow].cols[con.name].value)
+					GameTooltip:AddDoubleLine("Officer", data[realrow].cols[con.name].value, color.r, color.g, color.b, color.r, color.g, color.b)
+					GameTooltip:AddDoubleLine("Versions", "")
+					GameTooltip:AddDoubleLine("Bot", RPB.rpoSettings.versioninfo[data[realrow].cols[con.name].value])
+					GameTooltip:AddDoubleLine("Database", RPB.rpoSettings.dbinfo[data[realrow].cols[con.name].value].database)
+					GameTooltip:AddDoubleLine("Lastaction", RPB.rpoSettings.dbinfo[data[realrow].cols[con.name].value].lastaction)
+					GameTooltip:Show()
+				end
+			end,
+			["OnLeave"] = 
+			function(rowFrame, cellFrame, data, cols, row, realrow, column, ...) 
+				GameTooltip:Hide()
+			end,
+		});
+		getglobal("ScrollTable2HeadCol1"):SetScript("OnClick", nil);
 
 end
 	
@@ -393,6 +526,18 @@ end
 		
 		self:SkinEditBox(editbox)
 		self:ScriptEditBox(editbox)
+		
+		local button = CreateFrame("Button", f:GetName() .. "_ButtonDisenchantItem", f, "UIPanelButtonTemplate")
+		button:SetWidth(40)
+		button:SetHeight(21)
+		button:SetPoint("TOPLEFT", f.editbox["AwardItem"], "TOPRIGHT", 4, -6)
+		button:SetText("DE")
+		button:SetScript("OnClick", 
+			function(self)
+				RPB:RollListDisenchant()
+			end
+		)
+		f.button["DisenchantItem"] = button
 
 		local button = CreateFrame("Button", f:GetName() .. "_ButtonRollClear", f, "UIPanelButtonTemplate")
 		button:SetWidth(90)
@@ -455,16 +600,16 @@ end
 			end
 		)
 		f.button["ClearList"] = button	
-		
+	 		
 		local button = CreateFrame("Button", f:GetName() .. "_ButtonMaster", f, "UIPanelButtonTemplate")
 		button:SetWidth(90)
 		button:SetHeight(21)
-		button:SetPoint("TOPRIGHT", f, "TOPRIGHT", -20, -40)
+		button:SetPoint("TOPRIGHT", f.CloseButton, "TOPLEFT", 5, -4)
 		button:SetText("Master")
 		button:SetScript("OnClick", 
-			function(self)
-				RPB:SetMaster()
-			end
+		function(self)
+			RPB:SetMaster()
+		end
 		)
 		f.button["Master"] = button
 	end
@@ -484,6 +629,86 @@ end
 		-- });
 		
 	-- end
+	
+	f.state = "Initial"
+end
+
+function RPB:UpdateUI()
+	local f = self.frames["RollWindow"]
+	local Master = f.button["Master"]
+	local EAddItem = f.editbox["AddItem"]
+	local AddItem = f.button["AddItem"]
+	local RemoveItem = f.button["RemoveItem"]
+	local ClearList = f.button["ClearList"]
+	local StartBidding = f.button["StartBidding"]
+	local StartTimedBidding = f.button["StartTimedBidding"]
+	local StopBidding = f.button["StopBidding"]
+	local AwardItem = f.button["AwardItem"]
+	local EAwardItem = f.editbox["AwardItem"]
+	local DisenchantItem = f.button["DisenchantItem"]
+	local RollClear = f.button["RollClear"]
+	
+	for k,v in pairs(self.rpoSettings.dbinfo) do
+		local found = false
+		if #f.nameList > 0 then
+			for i=1,#f.nameList do
+				if (f.nameList[i].cols[con.name].value == k) then
+					found = true
+				end
+			end
+		end
+		--self:Print(k)
+		if not found then
+			f.nameList[#f.nameList+1] = self:BuildRow(
+				{
+					[con.name]	= 	k,
+				},
+				conArg
+			)
+		end
+	end
+	f.scrollFrameName:SortData()
+	
+	if self.rpoSettings.master == UnitName("player") then
+		Master:Disable()
+		if f.state == "Initial" then
+			StartBidding:Enable()
+			StartTimedBidding:Enable()
+			StopBidding:Disable()
+			AddItem:Enable()
+			RemoveItem:Enable()
+			ClearList:Enable()
+		elseif f.state == "Bidding Started" then
+			StartBidding:Disable()
+			StartTimedBidding:Disable()
+			StopBidding:Enable()
+			AddItem:Disable()
+			RemoveItem:Disable()
+			ClearList:Disable()
+		elseif f.state == "Bidding Stopped" then
+			StopBidding:Disable()
+			AddItem:Disable()
+			RemoveItem:Disable()
+			ClearList:Disable()
+		end
+		AwardItem:Enable()
+		--EAwardItem:Enable()
+		DisenchantItem:Enable()
+		RollClear:Enable()
+	else
+		Master:Enable()
+		--EAddItem:Disable()
+		AddItem:Disable()
+		RemoveItem:Disable()
+		ClearList:Disable()
+		StartBidding:Disable()
+		StartTimedBidding:Disable()
+		StopBidding:Disable()
+		AwardItem:Disable()
+		--EAwardItem:Disable()
+		DisenchantItem:Disable()
+		RollClear:Disable()
+	end
 end
 
 function RPB:RollListAdd(player, cmd, recieved)
@@ -497,7 +722,7 @@ function RPB:RollListAdd(player, cmd, recieved)
 	local pinfo = self:GuildRosterByName(player) or self:RosterByName(player:gsub("^%l", string.upper))
 	
 	--self:Print("RPB:RollListAdd", player, cmd, recieved)
-	local class, rank, ty, current, loss
+	local class, rank, ty, total, loss
 	local feature = self.feature[string.lower(cmd)]
 	local divisor = feature.divisor or 2
 	
@@ -507,7 +732,11 @@ function RPB:RollListAdd(player, cmd, recieved)
 	end	
 	
 	pdata = self:GetPlayerHistory(player)
-	current = pdata.points
+	total = pdata.points
+	local maxpoints = self.feature[string.lower(feature.name)].maxpoints or tonumber(self.rpbSettings.maxpoints) or 0
+	if maxpoints > 0 and total > maxpoints then
+		total = maxpoints
+	end
 	player = pinfo.name
 	
 	ty = feature.name
@@ -515,8 +744,12 @@ function RPB:RollListAdd(player, cmd, recieved)
 	for i=1,#rollList do
 		if (string.lower(rollList[i].cols[crl.player].value) == string.lower(player)) then
 			if (string.lower(rollList[i].cols[crl.ty].value) ~= string.lower(ty)) then
-				self:RollListUpdate(player, nil, ty)
-				return true
+				if feature.nolist then
+					self:RollListRemove(player)
+				else
+					self:RollListUpdateType(player, ty)
+					return true
+				end
 			end
 			return false
 		end
@@ -525,16 +758,21 @@ function RPB:RollListAdd(player, cmd, recieved)
 	if not recieved then
 		self:Send(cs.rolllistadd, {player, cmd, true})
 	end
+	
+	if feature.nolist then
+		return false
+	end
 
-	loss = self:CalculateLoss(current, cmd)
+	loss = self:CalculateLoss(total, cmd)
 	rollList[#rollList+1] = self:BuildRow(
 		{
 			[crl.player]	= 	player,
 			[crl.class]		=	class or "",
 			[crl.rank]		=	rank or "",
 			[crl.ty]		=	ty,
-			[crl.current]	=	current,
+			[crl.points]	= 	pdata.points,
 			[crl.roll]		=	0,
+			[crl.total]		=	total,
 			[crl.loss]		=	loss,
 		},
 		crlArg, rollWindowScrollFrameColor
@@ -544,14 +782,15 @@ function RPB:RollListAdd(player, cmd, recieved)
 end
 
 function RPB:RollListRemove(player, recieved)
-	local rollList = self.frames["RollWindow"].rollList
+	local f = self.frames["RollWindow"]
+	local rollList = f.rollList
 	if not recieved then
 		self:Send(cs.rolllistremove, {player, true})
 	end			
 	for i=1,#rollList do
 		if (string.lower(rollList[i].cols[crl.player].value) == string.lower(player)) then
-			if self.frames["RollWindow"].scrollFrame.selected == rollList[i] then
-				self.frames["RollWindow"].scrollFrame.selected = nil
+			if f.scrollFrame.selected == rollList[i] then
+				f.scrollFrame.selected = nil
 			end
 			tremove(rollList,i)
 			break
@@ -561,41 +800,30 @@ function RPB:RollListRemove(player, recieved)
 end
 
 function RPB:RollListClear(recieved)
+	local f = self.frames["RollWindow"]
 	if not recieved then
 		self:Send(cs.rolllistclear, {true})
 	end
-	self.frames["RollWindow"].rollList = {}
-	self.frames["RollWindow"].scrollFrame:SetData(self.frames["RollWindow"].rollList)
-	self.frames["RollWindow"].scrollFrame:SortData()
-	self.frames["RollWindow"].scrollFrame.selected = nil
+	f.rollList = {}
+	f.scrollFrame:SetData(f.rollList)
+	f.scrollFrame:SortData()
+	f.scrollFrame.selected = nil
 	self:RollListSort()
-	self.frames["RollWindow"].inProgress = false
-	if self.rpoSettings.master == UnitName("player") then
-		self.frames["RollWindow"].button["StartBidding"]:Enable()
-		self.frames["RollWindow"].button["StartTimedBidding"]:Enable()
-		self.frames["RollWindow"].button["StopBidding"]:Disable()
-	end
+	f.inProgress = false
+	f.state = "Initial"
+	self:UpdateUI()
 end
 
-function RPB:RollListUpdate(player, roll, ty, recieved)
+function RPB:RollListUpdateType(player, ty, recieved)
+	local f = self.frames["RollWindow"]
 	local found = false
-	local rollList = self.frames["RollWindow"].rollList
+	local rollList = f.rollList
 	if not recieved then
-		self:Send(cs.rolllistupdate, {player, roll, ty, true})
+		self:Send(cs.rolllistupdatetype, {player, ty, true})
 	end
 
 	for i=1,#rollList do
 		if (string.lower(rollList[i].cols[crl.player].value) == string.lower(player)) then
-			if (tonumber(rollList[i].cols[crl.roll].value) > 0 and roll) then
-				self:Broadcast(player .. "  Previous Roll:" .. rollList[i].cols[crl.roll].value .. "   New Roll:" .. roll)
-				break
-			end
-			if roll then
-				rollList[i].cols[crl.roll].value = roll
-				rollList[i].cols[crl.current].value = self:GetPlayerHistory(player).points + roll
-			else
-				rollList[i].cols[crl.current].value = self:GetPlayerHistory(player).points + rollList[i].cols[crl.roll].value
-			end
 			if ty then
 				rollList[i].cols[crl.ty].value = ty
 			end
@@ -605,166 +833,270 @@ function RPB:RollListUpdate(player, roll, ty, recieved)
 	end
 	if (found) then
 		self:RollListSort()
+	end
+end
+
+function RPB:RollListUpdateRoll(player, roll, recieved)
+	local f = self.frames["RollWindow"]
+	local found = false
+	local rollList = f.rollList
+	if not recieved then
+		--self:Print("RollListUpdateRoll recieved fired!", player)
+		self:Send(cs.rolllistupdateroll, {player, roll, true})
+	end
+	--self:Print("RollListUpdateRoll fired!")
+
+	for i=1,#rollList do
+		if (string.lower(rollList[i].cols[crl.player].value) == string.lower(player)) then
+			found = true
+			if (tonumber(rollList[i].cols[crl.roll].value) > 0 and roll and roll ~= tonumber(rollList[i].cols[crl.roll].value)) then
+				if self.rpoSettings.master == UnitName("player") and not recieved then
+					self:Broadcast(player .. "  Previous Roll: " .. rollList[i].cols[crl.roll].value .. "   New Roll: " .. roll)
+				end
+				break
+			end
+			local total = self:GetPlayerHistory(player).points
+			local maxpoints = self.feature[string.lower(rollList[i].cols[crl.ty].value)].maxpoints or tonumber(self.rpbSettings.maxpoints) or 0
+			if maxpoints > 0 and total > maxpoints then
+				total = maxpoints
+			end
+			if roll then
+				rollList[i].cols[crl.roll].value = roll
+				rollList[i].cols[crl.total].value = total + roll
+			else
+				rollList[i].cols[crl.total].value = total + rollList[i].cols[crl.roll].value
+			end
+			break
+		end
+	end
+	if (found) then
+		self:RollListSort()
 	else
-		if self.rpoSettings.master == UnitName("player") then
-			self:Broadcast(player.." is not currently bidding, roll ignored.")
+		if self.rpoSettings.master == UnitName("player") and not recieved then
+			self:Broadcast(player.." is not bidding, roll ignored.")
 		end
 	end
 end
 
+-- function RPB:RollListUpdate(player, roll, ty, recieved)
+	-- local found = false
+	-- local rollList = self.frames["RollWindow"].rollList
+	-- if not recieved then
+		-- self:Send(cs.rolllistupdate, {player, roll, ty, true})
+	-- end
+
+	-- for i=1,#rollList do
+		-- if (string.lower(rollList[i].cols[crl.player].value) == string.lower(player)) then
+			-- if (tonumber(rollList[i].cols[crl.roll].value) > 0 and roll) then
+				-- self:Broadcast(player .. "  Previous Roll:" .. rollList[i].cols[crl.roll].value .. "   New Roll:" .. roll)
+				-- break
+			-- end
+			-- local currrent = self:GetPlayerHistory(player).points
+			-- if total > self.feature[string.lower(rollList[i].cols[crl.ty])].maxclass then
+				-- total = self.feature[string.lower(rollList[i].cols[crl.ty])].maxclass
+			-- end
+			-- if roll then
+				-- rollList[i].cols[crl.roll].value = roll
+				-- rollList[i].cols[crl.total].value = total + roll
+			-- else
+				-- rollList[i].cols[crl.total].value = total + rollList[i].cols[crl.roll].value
+			-- end
+			-- if ty then
+				-- rollList[i].cols[crl.ty].value = ty
+			-- end
+			-- found = true
+			-- break
+		-- end
+	-- end
+	-- if (found) then
+		-- self:RollListSort()
+	-- else
+		-- if self.rpoSettings.master == UnitName("player") then
+			-- self:Broadcast(player.." is not totally bidding, roll ignored.")
+		-- end
+	-- end
+-- end
+
 function RPB:RollListSort()
-	-- Call the sort function for current?
-	if self.frames["RollWindow"] and self.frames["RollWindow"].scrollFrame then
-		--self.frames["RollWindow"].scrollFrame.cols[crl.roll] = "asc"
-		local st = self.frames["RollWindow"].scrollFrame
+	local f = self.frames["RollWindow"]
+	-- Call the sort function for total?
+	if f and f.scrollFrame then
+		--f.scrollFrame.cols[crl.roll] = "asc"
+		local st = f.scrollFrame
 		local cols = st.cols
 		for i, col in ipairs(cols) do 
-			if i ~= crl.current then -- clear out all other sort marks
+			if i ~= crl.total then -- clear out all other sort marks
 				cols[i].sort = nil;
 			end
 		end
-		cols[crl.current].sort = "asc";
-		self.frames["RollWindow"].scrollFrame:SortData();
+		cols[crl.total].sort = "asc";
+		f.scrollFrame:SortData();
 	end
 end
 
 function RPB:CHAT_MSG_SYSTEM()
-	if (self.frames and self.frames["RollWindow"] and self.frames["RollWindow"].inProgress and event == "CHAT_MSG_SYSTEM" and string.find(arg1, "rolls") and string.find(arg1, "%(1%-100%)")) then
+	local f = self.frames["RollWindow"]
+	if (self.frames and f and f.inProgress and event == "CHAT_MSG_SYSTEM" and string.find(arg1, "rolls") and string.find(arg1, "%(1%-100%)")) then
 		_, _, player, roll = string.find(arg1, "(.+) " .. "rolls" .. " (%d+)");
 		--self:Print(string.find(arg1, "(.+) " .. "rolls" .. " (%d+)"))
-		RPB:RollListUpdate(player, roll)
+		--self:Print("CHAT_MSG_SYSTEM fired!")
+		self:RollListUpdateRoll(player, roll)
 	end
 end
 
 function rollWindowScrollFrameOnClick(rowFrame, cellFrame, data, cols, row, realrow, column, button, down)
+	local f = RPB.frames["RollWindow"]
 	if RPB.rpoSettings.master == UnitName("player") then
 		if button == "LeftButton" then
 			if data[realrow] then
-				if RPB.frames["RollWindow"].scrollFrame.selected then
-					RPB.frames["RollWindow"].scrollFrame.selected.selected = false
-					RPB.frames["RollWindow"].scrollFrame.selected.highlight = nil
+				if f.scrollFrame.selected then
+					f.scrollFrame.selected.selected = false
+					f.scrollFrame.selected.highlight = nil
 				end
-				RPB.frames["RollWindow"].scrollFrame.selected = data[realrow]
-				RPB.frames["RollWindow"].scrollFrame.selected.selected = true
-				RPB.frames["RollWindow"].scrollFrame.selected.highlight = RPB:GetColor(UnitName("player"))
+				f.scrollFrame.selected = data[realrow]
+				f.scrollFrame.selected.selected = true
+				f.scrollFrame.selected.highlight = RPB:GetColor(UnitName("player"))
 
-				RPB.frames["RollWindow"].scrollFrame:Refresh()
+				f.scrollFrame:Refresh()
 				local sendData = RPB:StripRow(data[realrow])
 				--RPB:Print(unpack(sendData))
-				RPB.frames["RollWindow"].editbox["AwardItem"]:SetText(data[realrow].cols[crl.loss].value)
+				f.editbox["AwardItem"]:SetText(data[realrow].cols[crl.loss].value)
 				RPB:Send(cs.rolllistclick, {sendData, RPB:GetColor(UnitName("player"))})
 			end
 		elseif button == "RightButton" then
 			if data[realrow] then
 				RPB:RollListRemove(data[realrow].cols[crl.player].value)
-				RPB.frames["RollWindow"].scrollFrame:SortData()
+				f.scrollFrame:SortData()
 			end
 		end
 	end
 end
 
 function rollWindowItemScrollFrameOnClick(rowFrame, cellFrame, data, cols, row, realrow, column, button, down)
-	if RPB.rpoSettings.master == UnitName("player") and not RPB.frames["RollWindow"].inProgress then
+	local f = RPB.frames["RollWindow"]
+	if RPB.rpoSettings.master == UnitName("player") and not f.inProgress then
 		if button == "LeftButton" then
 			if data[realrow] then
-				if RPB.frames["RollWindow"].scrollFrameLoot.selected then
-					RPB.frames["RollWindow"].scrollFrameLoot.selected.selected = false
-					RPB.frames["RollWindow"].scrollFrameLoot.selected.highlight = nil
+				if f.scrollFrameLoot.selected then
+					f.scrollFrameLoot.selected.selected = false
+					f.scrollFrameLoot.selected.highlight = nil
 				end
-				RPB.frames["RollWindow"].scrollFrameLoot.selected = data[realrow]
-				RPB.frames["RollWindow"].scrollFrameLoot.selected.selected = true
-				RPB.frames["RollWindow"].scrollFrameLoot.selected.highlight = RPB:GetColor(UnitName("player"))
-				RPB.frames["RollWindow"].scrollFrameLoot:Refresh()
+				f.scrollFrameLoot.selected = data[realrow]
+				f.scrollFrameLoot.selected.selected = true
+				f.scrollFrameLoot.selected.highlight = RPB:GetColor(UnitName("player"))
+				f.scrollFrameLoot:Refresh()
 				local sendData = RPB:StripRow(data[realrow])
 				--RPB:Print(unpack(sendData))
 				RPB:Send(cs.itemlistclick, {sendData, RPB:GetColor(UnitName("player"))})
 			end
 		elseif button == "RightButton" then
 			if data[realrow] then
-				--RPB.frames["RollWindow"].scrollFrameLoot.selected = data[realrow]
+				--f.scrollFrameLoot.selected = data[realrow]
 				RPB:ItemListRemove(data[realrow].cols[cll.link].value)
-				RPB.frames["RollWindow"].scrollFrameLoot:SortData()
+				f.scrollFrameLoot:SortData()
 			end
 		end
 	end
 end
 
 function rollWindowScrollFrameColor(roll)
+	local f = RPB.frames["RollWindow"]
 	local feature = RPB.feature[string.lower(roll.cols[crl.ty].value)]
 	-- Make this loaclizable, for generic changes.
 	local diff = tonumber(feature.diff) or tonumber(RPB.rpbSettings.diff)
-	local high = roll.cols[crl.current].value
-
-	local rollList = RPB.frames["RollWindow"].rollList
+	local low = 0
+	local rollList = f.rollList
 	for i=1,#rollList do
-		if (rollList[i].cols[crl.current].value > high) then
-			high = rollList[i].cols[crl.current].value
+		if (rollList[i].cols[crl.total].value < low) then
+			low = rollList[i].cols[crl.total].value
 		end
 	end
-	ratio = math.floor((roll.cols[crl.current].value) * 1.0 / ( high - diff ))
-	if ratio == 1 then
-		ratio = ((roll.cols[crl.current].value - high + diff + diff/2) * 1.0 / diff)
+	local high = low
+	for i=1,#rollList do
+		if (rollList[i].cols[crl.total].value > high) then
+			high = rollList[i].cols[crl.total].value
+		end
 	end
-	return {
-		["r"] = (1-ratio),
-		["g"] = ratio,
+	local color
+	if high - roll.cols[crl.total].value > diff then
+		color = {
+		["r"] = 1.0,
+		["g"] = 0.0,
 		["b"] = 0.0,
 		["a"] = 1.0
-	}
+		}
+	else
+		RPB:Print(high, roll.cols[crl.total].value, high - roll.cols[crl.total].value, diff)
+		local ratio = ((high - roll.cols[crl.total].value) / (diff * 1.000))
+		RPB:Print(ratio)
+		local r,g,b = ColorGradient(ratio, 0,1,0, 1,0.5,0)
+		color = {
+		["r"] = r,
+		["g"] = g,
+		["b"] = 0.0,
+		["a"] = 1.0
+		}
+	end
+	return color or {
+		["r"] = 1.0,
+		["g"] = 0.0,
+		["b"] = 0.0,
+		["a"] = 1.0
+		}
 end
 
 function RPB:StartBidding(recieved)
-	if not RPB.frames["RollWindow"].scrollFrameLoot.selected then return end
+	local f = self.frames["RollWindow"]
+	if not f.scrollFrameLoot.selected then return end
 	local item
-	if RPB.frames["RollWindow"].scrollFrameLoot.selected then
-		item = RPB.frames["RollWindow"].scrollFrameLoot.selected.cols	
+	if f.scrollFrameLoot.selected then
+		item = f.scrollFrameLoot.selected.cols	
 		if not recieved then
 			self:Send(cs.startbidding, { true })
 		end
-		self.frames["RollWindow"].inProgress = true
+		f.inProgress = true
+		f.state = "Bidding Started"
+		self:UpdateUI()
 		if self.rpoSettings.master == UnitName("player") then
 			self:Broadcast("Declare on " .. item[cll.link].value .. ".")
-			self.frames["RollWindow"].tm = (tonumber(self.rpbSettings.lastcall) or 5) + 1
-			self.frames["RollWindow"].button["StartBidding"]:Disable()
-			self.frames["RollWindow"].button["StartTimedBidding"]:Disable()
-			self.frames["RollWindow"].button["StopBidding"]:Enable()
-			self.frames["RollWindow"].button["StopBidding"]:Enable()
+			f.tm = (tonumber(self.rpbSettings.lastcall) or 5) + 1
 		end
 	end
 end
 
 function RPB:StartTimedBidding(recieved)
-	if not RPB.frames["RollWindow"].scrollFrameLoot.selected then return end
+	local f = self.frames["RollWindow"]
+	if not f.scrollFrameLoot.selected then return end
 	local item
-	if RPB.frames["RollWindow"].scrollFrameLoot.selected then
-		item = RPB.frames["RollWindow"].scrollFrameLoot.selected.cols	
+	if f.scrollFrameLoot.selected then
+		item = f.scrollFrameLoot.selected.cols	
 		if not recieved then
 			self:Send(cs.starttimedbidding, { true })
 		end
-		self.frames["RollWindow"].inProgress = true
+		f.inProgress = true
+		f.state = "Bidding Started"
 		if self.rpoSettings.master == UnitName("player") then
 			self:Broadcast("Declare on " .. item[cll.link].value .. ".  Closing in " .. (tonumber(RPB.rpbSettings.bidtime) or 30) .. " seconds.")
-			self.frames["RollWindow"].tm = (tonumber(self.rpbSettings.bidtime) or 30) - 1
-			self.frames["RollWindow"].timer = self:ScheduleRepeatingTimer("ContinueBidding", 1)
-			self.frames["RollWindow"].button["StartBidding"]:Disable()
-			self.frames["RollWindow"].button["StartTimedBidding"]:Disable()
-			self.frames["RollWindow"].button["StopBidding"]:Enable()
+			f.tm = (tonumber(self.rpbSettings.bidtime) or 30) - 1
+			f.timer = self:ScheduleRepeatingTimer("ContinueBidding", 1)
+			self:UpdateUI()
 		end
 	end
 end
 
 function RPB:ContinueBidding()
-	if self.frames["RollWindow"].inProgress then
-		self.frames["RollWindow"].tm = self.frames["RollWindow"].tm - 1
-		local timeleft = self.frames["RollWindow"].tm
-		local item = RPB.frames["RollWindow"].scrollFrameLoot.selected.cols
+	local f = self.frames["RollWindow"]
+	if f.inProgress then
+		f.tm = f.tm - 1
+		local timeleft = f.tm
+		local item = f.scrollFrameLoot.selected.cols
 		local lastcall = tonumber(self.rpbSettings.lastcalltonumber) or 5
 		
-		if (timeleft > lastcall and timeleft % lastcall*2 == 0) then
+		if (timeleft > lastcall and timeleft % (lastcall*2) == 0) then
 			self:Broadcast("Bidding on " .. item[cll.link].value .. ".  Closing in " .. timeleft .. " seconds.")
 		elseif (timeleft == lastcall+1) then
-			self:CancelTimer(self.frames["RollWindow"].timer)
-			self.frames["RollWindow"].timer = nil
+			self:CancelTimer(f.timer)
+			f.timer = nil
 			RPB:StopBidding()
 		end
 		
@@ -777,12 +1109,12 @@ function RPB:ContinueBidding()
 end
 
 function RPB:StopBidding(recieved)
-	if self.frames["RollWindow"].inProgress then
-		self.frames["RollWindow"].button["StopBidding"]:Disable()
-		self.frames["RollWindow"].timer = self:ScheduleTimer("StopBidding", 1)
-		self.frames["RollWindow"].tm = self.frames["RollWindow"].tm - 1
-		local timeleft = self.frames["RollWindow"].tm
-		local item = RPB.frames["RollWindow"].scrollFrameLoot.selected.cols
+	local f = self.frames["RollWindow"]
+	if f.inProgress then
+		f.timer = self:ScheduleTimer("StopBidding", 1)
+		f.tm = f.tm - 1
+		local timeleft = f.tm
+		local item = f.scrollFrameLoot.selected.cols
 		local lastcall = tonumber(self.rpbSettings.lastcall) or 5
 		
 		if (timeleft == lastcall) then
@@ -791,9 +1123,11 @@ function RPB:StopBidding(recieved)
 			self:Broadcast(timeleft)
 		end
 		if (timeleft == 1) then
-			self:CancelTimer(self.frames["RollWindow"].timer)
-			self.frames["RollWindow"].timer = nil
+			self:CancelTimer(f.timer)
+			f.timer = nil
 		end
+		f.state = "Bidding Stopped"
+		self:UpdateUI()
 		-- At the 10 second mark
 			-- If bonus/upgrade bids, call 'Bidding on [item]. Closing in 10 seconds.'
 			-- If offspec or nothing, call 'Bidding on [item]. Open to offspecs. Closing in 10 seconds.'
@@ -804,52 +1138,75 @@ function RPB:StopBidding(recieved)
 end
 
 function RPB:RollListAward(recieved)
-	if not self.frames["RollWindow"].scrollFrameLoot.selected then return end
-	if not self.frames["RollWindow"].scrollFrame.selected then return end
+	local f = self.frames["RollWindow"]
+	if not f.scrollFrameLoot.selected then return end
+	if not f.scrollFrame.selected then return end
 	if not recieved then
 		self:Send(cs.rolllistaward, { true })
 	end
-	self.frames["RollWindow"].inProgress = false
+	f.inProgress = false
 	if recieved then
 		return
 	end
 
-	local item = self.frames["RollWindow"].scrollFrameLoot.selected.cols
-	local winner = self.frames["RollWindow"].scrollFrame.selected.cols
-	local class, rank, ty, current, loss, roll, pcurrent, player
-	local editbox = self.frames["RollWindow"].editbox["AwardItem"]
+	local item = f.scrollFrameLoot.selected.cols
+	local winner = f.scrollFrame.selected.cols
+	local class, rank, ty, total, loss, roll, ptotal, player
+	local editbox = f.editbox["AwardItem"]
 	
 	player = winner[crl.player].value
 	class = winner[crl.class].value
 	rank = winner[crl.rank].value
 	ty = winner[crl.ty].value
-	current = winner[crl.current].value
+	total = winner[crl.total].value
 	--loss = winner[crl.loss].value
 	loss = tonumber(editbox:GetText()) or 0
+	loss = -(loss)
 	roll = winner[crl.roll].value
-	pcurrent = self:GetPlayerHistory(player).points
-	if not recieved then
-		self:Send(cs.rolllistaward, { true })
-	end
+	ptotal = self:GetPlayerHistory(player).points
+	f.state = "Initial"
+	self:UpdateUI()
 	if self.rpoSettings.master == UnitName("player") then
 		local dt = time()
 
 		--self:Print(self.rpoSettings.raid, dt, player, -(loss), 'I', item[cll.item].value, item[cll.link].value, false, true)
-		self:Broadcast(	player .. " wins " .. item[cll.link].value .. " for cost of ".. -(loss) .." with a total of " .. current .. " (" .. pcurrent .. " points + " .. roll .. " roll).")
-		self:PointsAdd(self.rpoSettings.raid, dt, player, -(loss), 'I', item[cll.item].value, item[cll.link].value, true, true)
+		self:Broadcast(	player .. " wins " .. item[cll.link].value .. " via " .. ty .. " for cost of ".. (loss) .." with a total of " .. total .. " (" .. ptotal .. " points + " .. roll .. " roll).")
+		self:PointsAdd(self.rpoSettings.raid, dt, player, (loss), 'I', item[cll.item].value, item[cll.link].value, true, true)
 		self:ItemListRemove(item[cll.link].value)
-		self.frames["RollWindow"].button["StartBidding"]:Enable()
-		self.frames["RollWindow"].button["StartTimedBidding"]:Enable()
-		self.frames["RollWindow"].button["StopBidding"]:Disable()
-		self:RollListUpdate(player)
+		self:RollListUpdateRoll(player)
 	end
-	self.frames["RollWindow"].timer = nil
+	f.timer = nil
+end
+
+function RPB:RollListDisenchant(recieved)
+	local f = self.frames["RollWindow"]
+	if not f.scrollFrameLoot.selected then return end
+	if not recieved then
+		self:Send(cs.rolllistdisenchant, { true })
+	end
+	f.inProgress = false
+	if recieved then
+		return
+	end
+	
+	local item = f.scrollFrameLoot.selected.cols
+	f.state = "Initial"
+	self:UpdateUI()
+	if self.rpoSettings.master == UnitName("player") then
+		--local dt = time()
+
+		--self:Print(self.rpoSettings.raid, dt, player, -(loss), 'I', item[cll.item].value, item[cll.link].value, false, true)
+		self:Broadcast(	"Disenchant wins " .. item[cll.link].value)
+		self:ItemListRemove(item[cll.link].value)
+	end
+	f.timer = nil
 end
 
 function RPB:ItemListAdd(link, item, count, quality, recieved)
+	local f = self.frames["RollWindow"]
 	--if quality and quality < 3 then return end
 	if not link then
-		local editbox = self.frames["RollWindow"].editbox["AddItem"]
+		local editbox = f.editbox["AddItem"]
 		local itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemCount, itemEquipLoc, itemTexture = GetItemInfo(editbox:GetText())
 		--RPB:Print(GetItemInfo(editbox:GetText()))
 		link = editbox:GetText()
@@ -870,7 +1227,7 @@ function RPB:ItemListAdd(link, item, count, quality, recieved)
 	if not recieved then
 		self:Send(cs.itemlistadd, {link, item, count, quality, true})
 	end
-	local lootList = self.frames["RollWindow"].lootList
+	local lootList = f.lootList
 	lootList[#lootList+1] = self:BuildRow(
 		{
 			[cll.link]		= 	link,
@@ -880,52 +1237,55 @@ function RPB:ItemListAdd(link, item, count, quality, recieved)
 		},
 		cllArg
 	)
-	self.frames["RollWindow"].scrollFrameLoot:SortData()
+	f.scrollFrameLoot:SortData()
 end
 
 function RPB:ItemListRemove(link, recieved)
-	if not self.frames["RollWindow"].scrollFrame.selected then return end
+	local f = self.frames["RollWindow"]
+	if not f.scrollFrameLoot.selected then return end
 	if not link then
-		link = RPB.frames["RollWindow"].scrollFrameLoot.selected.cols[cll.link].value
+		link = f.scrollFrameLoot.selected.cols[cll.link].value
 	end
 	if not recieved then
 		self:Send(cs.itemlistremove, {link, true})
 	end
-	local lootList = self.frames["RollWindow"].lootList
+	local lootList = f.lootList
 	for i=1,#lootList do
 		if (lootList[i] and lootList[i].cols[cll.link].value == link) then
-			if self.frames["RollWindow"].scrollFrameLoot.selected == lootList[i] then
-				self.frames["RollWindow"].scrollFrameLoot.selected = nil
+			if f.scrollFrameLoot.selected == lootList[i] then
+				f.scrollFrameLoot.selected = nil
 			end
 			tremove(lootList,i)
 			break
 		end
 	end
-	self.frames["RollWindow"].scrollFrameLoot:SortData()
+	f.scrollFrameLoot:SortData()
 end
 
 function RPB:ItemListClear(recieved)
-	if not RPB.frames["RollWindow"].inProgress then
+	local f = self.frames["RollWindow"]
+	if not f.inProgress then
 		if not recieved then
 			self:Send(cs.itemlistclear, {true})
 		end
-		self.frames["RollWindow"].lootList = {}
-		self.frames["RollWindow"].scrollFrameLoot:SetData(self.frames["RollWindow"].lootList)
-		self.frames["RollWindow"].scrollFrameLoot:SortData()
-		self.frames["RollWindow"].scrollFrameLoot.selected = nil
+		f.lootList = {}
+		f.scrollFrameLoot:SetData(f.lootList)
+		f.scrollFrameLoot:SortData()
+		f.scrollFrameLoot.selected = nil
 	end
 end
 
 RPB.syncCommands[cs.itemlistget] = function(self, msg, sender)
+	local f = self.frames["RollWindow"]
 	if (self.rpoSettings.master == UnitName("player") and self.rpoSettings.master ~= sender) or (self.rpoSettings.master == sender and sender ~= UnitName("player")) then
-		local sendTable = self:StripTable(self.frames["RollWindow"].lootList or {})
+		local sendTable = self:StripTable(f.lootList or {})
 		local selectedTable = {}
-		for i=1,#self.frames["RollWindow"].lootList do
-			if self.frames["RollWindow"].lootList[i].selected then
+		for i=1,#f.lootList do
+			if f.lootList[i].selected then
 				selectedTable[#selectedTable+1] =
 					{
-						sel = self:StripRow(self.frames["RollWindow"].lootList[i]),
-						highlight = self.frames["RollWindow"].lootList[i].highlight,
+						sel = self:StripRow(f.lootList[i]),
+						highlight = f.lootList[i].highlight,
 					}
 			end
 		end
@@ -934,9 +1294,10 @@ RPB.syncCommands[cs.itemlistget] = function(self, msg, sender)
 end
 
 RPB.syncCommands[cs.itemlistset] = function(self, msg, sender)
+	local f = self.frames["RollWindow"]
 	local temp = self:BuildTable(msg[1], cllArg)
-	self.frames["RollWindow"].lootList = temp
-	local frame = self.frames["RollWindow"].scrollFrameLoot
+	f.lootList = temp
+	local frame = f.scrollFrameLoot
 	for i=1,#temp do
 		if msg[2] then
 			for j=1,#msg[2] do
@@ -953,19 +1314,20 @@ RPB.syncCommands[cs.itemlistset] = function(self, msg, sender)
 			end
 		end
 	end
-	self.frames["RollWindow"].scrollFrameLoot:SetData(self.frames["RollWindow"].lootList)
+	f.scrollFrameLoot:SetData(f.lootList)
 end
 	
 RPB.syncCommands[cs.rolllistget] = function(self, msg, sender)
+	local f = self.frames["RollWindow"]
 	if (self.rpoSettings.master == UnitName("player") and self.rpoSettings.master ~= sender) or (self.rpoSettings.master == sender and sender ~= UnitName("player")) then
-		local sendTable = self:StripTable(self.frames["RollWindow"].rollList or {})
+		local sendTable = self:StripTable(f.rollList or {})
 		local selectedTable = {}
-		for i=1,#self.frames["RollWindow"].rollList do
-			if self.frames["RollWindow"].rollList[i].selected then
+		for i=1,#f.rollList do
+			if f.rollList[i].selected then
 				selectedTable[#selectedTable+1] =
 					{
-						sel = self:StripRow(self.frames["RollWindow"].rollList[i]),
-						highlight = self.frames["RollWindow"].rollList[i].highlight,
+						sel = self:StripRow(f.rollList[i]),
+						highlight = f.rollList[i].highlight,
 					}
 			end
 		end
@@ -974,9 +1336,10 @@ RPB.syncCommands[cs.rolllistget] = function(self, msg, sender)
 end
 
 RPB.syncCommands[cs.rolllistset] = function(self, msg, sender)
+	local f = self.frames["RollWindow"]
 	local temp = self:BuildTable(msg[1], crlArg, rollWindowScrollFrameColor)
-	self.frames["RollWindow"].rollList = temp
-	local frame = self.frames["RollWindow"].scrollFrame
+	f.rollList = temp
+	local frame = f.scrollFrame
 	for i=1,#temp do
 		if msg[2] then
 			for j=1,#msg[2] do
@@ -992,14 +1355,15 @@ RPB.syncCommands[cs.rolllistset] = function(self, msg, sender)
 			end
 		end
 	end
-	self.frames["RollWindow"].scrollFrame:SetData(self.frames["RollWindow"].rollList)
+	f.scrollFrame:SetData(f.rollList)
 	self:RollListSort()
 end
 
 RPB.syncCommands[cs.rolllistclick] = function(self, msg, sender)
+	local f = self.frames["RollWindow"]
 	if sender == UnitName("player") then return end
-	local list = self.frames["RollWindow"].rollList
-	local frame = RPB.frames["RollWindow"].scrollFrame
+	local list = f.rollList
+	local frame = f.scrollFrame
 	if frame.selected then
 		frame.selected.selected = false
 		frame.selected.highlight = nil
@@ -1016,13 +1380,14 @@ RPB.syncCommands[cs.rolllistclick] = function(self, msg, sender)
 			list[i].highlight = nil
 		end
 	end
-	self.frames["RollWindow"].scrollFrame:SortData()
+	f.scrollFrame:SortData()
 end
 
 RPB.syncCommands[cs.itemlistclick] = function(self, msg, sender)
+	local f = self.frames["RollWindow"]
 	if sender == UnitName("player") then return end
-	local list = self.frames["RollWindow"].lootList
-	local frame = RPB.frames["RollWindow"].scrollFrameLoot
+	local list = f.lootList
+	local frame = f.scrollFrameLoot
 	--self:Print(msg, unpack(msg or {}))
 	if frame.selected then
 		frame.selected.selected = false
@@ -1040,5 +1405,5 @@ RPB.syncCommands[cs.itemlistclick] = function(self, msg, sender)
 			list[i].highlight = nil
 		end
 	end
-	self.frames["RollWindow"].scrollFrameLoot:SortData()
+	f.scrollFrameLoot:SortData()
 end

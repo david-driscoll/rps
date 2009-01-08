@@ -468,6 +468,24 @@ DoTimestampUpdate = function(rowFrame, cellFrame, data, cols, row, realrow, colu
 	end
 end
 
+function ColorGradient(perc, ...)
+	if perc >= 1 then
+		local r, g, b = select(select('#', ...) - 2, ...)
+		return r, g, b
+	elseif perc <= 0 then
+		local r, g, b = ...
+		return r, g, b
+	end
+	
+	local num = select('#', ...) / 3
+
+	local segment, relperc = math.modf(perc*(num-1))
+	local r1, g1, b1, r2, g2, b2 = select((segment*3)+1, ...)
+
+	return r1 + (r2-r1)*relperc, g1 + (g2-g1)*relperc, b1 + (b2-b1)*relperc
+end
+
+
 function RPLibrary:GetItemID(link)
 	local _, _, itemid  = string.find(link, "item:(%d+)")
 	return itemid
@@ -489,7 +507,7 @@ function RPLibrary:GetColor(Name)
         g = math.abs(g - 255);
         b = math.abs(b - 255);
     end
-	RPB:Print(r,g,b)
+	--RPB:Print(r,g,b)
 	return {["r"] = r / 255.0, ["g"] = g / 255.0, ["b"] = b / 255.0, ["a"] = 0.7}
 end
 

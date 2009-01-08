@@ -184,6 +184,13 @@ function RPBS:RegisterPortfolio()
 				
 			},
 			{
+				id = "maxpoints",
+				text = "Max Points",
+				type = CONTROLTYPE_EDITBOX,
+				defaultValue = rpbSettings["maxpoints"],
+				
+			},
+			{
 				id = "allownegative",
 				text = "Allow Negative Values",
 				type = CONTROLTYPE_CHECKBOX,

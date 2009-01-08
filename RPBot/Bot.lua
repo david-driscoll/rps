@@ -24,7 +24,7 @@ local CommCmd = "rpb"
 --@end-non-alpha@]===]
 
 local version = tonumber("@file-revision@") or 10000
-local compversion = 67
+local compversion = 77
 
 --local MD5 = LibStub:GetLibrary("MDFive-1.0")
 local LibCompress = LibStub:GetLibrary("LibCompress")
@@ -55,7 +55,7 @@ local function whisperFilter()
 				or strfind(string.lower(arg1), "^upgrade")
 				or strfind(string.lower(arg1), "^offspec")
 				or strfind(string.lower(arg1), "^sidegrade")
-				or strfind(string.lower(arg1), "^rot")
+				or strfind(string.lower(arg1), "^pass")
 			)
 	then
 		return true
@@ -67,7 +67,9 @@ local cs =
 {
 	rolllistadd		= "rolllistadd",
 	rolllistremove	= "rolllistremove",
-	rolllistupdate	= "rolllistupdate",
+	rolllistupdateroll	= "rolllistupdateroll",
+	rolllistupdatetype	= "rolllistupdatetype",
+	rolllistdisenchant	= "rolllistdisenchant",
 	rolllistaward	= "rolllistaward",
 	rolllistclear	= "rolllistclear",
 	startbidding	= "startbidding",
@@ -533,8 +535,9 @@ function RPB:PointsAdd(raid, datetime, player, value, ty, itemid, reason, waitli
 		--	other clients. This will cause them to run the exact same command.
 		-- This edge case can not happen in Update or Remove because they handle "all" differently,
 		--	since they are searching the entire database to deal with that specific entry.
-		local p = ""
+		local p = nil
 		if player == "all" then
+			p = ""
 			for i=1, #playerlist do
 				local p = p .. playerlist[i].name .. ","
 			end
@@ -769,22 +772,23 @@ function RPB:CalculateLoss(points, cmd)
 	-- local minclass = feature.minclass or db.realm.settings.minclass
 	-- local maxclass = feature.maxclass or db.realm.settings.maxclass
 	local minnonclass = tonumber(feature.minnonclass) or tonumber(self.rpbSettings.minnonclass)
-	local maxnonclass = tonumber(feature.maxnonclass) or tonumber(self.rpbSettings.maxnonclass)
+	local maxnonclass = tonumber(feature.maxnonclass) or tonumber(self.rpbSettings.maxnonclass) or nil
 	local loss
+	local total
 	
-	current = ceil( ( points / divisor ) / tonumber(self.rpbSettings.rounding) ) * tonumber(self.rpbSettings.rounding)
+	total = ceil( ( points / divisor ) / tonumber(self.rpbSettings.rounding) ) * tonumber(self.rpbSettings.rounding)
 
 	-- If I want to continue with class specific item logic, this is where we do it.
-	if (current < minnonclass) then
+	if (total < minnonclass) then
 		loss = minnonclass
-	elseif (current > minnonclass and (not maxnonclass or current < maxnonclass)) then
-		loss = current
+	elseif (total > minnonclass and (not maxnonclass or total < maxnonclass)) then
+		loss = total
 	else
 		loss = maxnonclass
 	end
 
-	if (current > 0 and loss > current and not tonumber(self.rpbSettings.allownegative)) then
-		loss = current
+	if (total > 0 and loss > total and not tonumber(self.rpbSettings.allownegative)) then
+		loss = total
 	end
 	
 	return loss
@@ -946,7 +950,7 @@ function RPB:PointsShow(player, channel, to, history)
 			if wait == "{star}" then
 				wait = "(wl)"
 			end
-			--self:Print(wait .. msg)
+			self:Print(wait .. msg)
 		elseif not to then
 			RPB:Message(channel, wait .. msg)
 		else
@@ -987,6 +991,7 @@ RPB.chatCommands["roll"] = function (self, msg)
 	if (not self.frames["RollWindow"]) then
 		self:CreateFrameRollWindow()
 	end
+	self:UpdateUI()
 	self.frames["RollWindow"]:Show()
 	self:Send(cs.itemlistget, "")
 	self:Send(cs.rolllistget, "")
@@ -1056,7 +1061,7 @@ function RPB:WhisperCommand(msg, name)
 		string.lower(wcmd) == "upgrade" or
 		string.lower(wcmd) == "offspec" or
 		string.lower(wcmd) == "sidegrade" or
-		string.lower(wcmd) == "rot")
+		string.lower(wcmd) == "pass")
 	then
 		cmd = wcmd
 		wcmd = "rp"
@@ -1552,9 +1557,22 @@ RPB.syncCommands[cs.rolllistremove] = function(self, msg, sender)
 	-- self:RollListRemove(msg[1], msg[2])
 end
 
-RPB.syncCommands[cs.rolllistupdate] = function(self, msg, sender)
+RPB.syncCommands[cs.rolllistupdatetype] = function(self, msg, sender)
 	if sender == UnitName("player") then return end
-	self:RollListUpdate(msg[1], msg[2], msg[3], true)
+	self:RollListUpdateType(msg[1], msg[2], true)
+	-- self:RollListUpdate(msg[1], msg[2], msg[3], msg[4])
+end
+
+RPB.syncCommands[cs.rolllistupdateroll] = function(self, msg, sender)
+	if sender == UnitName("player") then return end
+	--self:Print("cs.rolllistupdateroll fired!", sender)
+	self:RollListUpdateRoll(msg[1], msg[2], true)
+	-- self:RollListUpdate(msg[1], msg[2], msg[3], msg[4])
+end
+
+RPB.syncCommands[cs.rolllistdisenchant] = function(self, msg, sender)
+	if sender == UnitName("player") then return end
+	self:RollListDisenchant(true)
 	-- self:RollListUpdate(msg[1], msg[2], msg[3], msg[4])
 end
 
@@ -1668,30 +1686,11 @@ function RPB:GetMaster()
 end
 
 function RPB:SetMaster(player, recieved)
+	local f = self.frames["RollWindow"]
 	if not player then player = UnitName("player") end
 	self.rpoSettings.master = player
 	if not recieved then
 		self:Send(cs.setmaster, player)
 	end
-	if player == UnitName("player") then
-		self.frames["RollWindow"].button["StartBidding"]:Enable()
-		self.frames["RollWindow"].button["StartTimedBidding"]:Enable()
-		self.frames["RollWindow"].button["StopBidding"]:Disable()
-		self.frames["RollWindow"].button["AwardItem"]:Enable()
-		self.frames["RollWindow"].button["ClearList"]:Enable()
-		self.frames["RollWindow"].button["AddItem"]:Enable()
-		self.frames["RollWindow"].button["RemoveItem"]:Enable()
-		self.frames["RollWindow"].button["RollClear"]:Enable()
-		self.frames["RollWindow"].button["Master"]:Disable()
-	else
-		self.frames["RollWindow"].button["StartBidding"]:Disable()
-		self.frames["RollWindow"].button["StartTimedBidding"]:Disable()
-		self.frames["RollWindow"].button["StopBidding"]:Disable()
-		self.frames["RollWindow"].button["AwardItem"]:Disable()
-		self.frames["RollWindow"].button["ClearList"]:Disable()
-		self.frames["RollWindow"].button["AddItem"]:Disable()
-		self.frames["RollWindow"].button["RemoveItem"]:Disable()
-		self.frames["RollWindow"].button["RollClear"]:Disable()
-		self.frames["RollWindow"].button["Master"]:Enable()
-	end
+	self:UpdateUI()
 end

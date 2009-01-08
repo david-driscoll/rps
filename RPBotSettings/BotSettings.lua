@@ -38,6 +38,7 @@ function RPBS:OnInitialize()
 			minclass 		= "50",
 			maxnonclass 	= "100",
 			minnonclass 	= "50",
+			maxpoints	 	= "0",
 			divisor 		= "2",
 			diff 			= "50",
 			allownegative 	= "1",

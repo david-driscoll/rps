@@ -88,7 +88,7 @@ function RPOS:OnInitialize()
 				maxclass = 50,
 				minnonclass = 25,
 				maxnonclass = 50,
-				--maxpoints = 50,
+				maxpoints = 0,
 				divisor = 2,
 				diff = 50,
 				totalpoints = nil,
@@ -119,7 +119,7 @@ function RPOS:OnInitialize()
 				maxclass = 25,
 				minnonclass = 25,
 				maxnonclass = 25,
-				--maxpoints = 50,
+				maxpoints = 25,
 				divisor = 2,
 				diff = 50,
 				color = nil,
@@ -179,15 +179,44 @@ function RPOS:OnInitialize()
 				maxclass = 10,
 				minnonclass = 10,
 				maxnonclass = 10,
-				maxpoints = 10,
+				maxpoints = 0,
 				divisor = 2,
 				diff = 50,
 				color = nil,
 				bgcolor = nil,
 				nolist = false, -- Only true for special cases such as pass, we don't need them added to the roll list.
 			},
+			["pass"] = 
+			{
+				name = "Pass",
+				command = "pass",
+				button = 
+				{
+					name = "Pass",
+					template = "UIPanelButtonTemplate",
+					width = 91,
+					height = 21,
+					setpoint =
+					{
+						anchor = "TOPLEFT",
+						frameanchor = "TOPLEFT",
+						x = 10,
+						y = -60
+					},
+					text = "Pass",
+				},
+				minclass = nil, -- Only override the value if its required by the feature
+				maxclass = nil,
+				minnonclass = nil,
+				maxnonclass = nil,
+				divisor = nil,
+				diff = nil,
+				color = nil,
+				bgcolor = nil,
+				nolist = true, -- Only true for special cases such as pass, we don't need them added to the roll list.
+			},
 		}
-		featureSets["deus"]["rot"] = featureSets["deus"]["sidegrade"]
+		--featureSets["deus"]["rot"] = featureSets["deus"]["sidegrade"]
 
 		featureSets["nikarma"] = 
 		{
@@ -216,6 +245,7 @@ function RPOS:OnInitialize()
 				maxclass = nil,
 				minnonclass = nil,
 				maxnonclass = nil,
+				maxpoints = nil,
 				divisor = nil,
 				diff = nil,
 				totalpoints = nil,

@@ -118,7 +118,7 @@ function RPB:LOOT_OPENED()
 			item = string.gsub(link,".-\124H([^\124]*)\124h.*", "%1")
 		end
 		-- avoid coins
-		if (self.master == UnitName("player") and count > 0 and quality > 3) then
+		if (self.master == UnitName("player") and quality > 3) then
 			self:ItemListAdd(link, item, count, quality)
 		end
 		--self:UpdateLoot(texture, item, count, quality)
