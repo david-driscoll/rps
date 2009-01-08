@@ -63,6 +63,12 @@ local function whisperFilter()
 	return false
 end
 
+function RPB:Debug(...)
+	if self.debugOn then
+		self:Print(...)
+	end
+end
+
 local cs =
 {
 	rolllistadd		= "rolllistadd",
@@ -140,6 +146,7 @@ function RPB:OnInitialize()
 			lastloot = 0, -- date and time last looted item was taken
 		}
 	end
+	self.debugOn = false
 	-- if not db.realm.settings then
 		-- db.realm.settings = 
 		-- {
@@ -244,7 +251,7 @@ function RPB:Send(cmd, data, player, compress, nopwp, comm)
 		senddata = self:Serialize(sendpassword,senttime,version,cmd,data)
 		compress = false
 	end
-	--self:Print(comm, sendpassword,senttime,version,cmd,compress)
+	self:Debug("RPB:Send", comm, sendpassword,senttime,version,cmd,compress)
 	
 	self:SendCommMessage(comm, senddata, channel, player)
 end
@@ -1045,6 +1052,19 @@ RPB.chatCommands["?"] = function (self, msg)
 end
 RPB.chatCommands["help"] = RPB.chatCommands["?"]
 
+--- chatCommand: Debug.
+-- @param self Reference to the mod base, since this is a table of functions.
+-- @param msg The message given by the event
+RPB.chatCommands["debug"] = function (self, msg)
+	if self.debugOn then
+		self.debugOn = false
+		self:Print("Debug on")
+	else
+		self.debugOn = true
+		self:Print("Debug off")
+	end
+end
+
 --- chatCommand: Settings.
 -- Opens the settings frame.
 -- @param self Reference to the mod base, since this is a table of functions.
@@ -1096,7 +1116,7 @@ function RPB:OnCommReceived(pre, message, distribution, sender)
 	if (not db.realm.raid[self.rpoSettings.raid]) then
 		self:CreateDatabase(self.rpoSettings.raid)
 	end
-	--self:Print("RPB:OnCommReceived", pre, CommCmd.."LC", distribution, sender)
+	--self:Debug("RPB:OnCommReceived", pre, CommCmd.."LC", distribution, sender)
 	local success, sentpassword, senttime, ver, cmd, ms
 	if pre == CommCmd.."LC" then
 		local data
@@ -1121,7 +1141,7 @@ function RPB:OnCommReceived(pre, message, distribution, sender)
 		return
 	end
 	
-	--self:Print("RPB:OnCommReceived", cmd, msg, distribution, sender)
+	self:Debug("RPB:OnCommReceived", cmd, msg, distribution, sender)
 	if self.syncHold then
 		if not (
 			cmd == cs.getla or

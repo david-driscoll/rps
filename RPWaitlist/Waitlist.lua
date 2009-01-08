@@ -117,6 +117,12 @@ local function whisperFilter()
 	return false
 end
 
+function RPWL:Debug(...)
+	if self.debugOn then
+		self:Print(...)
+	end
+end
+
 --- Initial start up processes.
 -- Register chat commands, minor events and setup AceDB
 function RPWL:OnInitialize()
@@ -136,6 +142,7 @@ function RPWL:OnInitialize()
 	if not db.realm.waitlist then
 		db.realm.waitlist = {}
 	end
+	self.debugOn = false
 end
 
 --- Enable processes
@@ -418,6 +425,17 @@ end
 
 RPWL.chatCommands = {}
 
+--- chatCommand: Debug.
+-- @param self Reference to the mod base, since this is a table of functions.
+-- @param msg The message given by the event
+RPWL.chatCommands["debug"] = function (self, msg)
+	if self.debugOn then
+		self.debugOn = false
+	else
+		self.debugOn = true
+	end
+end
+
 --- chatCommand: Add.
 -- Adds a player to the waitlist
 -- @param self Reference to the mod base, since this is a table of functions.
@@ -551,7 +569,7 @@ end
 function RPWL:OnCommReceived(pre, message, distribution, sender)
 	if self.rpoSettings.syncIn == "0" then return end
 	local success, sentpassword, senttime, cmd, msg = self:Deserialize(message)
-	self:Print(pre, password, self.rpoSettings.syncPassword, self.rpoSettings.syncPassword == password, cmd, msg, distribution, sender)
+	--self:Print(pre, password, self.rpoSettings.syncPassword, self.rpoSettings.syncPassword == password, cmd, msg, distribution, sender)
 	local ourpassword = self.rpoSettings.syncPassword
 	ourpassword = MD5(ourpassword .. senttime)
 	
