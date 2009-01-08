@@ -604,7 +604,7 @@ end
 		local button = CreateFrame("Button", f:GetName() .. "_ButtonMaster", f, "UIPanelButtonTemplate")
 		button:SetWidth(90)
 		button:SetHeight(21)
-		button:SetPoint("TOPRIGHT", f.CloseButton, "TOPLEFT", 5, -4)
+		button:SetPoint("TOP", f.scrollFrameName.frame, "BOTTOM", 0, -10)
 		button:SetText("Master")
 		button:SetScript("OnClick", 
 		function(self)

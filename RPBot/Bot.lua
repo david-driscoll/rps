@@ -23,7 +23,7 @@ local CommCmd = "rpbDEBUG"
 local CommCmd = "rpb"
 --@end-non-alpha@]===]
 
-local version = tonumber("@file-revision@") or 10000
+local version = tonumber("@project-version@") or 10000
 local compversion = 77
 
 --local MD5 = LibStub:GetLibrary("MDFive-1.0")
@@ -1115,7 +1115,7 @@ function RPB:OnCommReceived(pre, message, distribution, sender)
 	if not cmd then return end
 
 	if not self.rpoSettings.versioninfo then self.rpoSettings.versioninfo = {} end
-	if not self.rpoSettings.versioninfo[sender] then self.rpoSettings.versioninfo[sender] = ver end
+	self.rpoSettings.versioninfo[sender] = ver
 	if ver < compversion then
 		self:Send(cs.alert, "Your bot version is out of date.  Version: "..version.." Your Version: "..ver.." Compatible Version: "..compversion..".", sender);
 		return
