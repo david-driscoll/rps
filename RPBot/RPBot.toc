@@ -31,6 +31,9 @@ Libs\BLib\BLib.lua
 Libs\Portfolio\Loader.xml
 
 Bot.lua
+ChatCommands.lua
+WhisperCommands.lua
+SyncCommands.lua
 Loot.lua
 Frame.lua
 RollWindow.lua
