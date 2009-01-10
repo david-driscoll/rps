@@ -51,5 +51,8 @@ RPBotSettings\Portfolio.lua
 RPBot\Bot.lua
 RPBot\Loot.lua
 RPBot\Frame.lua
+RPBot\ChatCommands.lua
+RPBot\WhisperCommands.lua
+RPBot\SyncCommands.lua
 RPBot\RollWindow.lua
 ##RPBot\ClientWindow.lua
