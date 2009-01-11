@@ -332,7 +332,7 @@ function RPF:AddFeature(data)
 			button:SetText(data.button.text)
 			button:SetScript("OnClick", 
 				function(self)
-					RPB:Send(data.command)
+					RPB:Send(data.command)  
 				end
 			)
 			f.button[data.button.name] = button

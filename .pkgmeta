@@ -40,6 +40,7 @@ externals:
 move-folders:
     RPS/RPLibrary: RPLibrary
     RPS/RPBotSettings: RPBotSettings
+    RPS/RPFeature: RPFeature
     RPS/RPWaitlist: RPWaitlist
     RPS/RPOfficerSettings: RPOfficerSettings
     RPS/RPBot: RPBot
