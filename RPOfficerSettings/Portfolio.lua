@@ -53,8 +53,8 @@ function RPOS:RegisterPortfolio()
 	local raidDropDown = self.db.realm.settings.raidDropDown
 	
 	local optionTable = {
-		id="RPClientSettings",
-		text="Client Settings",
+		id="RPOfficerSettings",
+		text="Officer Settings",
 		--addon="RPClientSettings",
 		parent="Raid Points System",
 		savedVarTable = rpoSettings,

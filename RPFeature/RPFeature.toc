@@ -1,9 +1,9 @@
-## Title: RPBotSettings 0.1
+## Title: RPFeature 0.1
 ## Author: Sithy
 ## Version: 0.1
 ## Interface: 30000
 ## Notes: Raid Points Automation
-## SavedVariables: rpBotSettingsDB, rpDEBUGBotSettingsDB
+## SavedVariables: rpFeatureDB, rpDEBUGFeatureDB
 ## RequiredDeps: RPLibrary
 ## X-Misc
 ## * File-Revision: @file-revision@ 
@@ -20,6 +20,6 @@ Libs\AceDB-3.0\AceDB-3.0.xml
 #@end-no-lib-strip@
 Libs\Portfolio\Loader.xml
 
-BotSettings.lua
 Features.lua
+FeatureWindow.lua
 Portfolio.lua

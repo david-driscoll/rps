@@ -23,9 +23,6 @@ local CommCmd = "rpbDEBUG"
 local CommCmd = "rpb"
 --@end-non-alpha@]===]
 
-local version = tonumber("@project-version@") or 10000
-local compversion = 77
-
 --local MD5 = LibStub:GetLibrary("MDFive-1.0")
 local LibCompress = LibStub:GetLibrary("LibCompress")
 local EncodeTable
@@ -36,6 +33,48 @@ local function MD5(data)
 	code = LibCompress:fcs16final(code)
 	return code
 end
+
+local cs =
+{
+	rolllistadd		= "rolllistadd",
+	rolllistremove	= "rolllistremove",
+	rolllistupdateroll	= "rolllistupdateroll",
+	rolllistupdatetype	= "rolllistupdatetype",
+	rolllistdisenchant	= "rolllistdisenchant",
+	rolllistaward	= "rolllistaward",
+	rolllistclear	= "rolllistclear",
+	startbidding	= "startbidding",
+	starttimedbidding = "starttimedbidding",
+	rolllistclick	= "rolllistclick",
+	itemlistadd		= "itemlistadd",
+	itemlistremove	= "itemlistremove",
+	itemlistclick 	= "itemlistclick",
+	itemlistclear 	= "itemlistclear",
+	getmaster		= "getmaster",
+	setmaster		= "setmaster",
+	itemlistset		= "itemlistset",
+	itemlistget		= "itemlistget",
+	rolllistset		= "rolllistset",
+	rolllistget		= "rolllistget",
+	pointsadd		= "pointsadd",
+	pointsremove	= "pointsremove",
+	pointsupdate	= "pointsupdate",
+	loot			= "loot",
+	-- Login Syncing
+	logon			= "logon",
+	alert			= "alert",
+	dboutdate		= "dboutdate",
+	dbupdate		= "dbupdate",
+	dbmd5			= "dbmd5",
+	dbrequest		= "dbrequest",
+	dbsend			= "dbsend",
+	getla			= "getla",
+	sendla			= "sendla",
+	rpoSettings		= "set",
+	rpbSettings		= "sb",
+	dballupdate		= "dballupdate",
+	setraid			= "setraid",
+}
 
 RPB = LibStub("AceAddon-3.0"):NewAddon("Raid Points Bot", "AceConsole-3.0", "AceEvent-3.0", "AceComm-3.0", "AceSerializer-3.0", "AceTimer-3.0", "RPLibrary", "GuildLib", "BLib")
 RPB.frames = {}
@@ -93,7 +132,7 @@ function RPB:OnInitialize()
 	self:RegisterComm("rpos")
 	EncodeTable = LibCompress:GetAddonEncodeTable()
 	if not db.realm.version then
-		db.realm.raid = {} 
+		db.realm.raid = {}
 		db.realm.player = {}
 		db.realm.recentloot = {}
 		db.realm.version =
@@ -120,7 +159,7 @@ function RPB:OnEnable()
 	
 	self.rpbSettings = RPBS.db.realm.settings
 	self.rpoSettings = RPOS.db.realm.settings
-	self.feature = RPOS.feature
+	self.feature = RPF.feature
 	self.options = RPBS.options
 
 	self:RosterScan()
@@ -134,11 +173,20 @@ function RPB:OnEnable()
 	self.timer = self:ScheduleTimer("DatabaseSync", 10)
 	self.masterTimer = self:ScheduleTimer("GetMaster", math.random(15, 25))
 	self:Send(cs.getmaster)
+	
+	if (UnitName("player") == "Sithie" or UnitName("player") == "Sithy") then
+		self.debugOn = true
+	end
 end
 
 function RPB:DatabaseSync()
 	self:Send(cs.logon, db.realm.version)
 	self.timer = nil
+end
+
+function RPB:FeatureSync()
+	self:Send("fsver", RPF.db.realm.settings.version)
+	self.featureTimer = nil
 end
 
 function RPB:Message(channel, message, to)

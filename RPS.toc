@@ -3,7 +3,7 @@
 ## Version: 0.1
 ## Interface: 30000
 ## Notes: Raid Points System
-## SavedVariables: rpDEBUGWaitlistDB, rpDEBUGBotDB, rpDEBUGBotSettingsDB, rpDEBUGOfficerSettingsDB
+## SavedVariables: rpDEBUGWaitlistDB, rpDEBUGBotDB, rpDEBUGBotSettingsDB, rpDEBUGOfficerSettingsDB, rpDEBUGFeatureDB
 ## X-Misc
 ## * File-Revision:@file-revision@ 
 ## * Project-Version: @project-revision@ 
@@ -36,6 +36,11 @@ RPLibrary\RPLibrary.lua
 RPOfficerSettings\OfficerSettings.lua
 RPOfficerSettings\Features.lua
 RPOfficerSettings\Portfolio.lua
+
+# RPFeature
+RPFeature\Features.lua
+RPFeature\FeatureWindow.lua
+RPFeature\Portfolio.lua
 
 # RPWaitlist
 RPWaitlist\Waitlist.lua

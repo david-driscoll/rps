@@ -12,8 +12,50 @@
 		Chat functions and responces.
 ]]
 
+local cs =
+{
+	rolllistadd		= "rolllistadd",
+	rolllistremove	= "rolllistremove",
+	rolllistupdateroll	= "rolllistupdateroll",
+	rolllistupdatetype	= "rolllistupdatetype",
+	rolllistdisenchant	= "rolllistdisenchant",
+	rolllistaward	= "rolllistaward",
+	rolllistclear	= "rolllistclear",
+	startbidding	= "startbidding",
+	starttimedbidding = "starttimedbidding",
+	rolllistclick	= "rolllistclick",
+	itemlistadd		= "itemlistadd",
+	itemlistremove	= "itemlistremove",
+	itemlistclick 	= "itemlistclick",
+	itemlistclear 	= "itemlistclear",
+	getmaster		= "getmaster",
+	setmaster		= "setmaster",
+	itemlistset		= "itemlistset",
+	itemlistget		= "itemlistget",
+	rolllistset		= "rolllistset",
+	rolllistget		= "rolllistget",
+	pointsadd		= "pointsadd",
+	pointsremove	= "pointsremove",
+	pointsupdate	= "pointsupdate",
+	loot			= "loot",
+	-- Login Syncing
+	logon			= "logon",
+	alert			= "alert",
+	dboutdate		= "dboutdate",
+	dbupdate		= "dbupdate",
+	dbmd5			= "dbmd5",
+	dbrequest		= "dbrequest",
+	dbsend			= "dbsend",
+	getla			= "getla",
+	sendla			= "sendla",
+	rpoSettings		= "set",
+	rpbSettings		= "sb",
+	dballupdate		= "dballupdate",
+	setraid			= "setraid",
+}
+
 function RPB:ChatCommand(msg)
-	if (not db.realm.raid[self.rpoSettings.raid]) then
+	if (not self.db.realm.raid[self.rpoSettings.raid]) then
 		self:CreateDatabase(self.rpoSettings.raid)
 	end
 
@@ -84,7 +126,7 @@ end
 
 RPB.chatCommands["dbupdate"] = function (self, msg)
 	if self.rpoSettings.master ~= UnitName("player") then
-		self:Send(db.dboutdate, "you", self.rpoSettings.master)
+		self:Send(self.db.dboutdate, "you", self.rpoSettings.master)
 	end
 end
 
