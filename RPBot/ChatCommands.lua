@@ -83,13 +83,14 @@ RPB.chatCommands["create"] = function (self, msg)
 end
 
 RPB.chatCommands["roll"] = function (self, msg)
-	if (not self.frames["RollWindow"]) then
-		self:CreateFrameRollWindow()
-	end
 	self:UpdateUI()
 	self.frames["RollWindow"]:Show()
 	self:Send(cs.itemlistget, "")
 	self:Send(cs.rolllistget, "")
+end
+
+RPB.chatCommands["feature"] = function (self, msg)
+	RPF.frames["FeatureWindow"]:Show()
 end
 
 RPB.chatCommands["add"] = function (self, msg)

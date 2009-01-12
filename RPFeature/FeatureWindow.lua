@@ -496,9 +496,10 @@ function featureWindowSetScrollFrameOnClick(rowFrame, cellFrame, data, cols, row
 			end
 		elseif button == "RightButton" then
 			if data[realrow] then
-				f.scrollFrame.selected = data[realrow]
+				f.scrollSetFrame.selected = data[realrow]
 				RPF:DeleteFeatureSet(data[realrow].cols[cfs.set].value)
-				f.scrollFrame:SortData()
+				f.scrollSetFrame.selected = nil
+				f.scrollSetFrame:SortData()
 			end
 		end
 end
@@ -543,6 +544,7 @@ function featureWindowScrollFrameOnClick(rowFrame, cellFrame, data, cols, row, r
 			if data[realrow] then
 				f.scrollFrame.selected = data[realrow]
 				RPF:DeleteFeature(data[realrow].cols[cfc.command].value)
+				f.scrollFrame.selected = nil
 				f.scrollFrame:SortData()
 			end
 		end
@@ -642,6 +644,7 @@ function RPF:SaveData()
 end
 
 function RPF:CreateFeatureSet()
+	local f = self.frames["FeatureWindow"]
 	local set = f.editbox["CreateFeatureSet"]:GetText()
 	f.featureSetList[#f.featureSetList+1] = self:BuildRow(
 		{
@@ -652,15 +655,16 @@ function RPF:CreateFeatureSet()
 end
 
 function RPF:DeleteFeatureSet()
+	local f = self.frames["FeatureWindow"]
 	for i=1,#f.featureSetList do
 		if f.featureSetList[i] == f.scrollSetFrame.selected then
-			f.scrollSetFrame.selected = nil
 			tremove(f.featureSetList,i)
 		end
 	end
 end
 
 function RPF:CreateFeature()
+	local f = self.frames["FeatureWindow"]
 	if not f.scrollSetFrame.selected then return end
 	local command = f.editbox["CreateFeature"]:GetText()
 	f.featureList[#f.featureList+1] = self:BuildRow(
@@ -673,10 +677,10 @@ function RPF:CreateFeature()
 end
 
 function RPF:DeleteFeature()
+	local f = self.frames["FeatureWindow"]
 	for i=1,#f.featureList do
 		if f.featureList[i] == f.scrollFrame.selected then
-			tremove(f.featureSet[f.scrollSetFrame.selected.cols[cfc.command].value],f.scrollFrame.selected.cols[cfc.command].value)
-			f.scrollFrame.selected = nil
+			f.featureSet[f.scrollSetFrame.selected.cols[cfc.command].value][f.scrollFrame.selected.cols[cfc.command].value] = nil
 			tremove(f.featureList,i)
 		end
 	end

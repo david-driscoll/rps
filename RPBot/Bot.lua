@@ -90,11 +90,11 @@ local function whisperFilter()
 			and settings.filterIn == "1"
 			and (
 				strfind(string.lower(arg1), "^rp")
-				or strfind(string.lower(arg1), "^bonus")
-				or strfind(string.lower(arg1), "^upgrade")
-				or strfind(string.lower(arg1), "^offspec")
-				or strfind(string.lower(arg1), "^sidegrade")
-				or strfind(string.lower(arg1), "^pass")
+				or strfind(string.lower(arg1), "^"..RPF.cmd1)
+				or strfind(string.lower(arg1), "^"..RPF.cmd2)
+				or strfind(string.lower(arg1), "^"..RPF.cmd3)
+				or strfind(string.lower(arg1), "^"..RPF.cmd4)
+				or strfind(string.lower(arg1), "^"..RPF.cmd5)
 			)
 	then
 		return true

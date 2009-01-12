@@ -31,11 +31,11 @@ end
 function RPB:WhisperCommand(msg, name)
 	wcmd, pos = self:GetArgs(msg, 2, 1)
 	-- Check to make sure the first line was "wl", otherwise this message isnt for us and we need to ignore it.
-	if (string.lower(wcmd) == "bonus" or
-		string.lower(wcmd) == "upgrade" or
-		string.lower(wcmd) == "offspec" or
-		string.lower(wcmd) == "sidegrade" or
-		string.lower(wcmd) == "pass")
+	if (string.lower(wcmd) == RPF.cmd1 or
+		string.lower(wcmd) == RPF.cmd2 or
+		string.lower(wcmd) == RPF.cmd3 or
+		string.lower(wcmd) == RPF.cmd4 or
+		string.lower(wcmd) == RPF.cmd5)
 	then
 		cmd = wcmd
 		wcmd = "rp"

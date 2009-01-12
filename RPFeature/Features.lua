@@ -274,6 +274,11 @@ function RPF:OnEnable()
 	--self:Send("syncrequest", "to me")
 	--enablecomm = false
 	--AceComm:RegisterComm("wlupdate")
+	self.cmd1 = nil
+	self.cmd2 = nil
+	self.cmd3 = nil
+	self.cmd4 = nil
+	self.cmd5 = nil
 	self:AddFeatureSet(db.realm.settings.featureSet)
 	if RPB then
 		RPB.featureTimer = RPB:ScheduleTimer("FeatureSync", 10)
@@ -304,6 +309,18 @@ function RPF:AddFeature(data)
 		self.feature = {}
 	end
 	self.feature[data.command] = data
+	
+	if not self.cmd1 then
+		self.cmd1 = data.command
+	elseif not self.cmd2 then
+		self.cmd2 = data.command
+	elseif not self.cmd3 then
+		self.cmd3 = data.command
+	elseif not self.cmd4 then
+		self.cmd4 = data.command
+	elseif not self.cmd5 then
+		self.cmd5 = data.command
+	end
 
 	RPB.whisperCommands[data.command] = function(self, msg, name)
 		if self.frames["RollWindow"] and self.frames["RollWindow"].inProgress then
@@ -344,6 +361,11 @@ function RPF:RemoveFeatureSet()
 	for key,value in ipairs(self.feature) do
 		self:RemoveFeature(key)
 	end
+	self.cmd1 = nil
+	self.cmd2 = nil
+	self.cmd3 = nil
+	self.cmd4 = nil
+	self.cmd5 = nil
 end
 
 function RPF:RemoveFeature(data)
