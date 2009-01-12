@@ -498,7 +498,6 @@ function featureWindowSetScrollFrameOnClick(rowFrame, cellFrame, data, cols, row
 			if data[realrow] then
 				f.scrollSetFrame.selected = data[realrow]
 				RPF:DeleteFeatureSet(data[realrow].cols[cfs.set].value)
-				f.scrollSetFrame.selected = nil
 				f.scrollSetFrame:SortData()
 			end
 		end
@@ -544,7 +543,6 @@ function featureWindowScrollFrameOnClick(rowFrame, cellFrame, data, cols, row, r
 			if data[realrow] then
 				f.scrollFrame.selected = data[realrow]
 				RPF:DeleteFeature(data[realrow].cols[cfc.command].value)
-				f.scrollFrame.selected = nil
 				f.scrollFrame:SortData()
 			end
 		end
@@ -659,6 +657,8 @@ function RPF:DeleteFeatureSet()
 	for i=1,#f.featureSetList do
 		if f.featureSetList[i] == f.scrollSetFrame.selected then
 			tremove(f.featureSetList,i)
+			f.scrollSetFrame.selected = nil
+			f.scrollSetFrame:SortData()
 		end
 	end
 end
@@ -682,6 +682,8 @@ function RPF:DeleteFeature()
 		if f.featureList[i] == f.scrollFrame.selected then
 			f.featureSet[f.scrollSetFrame.selected.cols[cfc.command].value][f.scrollFrame.selected.cols[cfc.command].value] = nil
 			tremove(f.featureList,i)
+			f.scrollFrame.selected = nil
+			f.scrollFrame:SortData()
 		end
 	end
 end

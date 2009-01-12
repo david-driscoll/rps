@@ -288,6 +288,9 @@ end
 function RPF:UpdateSets(msg)
 	self.db.realm.settings.version = time()
 	self.db.realm.featureSets = msg
+	RPF:RemoveFeatureSet()
+	RPF:AddFeatureSet(db.realm.settings.featureSet)
+	RPB.feature = self.feature
 end
 
 function RPF:AddFeatureSet(name)

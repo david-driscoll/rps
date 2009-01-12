@@ -186,6 +186,7 @@ end
 
 function RPB:FeatureSync()
 	self:Send("fsver", RPF.db.realm.settings.version)
+	self.feature = RPF.feature
 	self.featureTimer = nil
 end
 
