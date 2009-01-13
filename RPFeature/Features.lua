@@ -6,7 +6,7 @@
 	* Project-Version: @project-version@
 	* Last edited by: @file-author@ on @file-date-iso@ 
 	* Last commit by: @project-author@ on @project-date-iso@ 
-	* Filename: RPClientSettings/ClientSettings.lua
+	* Filename: RPFeature/Features.lua
 	* Component: Core
 	* Details:
 		This file contains the core of the RPBot. Handles start up, database initialization,
@@ -15,6 +15,7 @@
 
 local db
 RPF = LibStub("AceAddon-3.0"):NewAddon("Raid Points Feature", "RPLibrary")
+local cs
 
 --- Initial start up processes.
 -- Register chat commands, minor events and setup AceDB
@@ -280,9 +281,7 @@ function RPF:OnEnable()
 	self.cmd4 = nil
 	self.cmd5 = nil
 	self:AddFeatureSet(db.realm.settings.featureSet)
-	if RPB then
-		RPB.featureTimer = RPB:ScheduleTimer("FeatureSync", 10)
-	end
+	cs = RPSConstants.syncCommands["Bot"]
 end
 
 function RPF:UpdateSets(msg)
@@ -291,6 +290,7 @@ function RPF:UpdateSets(msg)
 	RPF:RemoveFeatureSet()
 	RPF:AddFeatureSet(db.realm.settings.featureSet)
 	RPB.feature = self.feature
+	RPB.db.realm.version.feature = self.db.realm.settings.version
 end
 
 function RPF:AddFeatureSet(name)

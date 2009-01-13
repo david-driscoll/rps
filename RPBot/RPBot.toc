@@ -30,6 +30,7 @@ Libs\GuildLib\GuildLib.lua
 Libs\BLib\BLib.lua
 Libs\Portfolio\Loader.xml
 
+Constants.lua
 Bot.lua
 ChatCommands.lua
 WhisperCommands.lua

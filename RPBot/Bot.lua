@@ -34,47 +34,7 @@ local function MD5(data)
 	return code
 end
 
-local cs =
-{
-	rolllistadd		= "rolllistadd",
-	rolllistremove	= "rolllistremove",
-	rolllistupdateroll	= "rolllistupdateroll",
-	rolllistupdatetype	= "rolllistupdatetype",
-	rolllistdisenchant	= "rolllistdisenchant",
-	rolllistaward	= "rolllistaward",
-	rolllistclear	= "rolllistclear",
-	startbidding	= "startbidding",
-	starttimedbidding = "starttimedbidding",
-	rolllistclick	= "rolllistclick",
-	itemlistadd		= "itemlistadd",
-	itemlistremove	= "itemlistremove",
-	itemlistclick 	= "itemlistclick",
-	itemlistclear 	= "itemlistclear",
-	getmaster		= "getmaster",
-	setmaster		= "setmaster",
-	itemlistset		= "itemlistset",
-	itemlistget		= "itemlistget",
-	rolllistset		= "rolllistset",
-	rolllistget		= "rolllistget",
-	pointsadd		= "pointsadd",
-	pointsremove	= "pointsremove",
-	pointsupdate	= "pointsupdate",
-	loot			= "loot",
-	-- Login Syncing
-	logon			= "logon",
-	alert			= "alert",
-	dboutdate		= "dboutdate",
-	dbupdate		= "dbupdate",
-	dbmd5			= "dbmd5",
-	dbrequest		= "dbrequest",
-	dbsend			= "dbsend",
-	getla			= "getla",
-	sendla			= "sendla",
-	rpoSettings		= "set",
-	rpbSettings		= "sb",
-	dballupdate		= "dballupdate",
-	setraid			= "setraid",
-}
+local cs = RPSConstants.syncCommands["Bot"]
 
 RPB = LibStub("AceAddon-3.0"):NewAddon("Raid Points Bot", "AceConsole-3.0", "AceEvent-3.0", "AceComm-3.0", "AceSerializer-3.0", "AceTimer-3.0", "RPLibrary", "GuildLib", "BLib")
 RPB.frames = {}
@@ -177,17 +137,15 @@ function RPB:OnEnable()
 	if (UnitName("player") == "Sithie" or UnitName("player") == "Sithy") then
 		self.debugOn = true
 	end
+	
+	db.realm.version.feature = RPF.db.realm.version
+	db.realm.version.bot = tonumber("@project-version@") or 10000
+
 end
 
 function RPB:DatabaseSync()
 	self:Send(cs.logon, db.realm.version)
 	self.timer = nil
-end
-
-function RPB:FeatureSync()
-	self:Send("fsver", RPF.db.realm.settings.version)
-	self.feature = RPF.feature
-	self.featureTimer = nil
 end
 
 function RPB:Message(channel, message, to)

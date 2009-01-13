@@ -14,290 +14,19 @@
 
 --local prefix = "<RPB>"
 local db = RPB.db
---local RPLibrary = LibStub:GetLibrary("RPLibrary")
-
-local cs =
-{
-	rolllistadd		= "rolllistadd",
-	rolllistremove	= "rolllistremove",
-	rolllistupdatetype	= "rolllistupdatetype",
-	rolllistupdateroll	= "rolllistupdateroll",
-	rolllistdisenchant	= "rolllistdisenchant",
-	rolllistaward	= "rolllistaward",
-	rolllistclear	= "rolllistclear",
-	startbidding	= "startbidding",
-	starttimedbidding = "starttimedbidding",
-	rolllistclick	= "rolllistclick",
-	itemlistadd		= "itemlistadd",
-	itemlistremove	= "itemlistremove",
-	itemlistclick 	= "itemlistclick",
-	itemlistclear 	= "itemlistclear",
-	getmaster		= "getmaster",
-	setmaster		= "setmaster",
-	itemlistset		= "itemlistset",
-	itemlistget		= "itemlistget",
-	rolllistset		= "rolllistset",
-	rolllistget		= "rolllistget",
-}
-
-RPB.columnDefinitons["RollWindow"] = 
-{
-	{
-	    ["name"] = "Name",
-	    ["width"] = 80,
-	    ["align"] = "CENTER",
-	    -- ["color"] = { 
-	        -- ["r"] = 0.5, 
-	        -- ["g"] = 0.5, 
-	        -- ["b"] = 1.0, 
-	        -- ["a"] = 1.0 
-	    -- },
-	    ["colorargs"] = nil,
-	    ["bgcolor"] = {
-	        ["r"] = 0.0, 
-	        ["g"] = 0.0, 
-	        ["b"] = 0.0, 
-	        ["a"] = 1.0 
-	    },
-	    --["defaultsort"] = "asc",
-	    
-	},
-	{
-	    ["name"] = "Class",
-	    ["width"] = 70,
-	    ["align"] = "CENTER",
-	    -- ["color"] = { 
-	        -- ["r"] = 0.5, 
-	        -- ["g"] = 0.5, 
-	        -- ["b"] = 1.0, 
-	        -- ["a"] = 1.0 
-	    -- },
-	    ["colorargs"] = nil,
-	    ["bgcolor"] = {
-	        ["r"] = 0.0, 
-	        ["g"] = 0.0, 
-	        ["b"] = 0.0, 
-	        ["a"] = 1.0 
-	    },
-	    --["defaultsort"] = "asc",
-	},
-	{
-	    ["name"] = "Rank",
-	    ["width"] = 80,
-	    ["align"] = "CENTER",
-	    -- ["color"] = { 
-	        -- ["r"] = 0.5, 
-	        -- ["g"] = 0.5, 
-	        -- ["b"] = 1.0, 
-	        -- ["a"] = 1.0 
-	    -- },
-	    ["colorargs"] = nil,
-	    ["bgcolor"] = {
-	        ["r"] = 0.0, 
-	        ["g"] = 0.0, 
-	        ["b"] = 0.0, 
-	        ["a"] = 1.0 
-	    },
-	    --["defaultsort"] = "asc",
-	},
-	{
-	    ["name"] = "Type",
-	    ["width"] = 70,
-	    ["align"] = "CENTER",
-	    -- ["color"] = { 
-	        -- ["r"] = 0.5, 
-	        -- ["g"] = 0.5, 
-	        -- ["b"] = 1.0, 
-	        -- ["a"] = 1.0 
-	    -- },
-	    ["colorargs"] = nil,
-	    ["bgcolor"] = {
-	        ["r"] = 0.0, 
-	        ["g"] = 0.0, 
-	        ["b"] = 0.0, 
-	        ["a"] = 1.0 
-	    },
-	    --["defaultsort"] = "asc",
-	    
-	},
-	{
-	    ["name"] = "Points",
-	    ["width"] = 60,
-	    ["align"] = "CENTER",
-	    -- ["color"] = { 
-	        -- ["r"] = 0.5, 
-	        -- ["g"] = 0.5, 
-	        -- ["b"] = 1.0, 
-	        -- ["a"] = 1.0 
-	    -- },
-	    ["colorargs"] = nil,
-	    ["bgcolor"] = {
-	        ["r"] = 0.0, 
-	        ["g"] = 0.0, 
-	        ["b"] = 0.0, 
-	        ["a"] = 1.0 
-	    },
-	    --["defaultsort"] = "asc",
-	},
-	{
-	    ["name"] = "Roll",
-	    ["width"] = 60,
-	    ["align"] = "CENTER",
-	    -- ["color"] = { 
-	        -- ["r"] = 0.5, 
-	        -- ["g"] = 0.5, 
-	        -- ["b"] = 1.0, 
-	        -- ["a"] = 1.0 
-	    -- },
-	    ["colorargs"] = nil,
-	    ["bgcolor"] = {
-	        ["r"] = 0.0, 
-	        ["g"] = 0.0, 
-	        ["b"] = 0.0, 
-	        ["a"] = 1.0 
-	    },
-	    --["defaultsort"] = "asc",
-	},
-	{
-	    ["name"] = "Total",
-	    ["width"] = 60,
-	    ["align"] = "CENTER",
-	    -- ["color"] = { 
-	        -- ["r"] = 0.5, 
-	        -- ["g"] = 0.5, 
-	        -- ["b"] = 1.0, 
-	        -- ["a"] = 1.0 
-	    -- },
-	    ["colorargs"] = nil,
-	    ["bgcolor"] = {
-	        ["r"] = 0.0, 
-	        ["g"] = 0.0, 
-	        ["b"] = 0.0, 
-	        ["a"] = 1.0 
-	    },
-	    --["defaultsort"] = "asc",
-	},
-	{
-	    ["name"] = "Loss",
-	    ["width"] = 60,
-	    ["align"] = "CENTER",
-	    -- ["color"] = { 
-	        -- ["r"] = 0.5, 
-	        -- ["g"] = 0.5, 
-	        -- ["b"] = 1.0, 
-	        -- ["a"] = 1.0 
-	    -- },
-	    ["colorargs"] = nil,
-	    ["bgcolor"] = {
-	        ["r"] = 0.0, 
-	        ["g"] = 0.0, 
-	        ["b"] = 0.0, 
-	        ["a"] = 1.0 
-	    },
-	    --["defaultsort"] = "asc",
-	},
-}
-RPB.columnDefinitons["RollWindowLootList"] = 
-{
-	{
-	    ["name"] = "Items",
-	    ["width"] = 300,
-	    ["align"] = "LEFT",
-	    -- ["color"] = { 
-	        -- ["r"] = 0.5, 
-	        -- ["g"] = 0.5, 
-	        -- ["b"] = 1.0, 
-	        -- ["a"] = 1.0 
-	    -- },
-	    ["colorargs"] = nil,
-	    ["bgcolor"] = {
-	        ["r"] = 0.0, 
-	        ["g"] = 0.0, 
-	        ["b"] = 0.0, 
-	        ["a"] = 1.0 
-	    },
-	    --["defaultsort"] = "asc",
-	},
-}
-
-RPB.columnDefinitons["RollWindowNameList"] = 
-{
-	{
-	    ["name"] = "Officers",
-	    ["width"] = 80,
-	    ["align"] = "CENTER",
-	    -- ["color"] = { 
-	        -- ["r"] = 0.5, 
-	        -- ["g"] = 0.5, 
-	        -- ["b"] = 1.0, 
-	        -- ["a"] = 1.0 
-	    -- },
-	    ["colorargs"] = nil,
-	    ["bgcolor"] = {
-	        ["r"] = 0.0, 
-	        ["g"] = 0.0, 
-	        ["b"] = 0.0, 
-	        ["a"] = 1.0 
-	    },
-	    --["defaultsort"] = "asc",
-	},
-}
+local cs = RPSConstants.syncCommands["Bot"]
 
 --  Constants Roll List
-local crl = 
-{
-	player = 1,
-	class = 2,
-	rank = 3,
-	ty = 4,
-	points = 5,
-	roll = 6,
-	total = 7,
-	loss = 8,
-}
-
-local crlArg = 
-{
-	[crl.player]	= { },
-	[crl.class]		= { nil, ClassColor },
-	[crl.rank]		= { },
-	[crl.ty]		= { },
-	[crl.total]		= { },
-	[crl.roll]		= { },
-	[crl.loss]		= { },
-}
+local crl = RPSConstants.stConstants["RollWindow"]
+local crlArg = RPSConstants.stArgs["RollWindow"]
 
 -- Constants Loot List
-local cll = 
-{
-	link = 1,
-	item = 2,
-	count = 3,
-	quality = 4,
-}
-
-local cllArg =
-{
-	[cll.link]		= { },
-	[cll.item]		= { },
-	[cll.count]		= { },
-	[cll.quality]	= { },
-}
-
-local function GetColor(Name)
-	return RPB:GetColor(Name)
-end
+local cll = RPSConstants.stConstants["RollWindowLootList"]
+local cllArg = RPSConstants.stArgs["RollWindowLootList"]
 
 -- Constants  Officer Names
-local con = 
-{
-	name = 1,
-}
-
-local conArg =
-{
-	[con.name]		= { nil, GetColor },
-}
+local con = RPSConstants.stConstants["RollWindowNameList"]
+local conArg = RPSConstants.stArgs["RollWindowNameList"]
 
 function RPB:CreateFrameRollWindow()
 	db = RPB.db
@@ -359,7 +88,7 @@ function RPB:CreateFrameRollWindow()
     -- Scroll Frame
 	do
 		f.rollList = {}
-	    f.scrollFrame = ScrollingTable:CreateST(RPB.columnDefinitons["RollWindow"], 10, nil, nil, f, true);
+	    f.scrollFrame = ScrollingTable:CreateST(RPSConstants.columnDefinitons["RollWindow"], 10, nil, nil, f, true);
 		f.scrollFrame.frame:SetPoint("TOPLEFT", f, "TOPLEFT", 20, -240)
 		f.scrollFrame:SetData(f.rollList)
 		f.scrollFrame:RegisterEvents({
@@ -399,7 +128,7 @@ function RPB:CreateFrameRollWindow()
 			-- f.item[i] = self:CreateLootFrame(f, i)
 		-- end
 		f.lootList = {}
-	    f.scrollFrameLoot = ScrollingTable:CreateST(RPB.columnDefinitons["RollWindowLootList"], 10, nil, nil, f, true);
+	    f.scrollFrameLoot = ScrollingTable:CreateST(RPSConstants.columnDefinitons["RollWindowLootList"], 10, nil, nil, f, true);
 		f.scrollFrameLoot.frame:SetPoint("TOPLEFT", f, "TOPLEFT", 20, -30)
 		f.scrollFrameLoot:SetData(f.lootList)
 		f.scrollFrameLoot:RegisterEvents({
@@ -425,7 +154,7 @@ function RPB:CreateFrameRollWindow()
 			-- f.item[i] = self:CreateLootFrame(f, i)
 		-- end
 		f.nameList = {}
-	    f.scrollFrameName = ScrollingTable:CreateST(RPB.columnDefinitons["RollWindowNameList"], 9, nil, nil, f, true);
+	    f.scrollFrameName = ScrollingTable:CreateST(RPSConstants.columnDefinitons["RollWindowNameList"], 9, nil, nil, f, true);
 		f.scrollFrameName.frame:SetPoint("TOPRIGHT", f, "TOPRIGHT", -10, -45)
 		f.scrollFrameName:SetData(f.nameList)
 		f.scrollFrameName:RegisterEvents({
@@ -441,6 +170,7 @@ function RPB:CreateFrameRollWindow()
 					GameTooltip:AddDoubleLine("Bot", RPB.rpoSettings.versioninfo[data[realrow].cols[con.name].value])
 					GameTooltip:AddDoubleLine("Database", RPB.rpoSettings.dbinfo[data[realrow].cols[con.name].value].database)
 					GameTooltip:AddDoubleLine("Lastaction", RPB.rpoSettings.dbinfo[data[realrow].cols[con.name].value].lastaction)
+					GameTooltip:AddDoubleLine("Feature", RPB.rpoSettings.dbinfo[data[realrow].cols[con.name].value].feature)
 					GameTooltip:Show()
 				end
 			end,

@@ -21,8 +21,8 @@ local CommCmd = "rpbDEBUG"
 local CommCmd = "rpb"
 --@end-non-alpha@]===]
 
-local version = tonumber("@file-revision@") or 10000
-local compversion = 77
+local version = tonumber("@project-version@") or 10000
+local compversion = 88
 
 local LibCompress = LibStub:GetLibrary("LibCompress")
 local EncodeTable
@@ -34,54 +34,11 @@ local function MD5(data)
 	return code
 end
 
-local cs =
-{
-	rolllistadd		= "rolllistadd",
-	rolllistremove	= "rolllistremove",
-	rolllistupdateroll	= "rolllistupdateroll",
-	rolllistupdatetype	= "rolllistupdatetype",
-	rolllistdisenchant	= "rolllistdisenchant",
-	rolllistaward	= "rolllistaward",
-	rolllistclear	= "rolllistclear",
-	startbidding	= "startbidding",
-	starttimedbidding = "starttimedbidding",
-	rolllistclick	= "rolllistclick",
-	itemlistadd		= "itemlistadd",
-	itemlistremove	= "itemlistremove",
-	itemlistclick 	= "itemlistclick",
-	itemlistclear 	= "itemlistclear",
-	getmaster		= "getmaster",
-	setmaster		= "setmaster",
-	itemlistset		= "itemlistset",
-	itemlistget		= "itemlistget",
-	rolllistset		= "rolllistset",
-	rolllistget		= "rolllistget",
-	pointsadd		= "pointsadd",
-	pointsremove	= "pointsremove",
-	pointsupdate	= "pointsupdate",
-	loot			= "loot",
-	-- Login Syncing
-	logon			= "logon",
-	alert			= "alert",
-	dboutdate		= "dboutdate",
-	dbupdate		= "dbupdate",
-	dbmd5			= "dbmd5",
-	dbrequest		= "dbrequest",
-	dbsend			= "dbsend",
-	getla			= "getla",
-	sendla			= "sendla",
-	rpoSettings		= "set",
-	rpbSettings		= "sb",
-	dballupdate		= "dballupdate",
-	setraid			= "setraid",
-	fsupdate		= "fsupdate",
-	fsoutdate		= "fsoutdate",
-	fssend			= "fssend",
-	fsversion		= "fsver",
-}
+local cs = RPSConstants.syncCommands["Bot"]
 
 local dbup = {}
 local dbrq = {}
+local dbvs = {}
 
 function RPB:Send(cmd, data, player, compress, nopwp, comm)
 	if not EncodeTable then
@@ -162,6 +119,7 @@ function RPB:OnCommReceived(pre, message, distribution, sender)
 			cmd == cs.dbupdate or
 			cmd == cs.dbmd5 or
 			cmd == cs.dbrequest or
+			cmd == cs.vsinfo or
 			cmd == cs.dbsend
 		) then
 			--self:Print(self.syncHold, cmd)			
@@ -185,22 +143,43 @@ function RPB:OnCommReceived(pre, message, distribution, sender)
 end
 
 RPB.syncCommands = {}
+
 RPB.syncCommands[cs.logon] = function(self, msg, sender)
-	--if sender ~= UnitName("player") then
-		--self:Print("Checking database version...");
-		if not self.rpoSettings.dbinfo then
-			self.rpoSettings.dbinfo = {}
-		end
-		if not self.rpoSettings.dbinfo[sender] then 
-			self.rpoSettings.dbinfo[sender] = 
-			{
-				database = msg.database, -- date and time downloaded from the website,
-				lastaction = msg.lastaction, -- date and time the last action was taken
-				lastloot = msg.lastloot, -- date and time last looted item was taken
-			}
-		end
-		--self:Print("Database:", "   msg.database:", msg.database, "   self.db.realm.version.database:", self.db.realm.version.database, "   self.settings.dbinfo[sender].database:", self.rpoSettings.dbinfo[sender].database)
-		--self:Print("Lastaction:", "   msg.lastaction:", msg.lastaction, "   self.db.realm.version.lastaction:", self.db.realm.version.lastaction, "   self.settings.dbinfo[sender].lastaction:", self.rpoSettings.dbinfo[sender].lastaction)
+	if sender == UnitName("player") then return end
+	self:Send(cs.vssend, self.db.realm.version, sender)
+end
+
+RPB.syncCommands[cs.vsreq] = function(self, msg, sender)
+	if sender == UnitName("player") then return end
+	self:Send(cs.vsinfo, self.db.realm.version, sender)
+end
+
+RPB.syncCommands[cs.vsinfo] = function(self, msg, sender)
+	if not self.rpoSettings.dbinfo then self.rpoSettings.dbinfo = {} end
+	self.rpoSettings.dbinfo[sender] = msg
+end
+
+RPB.syncCommands[cs.vssend] = function(self, msg, sender)
+	if not self.dbvsTimer then
+		self.dbvsTimer = self:ScheduleTimer("VersionRequest", 10)
+	end
+	dbvs[sender] = msg
+end
+
+function RPB:VersionRequest()
+	self.dbvsTimer = nil
+	
+	local database = 0
+	local lastaction = 0
+	local feature = 0
+	local databaseowner = nil
+	local lastactionowner = nil
+	local featureowner = nil
+	
+	for key,value in pairs(dbvs) do
+		local msg = dbvs[key]
+		local sender = key
+		--if self.rpoSettings.master == UnitName("player") then
 		if msg.database == self.db.realm.version.database then
 			if msg.lastaction == self.db.realm.version.lastaction then
 				for i=1,#self.syncQueue do
@@ -209,52 +188,57 @@ RPB.syncCommands[cs.logon] = function(self, msg, sender)
 				self.syncQueue = {}
 				self.syncHold = false
 				self.syncResync = false
-				self.rpoSettings.dbinfo[sender] = 
-				{
-					database = self.db.realm.version.database, -- date and time downloaded from the website,
-					lastaction = self.db.realm.version.lastaction, -- date and time the last action was taken
-					lastloot = self.db.realm.version.lastloot, -- date and time last looted item was taken
-				}
-				--self:Print("Database is up to date")
-			end
-		end
-		if self.rpoSettings.master == UnitName("player") then
-			if msg.database == self.db.realm.version.database then
-				if msg.lastaction < self.db.realm.version.lastaction then
-					if self.rpoSettings.dbinfo[sender].lastaction < msg.lastaction then
-						self:Send(cs.sendla, { RPB:GetLatestActions(self.rpoSettings.dbinfo[sender].lastaction), self.rpoSettings.dbinfo[sender], msg }, sender)
-					else
-						self:Send(cs.dboutdate, "you", sender)
-					end
-				elseif msg.lastaction > self.db.realm.version.lastaction then
-					if self.rpoSettings.dbinfo[sender].lastaction < self.db.realm.version.lastaction then
-						self:Send(cs.getla, { self.rpoSettings.dbinfo[sender].lastaction, msg }, sender)
-					else
-						self:Send(cs.dbupdate, "you", sender)
-					end
-				end
-			elseif msg.database > self.db.realm.version.database then
-				if msg.lastaction == self.db.realm.version.lastaction then
-					self:Send(cs.dbupdate, "you", sender)
-				elseif msg.lastaction < self.db.realm.version.lastaction then
+				self.rpoSettings.dbinfo[sender] = msg
+				self:Send(cs.vsreq, self.db.realm.version)
+				self:Send(cs.vsinfo, self.db.realm.version)
+				-- {
+					-- database = self.db.realm.version.database, -- date and time downloaded from the website,
+					-- lastaction = self.db.realm.version.lastaction, -- date and time the last action was taken
+					-- lastloot = self.db.realm.version.lastloot, -- date and time last looted item was taken
+				-- }
+				--self:Print("Database is up to date")				
+			elseif msg.lastaction < self.db.realm.version.lastaction then
+				if self.rpoSettings.dbinfo[sender].lastaction < msg.lastaction then
 					self:Send(cs.sendla, { RPB:GetLatestActions(self.rpoSettings.dbinfo[sender].lastaction), self.rpoSettings.dbinfo[sender], msg }, sender)
-				elseif msg.lastaction > self.db.realm.version.lastaction then
+				else
+					self:Send(cs.dboutdate, "you", sender)
+				end
+			elseif msg.lastaction > self.db.realm.version.lastaction then
+				if self.rpoSettings.dbinfo[sender].lastaction < self.db.realm.version.lastaction then
+					self:Send(cs.getla, { self.rpoSettings.dbinfo[sender].lastaction, msg }, sender)
+				else
 					self:Send(cs.dbupdate, "you", sender)
 				end
-				-- 2 cases
-				-- if msg.lastaction > self.db.realm.version.lastacction then we send for a sync
-				-- if msg.lastaction <= self.db.realm.version.lastaction then we need to alert everyone about the inconistant settings, IE the savedvariables need to be uploaded.
-			elseif msg.database < self.db.realm.version.database then
-				if msg.lastaction == self.db.realm.version.lastaction then
-					self:Send(cs.dboutdate, "you", sender)
-				elseif msg.lastaction < self.db.realm.version.lastaction then
-					self:Send(cs.dboutdate, "you", sender)
-				elseif msg.lastaction > self.db.realm.version.lastaction then
-					self:Send(cs.getla, { self.rpoSettings.dbinfo[sender].lastaction, msg }, sender)
-				end
+			end
+		elseif msg.database > self.db.realm.version.database then
+			if msg.lastaction == self.db.realm.version.lastaction then
+				self:Send(cs.dbupdate, "you", sender)
+			elseif msg.lastaction < self.db.realm.version.lastaction then
+				self:Send(cs.sendla, { RPB:GetLatestActions(self.rpoSettings.dbinfo[sender].lastaction), self.rpoSettings.dbinfo[sender], msg }, sender)
+			elseif msg.lastaction > self.db.realm.version.lastaction then
+				self:Send(cs.dbupdate, "you", sender)
+			end
+			-- 2 cases
+			-- if msg.lastaction > self.db.realm.version.lastacction then we send for a sync
+			-- if msg.lastaction <= self.db.realm.version.lastaction then we need to alert everyone about the inconistant settings, IE the savedvariables need to be uploaded.
+		elseif msg.database < self.db.realm.version.database then
+			if msg.lastaction == self.db.realm.version.lastaction then
+				self:Send(cs.dboutdate, "you", sender)
+			elseif msg.lastaction < self.db.realm.version.lastaction then
+				self:Send(cs.dboutdate, "you", sender)
+			elseif msg.lastaction > self.db.realm.version.lastaction then
+				self:Send(cs.getla, { self.rpoSettings.dbinfo[sender].lastaction, msg }, sender)
 			end
 		end
-	--end
+		
+		if msg > self.db.realm.version.feature then
+			self:Send(cs.fsupdate, "me", sender)
+		elseif msg < self.db.realm.version.feature then
+			self:Send(cs.fsoutdate, "me", sender)
+		end
+		
+	end
+	dbvs = {}
 end
 
 RPB.syncCommands[cs.alert] = function(self, msg, sender)
@@ -357,9 +341,8 @@ RPB.syncCommands[cs.dboutdate] = function(self, msg, sender)
 end
 
 RPB.syncCommands[cs.dballupdate] = function(self, msg, sender)
-	if self.rpoSettings.master ~= UnitName("player") then
-		self:Send(cs.dbupdate, "you", sender)
-	end
+	if sender == UnitName("player") then return end
+	self:Send(cs.dbupdate, "you", sender)
 end
 
 RPB.syncCommands[cs.dbupdate] = function(self, msg, sender)
@@ -502,18 +485,13 @@ RPB.syncCommands[cs.dbsend] = function(self, msg, sender)
 		end
 		self.syncQueue = {}
 		self.syncHold = false
-		self.rpoSettings.dbinfo[sender] = 
-		{
-			database = self.db.realm.version.database, -- date and time downloaded from the website,
-			lastaction = self.db.realm.version.lastaction, -- date and time the last action was taken
-			lastloot = self.db.realm.version.lastloot, -- date and time last looted item was taken
-		}
+		self:Send(cs.vsinfo, self.db.realm.version)
 		if (self.rpoSettings.master == UnitName("player")) then
 			self:Send(cs.dballupdate, "go")
 		end
 		self:Print("Database has been updated!")
+		self.syncResync = false
 	end
-	self.syncResync = false
 end
 
 --- syncCommand: cs.settings.
@@ -650,16 +628,6 @@ end
 RPB.syncCommands[cs.fssend] = function(self, msg, sender)
 	if sender == UnitName("player") then return end
 	RPF:UpdateSets(msg)
-	-- self:ItemListRemove(msg[1], msg[2])
-end
-
-RPB.syncCommands[cs.fsversion] = function(self, msg, sender)
-	if sender == UnitName("player") then return end
-	if msg > RPF.db.realm.settings.version then
-		self:Send(cs.fsupdate, "me", sender)
-	elseif msg < RPF.db.realm.settings.version then
-		self:Send(cs.fsoutdate, "me", sender)
-	end
 	-- self:ItemListRemove(msg[1], msg[2])
 end
 

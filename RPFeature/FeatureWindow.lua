@@ -5,7 +5,7 @@
 	* File-Revision: @file-revision@
 	* Project-Version: @project-version@
 	* Last edited by: @file-author@ on @file-date-iso@ 
-	* Last commit: @project-author@ on @project-date-iso@ 
+	* Last commit by: @project-author@ on @project-date-iso@ 
 	* Filename: RPFot/FeatureWindow.lua
 	* Component: Roll Interface
 	* Details:
@@ -14,75 +14,14 @@
 
 --local prefix = "<RPF>"
 local db = RPF.db
---local RPLibrary = LibStub:GetLibrary("RPLibrary")
-RPF.columnDefinitons = {}
-RPF.columnDefinitons["FeatureSet"] = 
-{
-	{
-	    ["name"] = "Feature Set",
-	    ["width"] = 100,
-	    ["align"] = "CENTER",
-	    -- ["color"] = { 
-	        -- ["r"] = 0.5, 
-	        -- ["g"] = 0.5, 
-	        -- ["b"] = 1.0, 
-	        -- ["a"] = 1.0 
-	    -- },
-	    ["colorargs"] = nil,
-	    ["bgcolor"] = {
-	        ["r"] = 0.0, 
-	        ["g"] = 0.0, 
-	        ["b"] = 0.0, 
-	        ["a"] = 1.0 
-	    },
-	    --["defaultsort"] = "asc",
-	},
-}
-
-RPF.columnDefinitons["FeatureCommand"] = 
-{
-	{
-	    ["name"] = "Command",
-	    ["width"] = 100,
-	    ["align"] = "CENTER",
-	    -- ["color"] = { 
-	        -- ["r"] = 0.5, 
-	        -- ["g"] = 0.5, 
-	        -- ["b"] = 1.0, 
-	        -- ["a"] = 1.0 
-	    -- },
-	    ["colorargs"] = nil,
-	    ["bgcolor"] = {
-	        ["r"] = 0.0, 
-	        ["g"] = 0.0, 
-	        ["b"] = 0.0, 
-	        ["a"] = 1.0 
-	    },
-	    --["defaultsort"] = "asc",
-	},
-}
 
 --  Constants Roll List
-local cfs = 
-{
-	set = 1,
-}
-
-local cfsArg = 
-{
-	[cfs.set]	= { },
-}
+local cfs = RPSConstants.stConstants["FeatureSet"]
+local cfsArg = RPSConstants.stArgs["FeatureSet"]
 
 -- Constants Loot List
-local cfc = 
-{
-	command = 1,
-}
-
-local cfcArg =
-{
-	[cfc.command]	= { },
-}
+local cfc = RPSConstants.stConstants["FeatureCommand"]
+local cfcArg = RPSConstants.stArgs["FeatureCommand"]
 
 function RPF:CreateFrame()
 	db = RPF.db
@@ -146,7 +85,7 @@ function RPF:CreateFrame()
     -- Scroll Frame
 	do
 		f.featureSetList = {}
-	    f.scrollSetFrame = ScrollingTable:CreateST(self.columnDefinitons["FeatureSet"], 5, nil, nil, f, true);
+	    f.scrollSetFrame = ScrollingTable:CreateST(RPSConstants.columnDefinitons["FeatureSet"], 5, nil, nil, f, true);
 		f.scrollSetFrame.frame:SetPoint("TOPLEFT", f, "TOPLEFT", 20, -30)
 		f.scrollSetFrame:SetData(f.featureSetList)
 		f.scrollSetFrame:RegisterEvents({
@@ -154,7 +93,7 @@ function RPF:CreateFrame()
 		});
 
 		f.featureList = {}
-	    f.scrollFrame = ScrollingTable:CreateST(self.columnDefinitons["FeatureCommand"], 5, nil, nil, f, true);
+	    f.scrollFrame = ScrollingTable:CreateST(RPSConstants.columnDefinitons["FeatureCommand"], 5, nil, nil, f, true);
 		f.scrollFrame.frame:SetPoint("TOPLEFT", f.scrollSetFrame.frame, "BOTTOMLEFT", 0, -60)
 		f.scrollFrame:SetData(f.featureList)
 		f.scrollFrame:RegisterEvents({
@@ -600,7 +539,7 @@ function RPF:CommitChanges()
 		end
 	end
 	if RPB then
-		RPB:Send("fssend", self.db.realm.featureSets)
+		RPB:Send(cs.fssend, self.db.realm.featureSets)
 	end
 	f:Hide()
 end

@@ -492,7 +492,7 @@ function RPLibrary:GetItemID(link)
 end
 
 -- Taken from Prat 3.0, credits to Sylvanaar and the entire Prat Team
-function RPLibrary:GetColor(Name)
+function GetColor(Name)
 	local hash = 17
 	for i=1,string.len(Name) do
 		hash = hash * 37 * string.byte(Name, i);

@@ -14,110 +14,6 @@
 
 --local RPLibrary = LibStub:GetLibrary("RPLibrary")
 
-RPWL.columnDefiniton = {}
-RPWL.columnDefiniton["waitlist"] =
-{
-	{
-		["name"] = "Name",
-		["width"] = 80, 
-		["align"] = "CENTER",
-		--["color"] = { ["r"] = 1.0, ["g"] = 1.0, ["b"] = 1.0, ["a"] = 1.0 },
-		["bgcolor"] = { ["r"] = 0.0, ["g"] = 0.0, ["b"] = 0.0, ["a"] = 0.5 },
-	},
-	{ 
-		["name"] = "Alt", 
-		["width"] = 80, 
-		["align"] = "CENTER",
-		--["color"] = { ["r"] = 1.0, ["g"] = 1.0, ["b"] = 1.0, ["a"] = 1.0 },
-		["bgcolor"] = { ["r"] = 0.0, ["g"] = 0.0, ["b"] = 0.0, ["a"] = 0.5 },
-	},
-	{ 
-		["name"] = "Class", 
-		["width"] = 80, 
-		["align"] = "CENTER",
-		--["color"] = { ["r"] = 1.0, ["g"] = 1.0, ["b"] = 1.0, ["a"] = 1.0 },
-		["bgcolor"] = { ["r"] = 0.0, ["g"] = 0.0, ["b"] = 0.0, ["a"] = 0.5 },
-		["sortnext"] = 1,
-	},
-	{
-		["name"] = "Status",
-		["index"] = "i",
-		["width"] = 120, 
-		["align"] = "CENTER",
-		--["color"] = { ["r"] = 1.0, ["g"] = 1.0, ["b"] = 1.0, ["a"] = 1.0 },
-		["bgcolor"] = { ["r"] = 0.0, ["g"] = 0.0, ["b"] = 0.0, ["a"] = 0.5 },
-	},
-	{ 
-		["name"] = "Time", 
-		["width"] = 150, 
-		["align"] = "CENTER",
-		--["color"] = { ["r"] = 1.0, ["g"] = 1.0, ["b"] = 1.0, ["a"] = 1.0 },
-		["bgcolor"] = { ["r"] = 0.0, ["g"] = 0.0, ["b"] = 0.0, ["a"] = 0.5 },
-	},
-}
-
-RPWL.columnDefiniton["roster"] =
-{
-	{ 
-		["name"] = "Name", 
-		["width"] = 80, 
-		["align"] = "CENTER",
-		--["color"] = { ["r"] = 1.0, ["g"] = 1.0, ["b"] = 1.0, ["a"] = 1.0 },
-		["bgcolor"] = { ["r"] = 0.0, ["g"] = 0.0, ["b"] = 0.0, ["a"] = 0.5 },
-	}, -- [2]
-	{ 
-		["name"] = "Rank", 
-		["width"] = 80, 
-		["align"] = "CENTER",
-		--["color"] = { ["r"] = 1.0, ["g"] = 1.0, ["b"] = 1.0, ["a"] = 1.0 },
-		["bgcolor"] = { ["r"] = 0.0, ["g"] = 0.0, ["b"] = 0.0, ["a"] = 0.5 },
-		["sortnext"] = 3,
-	},
-	{ 
-		["name"] = "Level", 
-		["width"] = 40, 
-		["align"] = "CENTER",
-		--["color"] = { ["r"] = 1.0, ["g"] = 1.0, ["b"] = 1.0, ["a"] = 1.0 },
-		["bgcolor"] = { ["r"] = 0.0, ["g"] = 0.0, ["b"] = 0.0, ["a"] = 0.5 },
-		["sortnext"] = 1,
-		["defaultsort"] = "asc",
-	}, -- [2]
-	{ 
-		["name"] = "Class", 
-		["width"] = 80, 
-		["align"] = "CENTER",
-		--["color"] = { ["r"] = 1.0, ["g"] = 1.0, ["b"] = 1.0, ["a"] = 1.0 },
-		["bgcolor"] = { ["r"] = 0.0, ["g"] = 0.0, ["b"] = 0.0, ["a"] = 0.5 },
-		["sortnext"] = 3,
-	}, -- [2]
-	{ 
-		["name"] = "Zone", 
-		["width"] = 160, 
-		["align"] = "CENTER",
-		--["color"] = { ["r"] = 1.0, ["g"] = 1.0, ["b"] = 1.0, ["a"] = 1.0 },
-		["bgcolor"] = { ["r"] = 0.0, ["g"] = 0.0, ["b"] = 0.0, ["a"] = 0.5 },
-		["sortnext"] = 3,
-	}, -- [2]
-	{ 
-		["name"] = "Status", 
-		["width"] = 50, 
-		["align"] = "CENTER",
-		--["color"] = { ["r"] = 1.0, ["g"] = 1.0, ["b"] = 1.0, ["a"] = 1.0 },
-		["bgcolor"] = { ["r"] = 0.0, ["g"] = 0.0, ["b"] = 0.0, ["a"] = 0.5 },
-	}, -- [2]
-	{
-		["name"] = "O", 
-		["width"] = 20, 
-		["align"] = "CENTER",
-		--["color"] = { ["r"] = 1.0, ["g"] = 1.0, ["b"] = 1.0, ["a"] = 1.0 },
-		["bgcolor"] = { ["r"] = 0.0, ["g"] = 0.0, ["b"] = 0.0, ["a"] = 0.5 },
-		["sortnext"] = 1,
-		["defaultsort"] = "asc",
-	}, -- [2]
-}
-
-
-
 function RPWL:CreateFrame()
 	-- if self.Frame then
 	  -- self.Frame:Hide()
@@ -167,14 +63,14 @@ function RPWL:CreateFrame()
 	title:SetText("Raid Points Waitlist")
 	self.title = title
 
-	self.scrollFrame = ScrollingTable:CreateST(self.columnDefiniton["waitlist"], 12, nil, nil, self.Frame, true);
+	self.scrollFrame = ScrollingTable:CreateST(RPSConstants.columnDefinitons["Waitlist"], 12, nil, nil, self.Frame, true);
 	self.scrollFrame.frame:SetPoint("TOPLEFT", self.Frame, "TOPLEFT", 100, -35)
 	self.scrollFrame:SetData(self.db.realm.waitlist)
 	self.scrollFrame:RegisterEvents({
 		["OnClick"] = scrollFrameOnClick,
 	});
 	
-	self.scrollFrameGuild = ScrollingTable:CreateST(self.columnDefiniton["roster"], 12, nil, nil, self.Frame, true);
+	self.scrollFrameGuild = ScrollingTable:CreateST(RPSConstants.columnDefinitons["Roster"], 12, nil, nil, self.Frame, true);
 	self.scrollFrameGuild.frame:SetPoint("TOPLEFT", self.Frame, "TOPLEFT", 100, -275)
 	self.scrollFrameGuild:SetData({})
 	self.scrollFrameGuild:RegisterEvents({

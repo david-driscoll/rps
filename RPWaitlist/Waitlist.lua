@@ -46,62 +46,15 @@ end
 -- Numbered index's aren't very specific, so lets get the best of both worlds
 
 -- Watilist table constents
-local cwl = 
-{
-	name		= 1,
-	alt			= 2,
-	class		= 3,
-	status		= 4,
-	--datetime	= 5,
-	timestamp	= 5,
-}
-
-local cwlArg = 
-{
-	[cwl.name] 		= { },
-	[cwl.alt] 		= { }, 
-	[cwl.class] 	= { nil, ClassColor },
-	[cwl.status] 	= { },
-	[cwl.timestamp] = { nil, nil, nil, DoTimestampUpdate },
-}
+local cwl = RPSConstants.stConstants["Waitlist"]
+local cwlArg = RPSConstants.stArgs["Waitlist"]
 
 -- Guild Roster table contents
-local cgr = 
-{
-	name		= 1,
-	rank		= 2,
-	level		= 3,
-	class		= 4,
-	zone		= 5,
-	status		= 6,
-	online		= 7,
-	officernote	= 8,
-	rankindex	= 9,
-}
-
-local cgrArg = 
-{
-	[cgr.name]			= { },
-	[cgr.rank]			= { },
-	[cgr.level]			= { },
-	[cgr.class]			= { nil, ClassColor },
-	[cgr.zone]			= { },
-	[cgr.status]		= { },
-	[cgr.online]		= { },
-	[cgr.officernote]	= { },
-	[cgr.rankindex]		= { },
-}
+local cgr = RPSConstants.stConstants["Roster"]
+local cgrArg = RPSConstants.stArgs["Roster"]
 
 -- Sync commands, lets save some overhead
-local cs = 
-{
-	["add"]			= "a",
-	["remove"]		= "r",
-	["syncrequest"]	= "sr",
-	["syncowner"]	= "so",
-	["sync"]		= "s",
-	["rpoSettings"]	= "set",
-}
+local cs = RPSConstants.syncCommands["Waitlist"]
 
 local function whisperFilter()
 	local settings = RPWL.rpoSettings

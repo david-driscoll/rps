@@ -38,11 +38,13 @@ RPOfficerSettings\Features.lua
 RPOfficerSettings\Portfolio.lua
 
 # RPFeature
+RPFeature\Constants.lua
 RPFeature\Features.lua
 RPFeature\FeatureWindow.lua
 RPFeature\Portfolio.lua
 
 # RPWaitlist
+RPWaitlist\Constants.lua
 RPWaitlist\Waitlist.lua
 RPWaitlist\Frame.lua
 RPWaitlist\Portfolio.lua
@@ -53,6 +55,7 @@ RPBotSettings\Features.lua
 RPBotSettings\Portfolio.lua
 
 # RPBot
+RPBot\Constants.lua
 RPBot\Bot.lua
 RPBot\Loot.lua
 RPBot\Frame.lua
