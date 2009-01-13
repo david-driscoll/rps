@@ -141,7 +141,8 @@ function RPLibrary:ScriptEditBox(editbox, insert)
 			self:HighlightText()
 			self.savedInsertLink = ChatEdit_InsertLink
 			ChatEdit_InsertLink = function (link)
-				self:Insert(" "..link)
+				self:Insert(link)
+				return true
 			end
 		end)
 	else

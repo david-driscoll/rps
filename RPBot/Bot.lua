@@ -139,7 +139,7 @@ function RPB:OnEnable()
 	end
 	
 	db.realm.version.feature = RPF.db.realm.version
-	db.realm.version.bot = tonumber("@project-version@") or 10000
+	db.realm.version.bot = RPSsyncVersion
 
 end
 

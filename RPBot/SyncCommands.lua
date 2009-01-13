@@ -21,7 +21,7 @@ local CommCmd = "rpbDEBUG"
 local CommCmd = "rpb"
 --@end-non-alpha@]===]
 
-local version = tonumber("@project-version@") or 10000
+RPSsyncVersion = tonumber("@file-revision@") or 10000
 local compversion = 88
 
 local LibCompress = LibStub:GetLibrary("LibCompress")
@@ -61,14 +61,14 @@ function RPB:Send(cmd, data, player, compress, nopwp, comm)
 	local senddata
 	if compress then
 		comm = comm .. "LC"
-		senddata = self:Serialize(sendpassword,senttime,version,cmd,data)
+		senddata = self:Serialize(sendpassword,senttime,RPSsyncVersion,cmd,data)
 		senddata = LibCompress:Compress(senddata)
 		senddata = EncodeTable:Encode(senddata)
 	else
-		senddata = self:Serialize(sendpassword,senttime,version,cmd,data)
+		senddata = self:Serialize(sendpassword,senttime,RPSsyncVersion,cmd,data)
 		compress = false
 	end
-	self:Debug("RPB:Send", comm, sendpassword,senttime,version,cmd,compress)
+	self:Debug("RPB:Send", comm, sendpassword,senttime,RPSsyncVersion,cmd,compress)
 	
 	self:SendCommMessage(comm, senddata, channel, player)
 end
@@ -103,7 +103,7 @@ function RPB:OnCommReceived(pre, message, distribution, sender)
 	if not self.rpoSettings.versioninfo then self.rpoSettings.versioninfo = {} end
 	self.rpoSettings.versioninfo[sender] = ver
 	if ver < compversion then
-		self:Send(cs.alert, "Your bot version is out of date.  Version: "..version.." Your Version: "..ver.." Compatible Version: "..compversion..".", sender);
+		self:Send(cs.alert, "Your bot version is out of date.  Version: "..RPSsyncVersion.." Your Version: "..ver.." Compatible Version: "..compversion..".", sender);
 		return
 	end
 	
@@ -606,6 +606,7 @@ RPB.syncCommands[cs.rolllistaward] = function(self, msg, sender)
 end
 
 RPB.syncCommands[cs.itemlistadd] = function(self, msg, sender)
+	self:Debug("self:ItemListAdd", unpack(msg or {}))
 	if sender == UnitName("player") then return end
 	--self:Print(unpack(msg or {}))
 	self:ItemListAdd(unpack(msg or {}))

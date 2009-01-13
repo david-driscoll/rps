@@ -465,13 +465,13 @@ function rollWindowScrollFrameOnClick(rowFrame, cellFrame, data, cols, row, real
 				end
 				f.scrollFrame.selected = data[realrow]
 				f.scrollFrame.selected.selected = true
-				f.scrollFrame.selected.highlight = RPB:GetColor(UnitName("player"))
+				f.scrollFrame.selected.highlight = GetColor(UnitName("player"))
 
 				f.scrollFrame:Refresh()
 				local sendData = RPB:StripRow(data[realrow])
 				--RPB:Print(unpack(sendData))
 				f.editbox["AwardItem"]:SetText(data[realrow].cols[crl.loss].value)
-				RPB:Send(cs.rolllistclick, {sendData, RPB:GetColor(UnitName("player"))})
+				RPB:Send(cs.rolllistclick, {sendData, GetColor(UnitName("player"))})
 			end
 		elseif button == "RightButton" then
 			if data[realrow] then
@@ -493,11 +493,11 @@ function rollWindowItemScrollFrameOnClick(rowFrame, cellFrame, data, cols, row, 
 				end
 				f.scrollFrameLoot.selected = data[realrow]
 				f.scrollFrameLoot.selected.selected = true
-				f.scrollFrameLoot.selected.highlight = RPB:GetColor(UnitName("player"))
+				f.scrollFrameLoot.selected.highlight = GetColor(UnitName("player"))
 				f.scrollFrameLoot:Refresh()
 				local sendData = RPB:StripRow(data[realrow])
 				--RPB:Print(unpack(sendData))
-				RPB:Send(cs.itemlistclick, {sendData, RPB:GetColor(UnitName("player"))})
+				RPB:Send(cs.itemlistclick, {sendData, GetColor(UnitName("player"))})
 			end
 		elseif button == "RightButton" then
 			if data[realrow] then
