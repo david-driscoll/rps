@@ -91,6 +91,12 @@ RPB.chatCommands["dbupdate"] = function (self, msg)
 	end
 end
 
+RPB.chatCommands["dbupdateall"] = function (self, msg)
+	if self.rpoSettings.master == UnitName("player") then
+		self:Send(cs.dballupdate, "you")
+	end
+end
+
 RPB.chatCommands["force"] = function (self, msg)
 	_, player, cmd, pos = self:GetArgs(msg, 3, 1)
 	self:RollListAdd(player, cmd)
