@@ -24,6 +24,7 @@ Libs\AceSerializer-3.0\AceSerializer-3.0.xml
 Libs\AceTimer-3.0\AceTimer-3.0.xml
 Libs\lib-st\Core.lua
 Libs\LibCompress\LibCompress.lua
+Libs\MD5-1.0\MD5-1.0.lua
 #@end-no-lib-strip@
 Libs\GuildLib\GuildLib.lua
 Libs\BLib\BLib.lua

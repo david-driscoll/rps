@@ -28,6 +28,35 @@ local cllArg = RPSConstants.stArgs["RollWindowLootList"]
 local con = RPSConstants.stConstants["RollWindowNameList"]
 local conArg = RPSConstants.stArgs["RollWindowNameList"]
 
+local function RPB_GetPoints(player)
+	local pdata = RPB:GetPlayerHistory(player)
+	return pdata.points
+end
+
+local function RPB_GetTotal(player)
+	local f = RPB.frames["RollWindow"]
+	local rollList = f.rollList
+	local pdata = RPB:GetPlayerHistory(player)
+	for i=1,#rollList do
+		if (string.lower(rollList[i].cols[crl.player].value) == string.lower(player)) then
+			return RPB:CalculateMaxPoints(pdata.points, rollList[i].cols[crl.ty].value) + rollList[i].cols[crl.roll].value
+		end
+	end
+	return 0
+end
+
+local function RPB_GetLoss(player)
+	local f = RPB.frames["RollWindow"]
+	local rollList = f.rollList
+	local pdata = RPB:GetPlayerHistory(player)
+	for i=1,#rollList do
+		if (string.lower(rollList[i].cols[crl.player].value) == string.lower(player)) then
+			return RPB:CalculateLoss(pdata.points, rollList[i].cols[crl.ty].value)		
+		end
+	end
+	return 0
+end
+
 function RPB:CreateFrameRollWindow()
 	db = RPB.db
 	-- if self.Frame then
@@ -108,9 +137,10 @@ function RPB:CreateFrameRollWindow()
 					GameTooltip:AddDoubleLine("Class", data[realrow].cols[crl.class].value)
 					GameTooltip:AddDoubleLine("Rank", data[realrow].cols[crl.rank].value)
 					GameTooltip:AddDoubleLine("Type", data[realrow].cols[crl.ty].value)
-					GameTooltip:AddDoubleLine("Total", data[realrow].cols[crl.total].value)
+					GameTooltip:AddDoubleLine("Points", RPB_GetPoints(data[realrow].cols[crl.total].args[1]))
+					GameTooltip:AddDoubleLine("Total", RPB_GetTotal(data[realrow].cols[crl.total].args[1]))
 					GameTooltip:AddDoubleLine("Roll", data[realrow].cols[crl.roll].value)
-					GameTooltip:AddDoubleLine("Total", data[realrow].cols[crl.loss].value)
+					GameTooltip:AddDoubleLine("Loss", RPB_GetPoints(data[realrow].cols[crl.loss].args[1]))
 					if data[realrow].selected and data[realrow].highlight then
 						GameTooltip:AddDoubleLine("Selected by:", selectedby, nil, nil, nil, data[realrow].highlight.r, data[realrow].highlight.g, data[realrow].highlight.b)
 					end
@@ -470,13 +500,13 @@ function rollWindowScrollFrameOnClick(rowFrame, cellFrame, data, cols, row, real
 				f.scrollFrame:Refresh()
 				local sendData = RPB:StripRow(data[realrow])
 				--RPB:Print(unpack(sendData))
-				f.editbox["AwardItem"]:SetText(data[realrow].cols[crl.loss].value)
+				f.editbox["AwardItem"]:SetText(RPB_GetLoss(data[realrow].cols[crl.loss].args[1]))
 				RPB:Send(cs.rolllistclick, {sendData, GetColor(UnitName("player"))})
 			end
 		elseif button == "RightButton" then
 			if data[realrow] then
 				RPB:RollListRemove(data[realrow].cols[crl.player].value)
-				f.scrollFrame:SortData()
+				RPB:RollListSort()
 			end
 		end
 	end
@@ -517,18 +547,18 @@ function rollWindowScrollFrameColor(roll)
 	local low = 0
 	local rollList = f.rollList
 	for i=1,#rollList do
-		if (rollList[i].cols[crl.total].value < low) then
-			low = rollList[i].cols[crl.total].value
+		if (RPB_GetTotal(rollList[i].cols[crl.total].args[1]) < low) then
+			low = RPB_GetTotal(rollList[i].cols[crl.total].args[1])
 		end
 	end
 	local high = low
 	for i=1,#rollList do
-		if (rollList[i].cols[crl.total].value > high) then
-			high = rollList[i].cols[crl.total].value
+		if (RPB_GetTotal(rollList[i].cols[crl.total].args[1]) > high) then
+			high = RPB_GetTotal(rollList[i].cols[crl.total].args[1])
 		end
 	end
 	local color
-	if high - roll.cols[crl.total].value > diff then
+	if high - RPB_GetTotal(roll.cols[crl.total].args[1]) > diff then
 		color = {
 		["r"] = 1.0,
 		["g"] = 0.0,
@@ -537,7 +567,7 @@ function rollWindowScrollFrameColor(roll)
 		}
 	else
 		--RPB:Print(high, roll.cols[crl.total].value, high - roll.cols[crl.total].value, diff)
-		local ratio = ((high - roll.cols[crl.total].value) / (diff * 1.000))
+		local ratio = ((high - RPB_GetTotal(roll.cols[crl.total].args[1])) / (diff * 1.000))
 		--RPB:Print(ratio)
 		local r,g,b = ColorGradient(ratio, 0,1,0, 1,0.5,0)
 		color = {
@@ -569,33 +599,27 @@ function RPB:RollListAdd(player, cmd, recieved)
 	local class, rank, ty, total, loss
 	local feature = self.feature[string.lower(cmd)]
 	local divisor = feature.divisor or 2
+	ty = feature.name
 	
 	if pinfo then
 		class = pinfo["class"] or ""
 		rank = pinfo["rank"] or ""
 	end	
-	
-	pdata = self:GetPlayerHistory(player)
-	total = pdata.points
-	local maxpoints = self.feature[string.lower(feature.name)].maxpoints or tonumber(self.rpbSettings.maxpoints) or 0
-	if maxpoints > 0 and total > maxpoints then
-		total = maxpoints
-	end
-	player = pinfo.name
-	
-	ty = feature.name
+
 	local rollList = self.frames["RollWindow"].rollList
 	for i=1,#rollList do
 		if (string.lower(rollList[i].cols[crl.player].value) == string.lower(player)) then
 			if (string.lower(rollList[i].cols[crl.ty].value) ~= string.lower(ty)) then
 				if feature.nolist then
 					self:RollListRemove(player)
+					return "nolist"
 				else
+					local oldty = rollList[i].cols[crl.ty].value
 					self:RollListUpdateType(player, ty)
-					return true
+					return "newtype", oldty, ty
 				end
 			end
-			return false
+			return "alreadybidding", rollList[i].cols[crl.ty].value
 		end
 	end
 	
@@ -604,9 +628,13 @@ function RPB:RollListAdd(player, cmd, recieved)
 	end
 	
 	if feature.nolist then
-		return false
+		return "nolist"
 	end
 
+	pdata = self:GetPlayerHistory(player)
+	total = self:CalculateMaxPoints(pdata.points, cmd)
+	player = pinfo.name
+	
 	loss = self:CalculateLoss(total, cmd)
 	rollList[#rollList+1] = self:BuildRow(
 		{
@@ -614,15 +642,15 @@ function RPB:RollListAdd(player, cmd, recieved)
 			[crl.class]		=	class or "",
 			[crl.rank]		=	rank or "",
 			[crl.ty]		=	ty,
-			[crl.points]	= 	pdata.points,
+			[crl.points]	= 	{RPB_GetPoints, {player}},
 			[crl.roll]		=	0,
-			[crl.total]		=	total,
-			[crl.loss]		=	loss,
+			[crl.total]		=	{RPB_GetTotal, {player}},
+			[crl.loss]		=	{RPB_GetLoss, {player}},
 		},
 		crlArg, rollWindowScrollFrameColor
 	)
 	self:RollListSort()
-	return true
+	return "added", total
 end
 
 function RPB:RollListRemove(player, recieved)
@@ -650,12 +678,22 @@ function RPB:RollListClear(recieved)
 	end
 	f.rollList = {}
 	f.scrollFrame:SetData(f.rollList)
-	f.scrollFrame:SortData()
+	self:RollListSort()
 	f.scrollFrame.selected = nil
 	self:RollListSort()
 	f.inProgress = false
 	f.state = "Initial"
 	self:UpdateUI()
+end
+
+function RPB:RollListUpdate(index, player)
+	local f = self.frames["RollWindow"]
+	local rollList = f.rollList
+	local feature = self.feature[string.lower(cmd)]
+	local pdata = self:GetPlayerHistory(player)
+	--rollList[index].cols[crl.points].value = pdata.points
+	--rollList[index].cols[crl.total].value = self:CalculateMaxPoints(pdata.points, rollList[index].cols[crl.ty].value)
+	--rollList[index].cols[crl.loss].value = self:CalculateLoss(pdata.points, rollList[index].cols[crl.ty].value)
 end
 
 function RPB:RollListUpdateType(player, ty, recieved)
@@ -671,6 +709,7 @@ function RPB:RollListUpdateType(player, ty, recieved)
 			if ty then
 				rollList[i].cols[crl.ty].value = ty
 			end
+			--self:RollListUpdate(i, string.lower(player))
 			found = true
 			break
 		end
@@ -699,16 +738,13 @@ function RPB:RollListUpdateRoll(player, roll, recieved)
 				end
 				break
 			end
-			local total = self:GetPlayerHistory(player).points
-			local maxpoints = self.feature[string.lower(rollList[i].cols[crl.ty].value)].maxpoints or tonumber(self.rpbSettings.maxpoints) or 0
-			if maxpoints > 0 and total > maxpoints then
-				total = maxpoints
-			end
+			--self:RollListUpdate(i, string.lower(player))
+			local total = RPB_GetTotal(rollList[i].cols[crl.total].args[1])
 			if roll then
 				rollList[i].cols[crl.roll].value = roll
-				rollList[i].cols[crl.total].value = total + roll
+				--rollList[i].cols[crl.total].value = total + roll
 			else
-				rollList[i].cols[crl.total].value = total + rollList[i].cols[crl.roll].value
+				--rollList[i].cols[crl.total].value = total + rollList[i].cols[crl.roll].value
 			end
 			break
 		end
@@ -726,6 +762,9 @@ function RPB:RollListSort()
 	local f = self.frames["RollWindow"]
 	-- Call the sort function for total?
 	if f and f.scrollFrame then
+		if f.scrollFrame.selected then
+			f.editbox["AwardItem"]:SetText(RPB_GetLoss(f.scrollFrame.selected.cols[crl.loss].args[1]))
+		end
 		--f.scrollFrame.cols[crl.roll] = "asc"
 		local st = f.scrollFrame
 		local cols = st.cols
@@ -760,10 +799,12 @@ function RPB:RollListAward(recieved)
 	class = winner[crl.class].value
 	rank = winner[crl.rank].value
 	ty = winner[crl.ty].value
-	total = winner[crl.total].value
+	total = RPB_GetTotal(winner[crl.total].args[1])
 	--loss = winner[crl.loss].value
 	loss = tonumber(editbox:GetText()) or 0
-	loss = -(loss)
+	if loss > 0 then
+		loss = -(loss)
+	end
 	roll = winner[crl.roll].value
 	ptotal = self:GetPlayerHistory(player).points
 	f.state = "Initial"
@@ -1031,6 +1072,12 @@ end
 
 RPB.syncCommands[cs.rolllistset] = function(self, msg, sender)
 	local f = self.frames["RollWindow"]
+	
+	for i=1,#msg[1] do
+		msg[1][i][crl.points]	= 	{RPB_GetPoints, {msg[1][i][crl.player]}}
+		msg[1][i][crl.total]	=	{RPB_GetTotal, 	{msg[1][i][crl.player]}}
+		msg[1][i][crl.loss]		=	{RPB_GetLoss, 	{msg[1][i][crl.player]}}
+	end
 	local temp = self:BuildTable(msg[1], crlArg, rollWindowScrollFrameColor)
 	f.rollList = temp
 	local frame = f.scrollFrame
@@ -1068,13 +1115,14 @@ RPB.syncCommands[cs.rolllistclick] = function(self, msg, sender)
 			frame.selected = list[i]
 			list[i].selected = true
 			list[i].highlight = msg[2]
+			f.editbox["AwardItem"]:SetText(RPB_GetLoss(list[i].cols[crl.loss].args[1]))
 		--elseif not (list[i].selected and list[i].highlight ~= RPB:GetColor(UnitName("player"))) then
 		else
 			list[i].selected = false
 			list[i].highlight = nil
 		end
 	end
-	f.scrollFrame:SortData()
+	self:RollListSort()
 end
 
 RPB.syncCommands[cs.itemlistclick] = function(self, msg, sender)

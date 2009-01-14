@@ -285,7 +285,6 @@ function RPF:OnEnable()
 end
 
 function RPF:UpdateSets(msg)
-	self.db.realm.settings.version = time()
 	self.db.realm.featureSets = msg
 	RPF:RemoveFeatureSet()
 	RPF:AddFeatureSet(db.realm.settings.featureSet)
@@ -327,9 +326,14 @@ function RPF:AddFeature(data)
 
 	RPB.whisperCommands[data.command] = function(self, msg, name)
 		if self.frames["RollWindow"] and self.frames["RollWindow"].inProgress then
-			if not self:RollListAdd(name, data.command) then
-				self:Whisper("You are already bidding on that item.", name)
-			else
+			local rlaStatus, points_or_type, newty = self:RollListAdd(name, data.command)
+			if rlaStatus == "alreadybidding" then
+				self:Whisper("You are already bidding on that item. (" .. points_or_type .. ")", name)
+			elseif rlaStatus == "newtype" then
+				self:Whisper("Bid changed from " .. points_or_type .. " to " .. newty .. ".", name)
+			elseif rlaStatus == "nolist" then
+				self:Whisper(data.name .. " recieved, removing bid.", name)
+			elseif rlaStatus == "added" then
 				self:Whisper(data.name .. " recieved.", name)
 			end
 		else
@@ -337,11 +341,11 @@ function RPF:AddFeature(data)
 		end
 	end
 
-	RPB.syncCommands[data.command] = function (self, msg, from)
+	--RPB.syncCommands[data.command] = function (self, msg, from)
 		-- Sync command should not be needed.
 		-- Whisper command hits, sends rollistadd command, which contains the same command.
-		self:RollListAdd()
-	end
+		--self:RollListAdd()
+	--end
 	if RPB.frames["ClientWindow"] then
 		for i=1,#RPB.frames["ClientWindow"] do
 			local f = RPB.frames["ClientWindow"][i]

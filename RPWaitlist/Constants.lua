@@ -144,9 +144,9 @@ RPSConstants.stArgs["Waitlist"] =
 {
 	[RPSConstants.stConstants["Waitlist"].name] 		= { },
 	[RPSConstants.stConstants["Waitlist"].alt] 			= { }, 
-	[RPSConstants.stConstants["Waitlist"].class] 		= { nil, ClassColor },
+	[RPSConstants.stConstants["Waitlist"].class] 		= { ClassColor },
 	[RPSConstants.stConstants["Waitlist"].status] 		= { },
-	[RPSConstants.stConstants["Waitlist"].timestamp] 	= { nil, nil, nil, DoTimestampUpdate },
+	[RPSConstants.stConstants["Waitlist"].timestamp] 	= { nil, nil, DoTimestampUpdate },
 }
 
 -- Guild Roster table contents
@@ -168,7 +168,7 @@ RPSConstants.stArgs["Roster"] =
 	[RPSConstants.stConstants["Roster"].name]			= { },
 	[RPSConstants.stConstants["Roster"].rank]			= { },
 	[RPSConstants.stConstants["Roster"].level]			= { },
-	[RPSConstants.stConstants["Roster"].class]			= { nil, ClassColor },
+	[RPSConstants.stConstants["Roster"].class]			= { ClassColor },
 	[RPSConstants.stConstants["Roster"].zone]			= { },
 	[RPSConstants.stConstants["Roster"].status]			= { },
 	[RPSConstants.stConstants["Roster"].online]			= { },

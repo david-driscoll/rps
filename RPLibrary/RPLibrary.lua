@@ -314,7 +314,13 @@ end
 -- @param color Color object for lib-st
 -- @param colorargs Arguments for the color object if it is a function
 -- @param dce DoCellUpdate, allows a custom display function to be used for that row or cell
-function RPLibrary:BuildColumn(value, args, color, colorargs, dce)
+function RPLibrary:BuildColumn(value, color, colorargs, dce)
+	local args = nil
+	if (type(value) == "table") then
+		RPB:Debug(value[1], value[2])
+		args = value[2]
+		value = value[1]
+	end
 	if (colorargs == nil and type(color) == "function") then colorargs = value end
 	local temp = {["value"] = value}
 	if args then
@@ -385,6 +391,9 @@ end
 -- This function will take the given the lib-st column and return a simple data column
 -- @param tb The column to strip
 function RPLibrary:StripColumn(col)
+	if type(col.value) == "function" then
+		return nil
+	end
 	return col.value
 end
 

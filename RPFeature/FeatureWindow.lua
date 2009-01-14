@@ -23,7 +23,10 @@ local cfsArg = RPSConstants.stArgs["FeatureSet"]
 local cfc = RPSConstants.stConstants["FeatureCommand"]
 local cfcArg = RPSConstants.stArgs["FeatureCommand"]
 
+local cs
+
 function RPF:CreateFrame()
+	cs = RPSConstants.syncCommands["Bot"]
 	db = RPF.db
 	-- if self.Frame then
 	  -- self.Frame:Hide()
@@ -402,7 +405,7 @@ function featureWindowSetScrollFrameOnClick(rowFrame, cellFrame, data, cols, row
 	local f = RPF.frames["FeatureWindow"]
 		if button == "LeftButton" then
 			if data[realrow] then
-					RPF:SaveData()
+				RPF:SaveData()
 				if f.scrollSetFrame.selected then
 					f.scrollSetFrame.selected.selected = false
 					f.scrollSetFrame.selected.highlight = nil
@@ -539,12 +542,13 @@ function RPF:CommitChanges()
 		end
 	end
 	if RPB then
-		RPB:Send(cs.fssend, self.db.realm.featureSets)
+		RPB:Send(cs.fssend, {self.db.realm.featureSets, self.db.realm.settings.version})
 	end
 	f:Hide()
 end
 
 function RPF:CancelChanges()
+	local f = RPF.frames["FeatureWindow"]
 	f:Hide()
 end
 

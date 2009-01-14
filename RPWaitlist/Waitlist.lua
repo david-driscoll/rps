@@ -30,15 +30,12 @@ local minRank = 2
 --local RPLibrary = LibStub:GetLibrary("RPLibrary")
 
 RPWL = LibStub("AceAddon-3.0"):NewAddon("Raid Points Waitlist", "AceConsole-3.0", "AceEvent-3.0", "AceComm-3.0", "AceSerializer-3.0", "RPLibrary", "GuildLib", "BLib")
---local MD5 = LibStub:GetLibrary("MDFive-1.0")
+local MDFive = LibStub:GetLibrary("MDFive-1.0")
 local LibCompress = LibStub:GetLibrary("LibCompress")
 local EncodeTable
 
 local function MD5(data)
-	local code = LibCompress:fcs16init()
-	code = LibCompress:fcs16update(code, data)
-	code = LibCompress:fcs16final(code)
-	return code
+	return MDFive:MD5(data)
 end
 
 -- Local Table Constants

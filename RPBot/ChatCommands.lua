@@ -87,7 +87,7 @@ end
 
 RPB.chatCommands["dbupdate"] = function (self, msg)
 	if self.rpoSettings.master ~= UnitName("player") then
-		self:Send(cs.dboutdate, "you", self.rpoSettings.master)
+		self:Send(cs.dbupdate, "you", self.rpoSettings.master)
 	end
 end
 

@@ -24,14 +24,12 @@ local CommCmd = "rpb"
 RPSsyncVersion = tonumber("@file-revision@") or 10000
 local compversion = 88
 
+local MDFive = LibStub:GetLibrary("MDFive-1.0")
 local LibCompress = LibStub:GetLibrary("LibCompress")
 local EncodeTable
 
 local function MD5(data)
-	local code = LibCompress:fcs16init()
-	code = LibCompress:fcs16update(code, data)
-	code = LibCompress:fcs16final(code)
-	return code
+	return MDFive:MD5(data)
 end
 
 local cs = RPSConstants.syncCommands["Bot"]
@@ -119,10 +117,28 @@ function RPB:OnCommReceived(pre, message, distribution, sender)
 			cmd == cs.dbupdate or
 			cmd == cs.dbmd5 or
 			cmd == cs.dbrequest or
-			cmd == cs.vsinfo or
-			cmd == cs.dbsend
+			cmd == cs.vssend or
+			cmd == cs.dbsend or
+			cmd == cs.setraid or
+			cmd == cs.itemlistset or
+			cmd == cs.itemlistget or
+			cmd == cs.rolllistset or
+			cmd == cs.rolllistget or
+			cmd == cs.rolllistadd or
+			cmd == cs.rolllistremove or
+			cmd == cs.rolllistupdateroll or
+			cmd == cs.rolllistupdatetype or
+			cmd == cs.rolllistdisenchant or
+			cmd == cs.rolllistclear or
+			cmd == cs.startbidding or
+			cmd == cs.starttimedbidding or
+			cmd == cs.rolllistclick or
+			cmd == cs.itemlistadd or
+			cmd == cs.itemlistremove or
+			cmd == cs.itemlistclick or
+			cmd == cs.itemlistclear
 		) then
-			--self:Print(self.syncHold, cmd)			
+			self:Debug("self.syncHold ON!", self.syncHold, cmd)			
 			if (
 				cmd == cs.pointsadd or
 				cmd == cs.pointsremove or
@@ -145,6 +161,9 @@ end
 RPB.syncCommands = {}
 
 RPB.syncCommands[cs.logon] = function(self, msg, sender)
+	if not self.dbvsTimer then
+		self.dbvsTimer = self:ScheduleTimer("VersionRequest", 10)
+	end
 	if sender == UnitName("player") then return end
 	self:Send(cs.vssend, self.db.realm.version, sender)
 end
@@ -160,9 +179,6 @@ RPB.syncCommands[cs.vsinfo] = function(self, msg, sender)
 end
 
 RPB.syncCommands[cs.vssend] = function(self, msg, sender)
-	if not self.dbvsTimer then
-		self.dbvsTimer = self:ScheduleTimer("VersionRequest", 10)
-	end
 	dbvs[sender] = msg
 end
 
@@ -176,17 +192,28 @@ function RPB:VersionRequest()
 	local lastactionowner = nil
 	local featureowner = nil
 	
+	if (#dbvs == 0) then
+		self.syncHold = false
+		for i=1,#self.syncQueue do
+			RPB:OnCommReceived(unpack(self.syncQueue[i] or {}))
+		end
+		self.syncQueue = {}
+		self.syncResync = false
+		self:Send(cs.vsreq, self.db.realm.version)
+		self:Send(cs.vsinfo, self.db.realm.version)
+	end
+	
 	for key,value in pairs(dbvs) do
 		local msg = dbvs[key]
 		local sender = key
 		--if self.rpoSettings.master == UnitName("player") then
 		if msg.database == self.db.realm.version.database then
 			if msg.lastaction == self.db.realm.version.lastaction then
+				self.syncHold = false
 				for i=1,#self.syncQueue do
 					RPB:OnCommReceived(unpack(self.syncQueue[i] or {}))
 				end
 				self.syncQueue = {}
-				self.syncHold = false
 				self.syncResync = false
 				self.rpoSettings.dbinfo[sender] = msg
 				self:Send(cs.vsreq, self.db.realm.version)
@@ -231,9 +258,9 @@ function RPB:VersionRequest()
 			end
 		end
 		
-		if msg > self.db.realm.version.feature then
+		if msg.feature > self.db.realm.version.feature then
 			self:Send(cs.fsupdate, "me", sender)
-		elseif msg < self.db.realm.version.feature then
+		elseif msg.feature < self.db.realm.version.feature then
 			self:Send(cs.fsoutdate, "me", sender)
 		end
 		
@@ -480,11 +507,11 @@ RPB.syncCommands[cs.dbsend] = function(self, msg, sender)
 		end
 		self.db.realm.version.database = msg[2]
 		self.db.realm.version.lastaction = msg[3]
+		self.syncHold = false
 		for i=1,#self.syncQueue do
 			RPB:OnCommReceived(unpack(self.syncQueue[i] or {}))
 		end
 		self.syncQueue = {}
-		self.syncHold = false
 		self:Send(cs.vsinfo, self.db.realm.version)
 		if (self.rpoSettings.master == UnitName("player")) then
 			self:Send(cs.dballupdate, "go")
@@ -628,7 +655,9 @@ end
 
 RPB.syncCommands[cs.fssend] = function(self, msg, sender)
 	if sender == UnitName("player") then return end
-	RPF:UpdateSets(msg)
+	RPF:UpdateSets(msg[1])
+	RPF.db.realm.settings.version = msg[2]
+	self:Send(cs.vsinfo, self.db.realm.version)
 	-- self:ItemListRemove(msg[1], msg[2])
 end
 
@@ -640,7 +669,7 @@ end
 
 RPB.syncCommands[cs.fsupdate] = function(self, msg, sender)
 	if sender == UnitName("player") then return end
-	self:Send(cs.fssend, RPF.db.realm.featureSets, sender)
+	self:Send(cs.fssend, {RPF.db.realm.featureSets, RPF.db.realm.settings.version}, sender)
 	-- self:ItemListRemove(msg[1], msg[2])
 end
 

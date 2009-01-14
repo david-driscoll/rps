@@ -92,11 +92,12 @@ RPSConstants.stConstants["RollWindow"] =
 RPSConstants.stArgs["RollWindow"] = 
 {
 	[RPSConstants.stConstants["RollWindow"].player]		= { },
-	[RPSConstants.stConstants["RollWindow"].class]		= { nil, ClassColor },
+	[RPSConstants.stConstants["RollWindow"].class]		= { ClassColor },
 	[RPSConstants.stConstants["RollWindow"].rank]		= { },
 	[RPSConstants.stConstants["RollWindow"].ty]			= { },
-	[RPSConstants.stConstants["RollWindow"].total]		= { },
+	[RPSConstants.stConstants["RollWindow"].points]		= { },
 	[RPSConstants.stConstants["RollWindow"].roll]		= { },
+	[RPSConstants.stConstants["RollWindow"].total]		= { },
 	[RPSConstants.stConstants["RollWindow"].loss]		= { },
 }
 
@@ -125,7 +126,7 @@ RPSConstants.stConstants["RollWindowNameList"] =
 
 RPSConstants.stArgs["RollWindowNameList"] = 
 {
-	[RPSConstants.stConstants["RollWindowNameList"].name]		= { nil, GetColor },
+	[RPSConstants.stConstants["RollWindowNameList"].name]		= { GetColor },
 }
 
 

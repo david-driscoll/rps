@@ -23,15 +23,12 @@ local CommCmd = "rpbDEBUG"
 local CommCmd = "rpb"
 --@end-non-alpha@]===]
 
---local MD5 = LibStub:GetLibrary("MDFive-1.0")
+local MDFive = LibStub:GetLibrary("MDFive-1.0")
 local LibCompress = LibStub:GetLibrary("LibCompress")
 local EncodeTable
 
 local function MD5(data)
-	local code = LibCompress:fcs16init()
-	code = LibCompress:fcs16update(code, data)
-	code = LibCompress:fcs16final(code)
-	return code
+	return MDFive:MD5(data)
 end
 
 local cs = RPSConstants.syncCommands["Bot"]
@@ -138,7 +135,7 @@ function RPB:OnEnable()
 		self.debugOn = true
 	end
 	
-	db.realm.version.feature = RPF.db.realm.version
+	db.realm.version.feature = RPF.db.realm.settings.version
 	db.realm.version.bot = RPSsyncVersion
 
 end
@@ -665,7 +662,7 @@ function RPB:PointsUpdate(datetime, player, points, ty, itemid, reason, waitlist
 end
 
 function RPB:CalculateLoss(points, cmd)
-	local feature = self.feature[cmd]
+	local feature = self.feature[string.lower(cmd)]
 	-- Make this loaclizable, for generic changes.
 	local divisor = tonumber(feature.divisor) or tonumber(self.rpbSettings.divisor)
 	-- local minclass = feature.minclass or db.realm.settings.minclass
@@ -691,6 +688,24 @@ function RPB:CalculateLoss(points, cmd)
 	end
 	
 	return loss
+end
+
+function RPB:CalculateMaxPoints(points, cmd)
+	local feature = self.feature[string.lower(cmd)]
+	-- Make this loaclizable, for generic changes.
+	local maxpoints = feature.maxpoints or tonumber(self.rpbSettings.maxpoints) or 0
+	local maxclass = feature.maxclass or tonumber(self.rpbSettings.maxclass) or 0
+	local maxnonclass = feature.maxnonclass or tonumber(self.rpbSettings.maxnonclass) or 0
+	local total = points
+	if maxpoints == 0 and (maxclass == 0 and maxnonclass == 0) then
+		total = 0
+	elseif maxpoints > 0 then
+		total = points
+		if total > maxpoints then
+			total = maxpoints
+		end
+	end
+	return total
 end
 
 function RPB:CalculatePoints(player, raid)
