@@ -22,7 +22,7 @@ local CommCmd = "rpb"
 --@end-non-alpha@]===]
 
 RPSsyncVersion = tonumber("@file-revision@") or 10000
-local compversion = 88
+local compversion = 94
 
 local MDFive = LibStub:GetLibrary("MDFive-1.0")
 local LibCompress = LibStub:GetLibrary("LibCompress")
