@@ -417,7 +417,12 @@ function RPB:PlayerToArray(player, to)
 end
 
 function RPB:PointsAdd(raid, datetime, player, value, ty, itemid, reason, waitlist, whisper, recieved)
-	local playerlist = self:PlayerToArray(player);
+	local playerlist
+	if type(player) == "table" then
+		playerlist = player
+	else
+		playerlist = self:PlayerToArray(player);
+	end
 	local playerdata
 	if not reason then return nil end
 	if not raid then return nil end
@@ -431,17 +436,7 @@ function RPB:PointsAdd(raid, datetime, player, value, ty, itemid, reason, waitli
 		--	other clients. This will cause them to run the exact same command.
 		-- This edge case can not happen in Update or Remove because they handle "all" differently,
 		--	since they are searching the entire database to deal with that specific entry.
-		local p = nil
-		if player == "all" then
-			p = ""
-			for i=1, #playerlist do
-				local p = p .. playerlist[i].name .. ","
-			end
-			p:sub(-1)
-		else
-			p = nil
-		end
-		self:Send(cs.pointsadd, {raid, datetime, p or player, value, ty, itemid, reason, waitlist, false, true})
+		self:Send(cs.pointsadd, {raid, datetime, playerlist, value, ty, itemid, reason, waitlist, false, true})
 		-- self:Send(cs.pointsadd, 
 			-- {
 				-- ["datetime"] = datetime,
