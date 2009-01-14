@@ -24,7 +24,7 @@ local CommCmd = "rpwlDEBUG"
 --[===[@non-alpha@
 local CommCmd = "rpwl"
 --@end-non-alpha@]===]
-local syncrequest, syncowner, syncdone
+local syncrequest, syncowner, syncdone 
 local rosterupdate
 local minRank = 2
 --local RPLibrary = LibStub:GetLibrary("RPLibrary")
