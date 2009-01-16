@@ -418,8 +418,8 @@ function featureWindowSetScrollFrameOnClick(rowFrame, cellFrame, data, cols, row
 				f.scrollSetFrame.selected = data[realrow]
 				f.scrollSetFrame.selected.selected = true
 				f.scrollSetFrame.selected.highlight = { r = 0.0, g = 0.0, b = 0.5, a = 0.5 }
-				f.editbox["FeatureSetName"]:SetText(f.featureSet[f.scrollSetFrame.selected.cols[cfs.set].value]["name"])
-				f.editbox["FeatureSetDesc"]:SetText(f.featureSet[f.scrollSetFrame.selected.cols[cfs.set].value]["description"])
+				f.editbox["FeatureSetName"]:SetText(f.featureSet[f.scrollSetFrame.selected.cols[cfs.set].value]["name"] or "")
+				f.editbox["FeatureSetDesc"]:SetText(f.featureSet[f.scrollSetFrame.selected.cols[cfs.set].value]["description"] or "")
 				--RPB:Print(f.featureSet[f.scrollSetFrame.selected.cols[cfs.set].value]["description"], f.featureSet[f.scrollSetFrame.selected.cols[cfs.set].value]["name"])
 				f.scrollSetFrame:Refresh()
 				f.featureList = {}
@@ -439,8 +439,7 @@ function featureWindowSetScrollFrameOnClick(rowFrame, cellFrame, data, cols, row
 		elseif button == "RightButton" then
 			if data[realrow] then
 				f.scrollSetFrame.selected = data[realrow]
-				RPF:DeleteFeatureSet(data[realrow].cols[cfs.set].value)
-				f.scrollSetFrame:SortData()
+				RPF:DeleteFeatureSet()
 			end
 		end
 end
@@ -484,8 +483,7 @@ function featureWindowScrollFrameOnClick(rowFrame, cellFrame, data, cols, row, r
 		elseif button == "RightButton" then
 			if data[realrow] then
 				f.scrollFrame.selected = data[realrow]
-				RPF:DeleteFeature(data[realrow].cols[cfc.command].value)
-				f.scrollFrame:SortData()
+				RPF:DeleteFeature()
 			end
 		end
 end
@@ -593,10 +591,15 @@ function RPF:CreateFeatureSet()
 		},
 		cfsArg
 	)
+	f.featureSet[set] = {}
+	f.scrollSetFrame:SortData()
+	f.editbox["CreateFeatureSet"]:SetText("")
+	f.editbox["CreateFeatureSet"]:ClearFocus()
 end
 
 function RPF:DeleteFeatureSet()
 	local f = self.frames["FeatureWindow"]
+	if not f.scrollSetFrame.selected then return end
 	for i=1,#f.featureSetList do
 		if f.featureSetList[i] == f.scrollSetFrame.selected then
 			tremove(f.featureSetList,i)
@@ -617,10 +620,15 @@ function RPF:CreateFeature()
 		cfcArg
 	)
 	f.featureSet[f.scrollSetFrame.selected.cols[cfc.command].value][command] = {}
+	f.scrollFrame:SortData()
+	f.editbox["CreateFeature"]:SetText("")
+	f.editbox["CreateFeature"]:ClearFocus()
 end
 
 function RPF:DeleteFeature()
 	local f = self.frames["FeatureWindow"]
+	if not f.scrollSetFrame.selected then return end
+	if not f.scrollFrame.selected then return end
 	for i=1,#f.featureList do
 		if f.featureList[i] == f.scrollFrame.selected then
 			f.featureSet[f.scrollSetFrame.selected.cols[cfc.command].value][f.scrollFrame.selected.cols[cfc.command].value] = nil

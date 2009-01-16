@@ -137,7 +137,7 @@ function RPB:OnEnable()
 	
 	db.realm.version.feature = RPF.db.realm.settings.version
 	db.realm.version.bot = RPSsyncVersion
-
+	self.feature = RPF.feature
 end
 
 function RPB:DatabaseSync()

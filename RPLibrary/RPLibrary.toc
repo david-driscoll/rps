@@ -23,6 +23,7 @@ Libs\AceEvent-3.0\AceEvent-3.0.xml
 Libs\AceBucket-3.0\AceBucket-3.0.xml
 Libs\AceSerializer-3.0\AceSerializer-3.0.xml
 Libs\AceTimer-3.0\AceTimer-3.0.xml
+Libs\AceGUI-3.0\AceGUI-3.0.xml
 Libs\lib-st\Core.lua
 Libs\LibCompress\LibCompress.lua
 Libs\MD5-1.0\MD5-1.0.lua

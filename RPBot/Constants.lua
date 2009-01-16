@@ -313,7 +313,7 @@ RPSConstants.columnDefinitons["RollWindowNameList"] =
 {
 	{
 	    ["name"] = "Officers",
-	    ["width"] = 80,
+	    ["width"] = 120,
 	    ["align"] = "CENTER",
 	    -- ["color"] = { 
 	        -- ["r"] = 0.5, 

@@ -281,15 +281,26 @@ function RPF:OnEnable()
 	self.cmd4 = nil
 	self.cmd5 = nil
 	self:AddFeatureSet(db.realm.settings.featureSet)
+	self.feature = RPF.feature
 	cs = RPSConstants.syncCommands["Bot"]
 end
 
 function RPF:UpdateSets(msg)
 	self.db.realm.featureSets = msg
-	RPF:RemoveFeatureSet()
-	RPF:AddFeatureSet(db.realm.settings.featureSet)
+	self:SwitchSet(db.realm.settings.featureSet)
 	RPB.feature = self.feature
 	RPB.db.realm.version.feature = self.db.realm.settings.version
+end
+
+function RPF:SwitchSet(newset)
+	self:RemoveFeatureSet()
+	db.realm.settings.featureSet = newset
+	self:AddFeatureSet(newset)
+	if not self.Print then
+		if RPB and RPB.Print then
+			RPB:Print("Now using feature set:", newset)
+		end
+	end
 end
 
 function RPF:AddFeatureSet(name)

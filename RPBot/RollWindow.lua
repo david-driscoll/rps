@@ -28,6 +28,8 @@ local cllArg = RPSConstants.stArgs["RollWindowLootList"]
 local con = RPSConstants.stConstants["RollWindowNameList"]
 local conArg = RPSConstants.stArgs["RollWindowNameList"]
 
+local AceGUI = LibStub:GetLibrary("AceGUI-3.0")
+
 local function RPB_GetPoints(player)
 	local pdata = RPB:GetPlayerHistory(player)
 	return pdata.points
@@ -184,8 +186,8 @@ function RPB:CreateFrameRollWindow()
 			-- f.item[i] = self:CreateLootFrame(f, i)
 		-- end
 		f.nameList = {}
-	    f.scrollFrameName = ScrollingTable:CreateST(RPSConstants.columnDefinitons["RollWindowNameList"], 9, nil, nil, f, true);
-		f.scrollFrameName.frame:SetPoint("TOPRIGHT", f, "TOPRIGHT", -10, -45)
+	    f.scrollFrameName = ScrollingTable:CreateST(RPSConstants.columnDefinitons["RollWindowNameList"], 5, nil, nil, f, true);
+		f.scrollFrameName.frame:SetPoint("TOPRIGHT", f, "TOPRIGHT", -10, -110)
 		f.scrollFrameName:SetData(f.nameList)
 		f.scrollFrameName:RegisterEvents({
 			--["OnClick"] = rollWindowItemScrollFrameOnClick,
@@ -211,7 +213,49 @@ function RPB:CreateFrameRollWindow()
 		});
 		getglobal("ScrollTable2HeadCol1"):SetScript("OnClick", nil);
 
-end
+	end
+	
+	local raidDropDown = {}
+	for k,v in pairs(self.db.realm.raid) do
+		raidDropDown[k] = k
+	end
+	
+	local featureDropDown = {}
+	for k,v in pairs(RPF.db.realm.featureSets) do
+		featureDropDown[k] = v.name or k
+	end
+	
+	f.dropdown = {}
+	local dropdown = AceGUI:Create("Dropdown")
+	dropdown.frame:SetParent(f)
+	dropdown:SetList(raidDropDown)
+	dropdown:SetWidth(150)
+	dropdown:SetValue(self.rpoSettings.raid)
+	dropdown:SetPoint("TOPRIGHT", f, "TOPRIGHT", -12, -30)
+	dropdown.pullout:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
+	dropdown:SetCallback("OnValueChanged", function(object, event, value, ...)
+			RPB:UseDatabase(value)
+		end
+	)
+	f.dropdown["Raid"] = dropdown
+	
+	f.dropdown = {}
+	local dropdown = AceGUI:Create("Dropdown")
+	dropdown.frame:SetParent(f)
+	dropdown:SetList(featureDropDown)
+	dropdown:SetWidth(150)
+	dropdown:SetValue(RPF.db.realm.settings.featureSet)
+	dropdown:SetPoint("TOPRIGHT", f, "TOPRIGHT", -12, -60)
+	dropdown.pullout:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
+	dropdown:SetCallback("OnValueChanged", function(object, event, value, ...)
+			RPF:SwitchSet(value)
+		end
+	)
+	f.dropdown["Raid"] = dropdown
+
+	local font = f:CreateFontString("Name","OVERLAY","GameTooltipText")
+	font:SetText("Name:")
+	font:SetPoint("TOPRIGHT", editbox, "TOPLEFT", -10, -8)
 	
 	-- Buttons
 		-- Start Bidding
@@ -364,7 +408,7 @@ end
 		local button = CreateFrame("Button", f:GetName() .. "_ButtonMaster", f, "UIPanelButtonTemplate")
 		button:SetWidth(90)
 		button:SetHeight(21)
-		button:SetPoint("TOP", f.scrollFrameName.frame, "BOTTOM", 0, -10)
+		button:SetPoint("TOP", f.scrollFrameName.frame, "BOTTOM", 0, -4)
 		button:SetText("Master")
 		button:SetScript("OnClick", 
 		function(self)
