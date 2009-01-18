@@ -153,6 +153,19 @@ function RPLibrary:ScriptEditBox(editbox, insert)
 			self:HighlightText()
 		end)
 	end
+	editbox.oldOnEditFocusLost = editbox:GetScript("OnEditFocusGained")
+	editbox.Enable = function(self)
+		if self.oldOnEditFocusLost then
+			self:SetScript("OnEditFocusGained", self.oldOnEditFocusLost)
+		end
+		self.oldOnEditFocusLost = nil
+	end
+	editbox.Disable = function(self)
+		if not self.oldOnEditFocusLost then
+			self.oldOnEditFocusLost = self:GetScript("OnEditFocusGained")
+		end
+		self:SetScript("OnEditFocusGained", function (self) self:ClearFocus() end)
+	end
 	editbox:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
 end
 

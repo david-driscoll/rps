@@ -353,18 +353,20 @@ function RPF:CreateFrame()
 		font:SetText("Roll Difference:")
 		font:SetPoint("TOPRIGHT", editbox, "TOPLEFT", -10, -8)
 
-		local editbox = CreateFrame("CheckButton", nil, f, "OptionsCheckButtonTemplate")
-		f.editbox["Nolist"] = editbox
-		--editbox:SetAutoFocus(false)
-		--editbox:SetHeight(32)
-		--editbox:SetWidth(100)
-		--editbox:SetScript("OnEnterPressed", function(self) RPF:CreateFeature() end)
-		editbox:SetPoint("TOPLEFT", f.editbox["Diff"], "BOTTOMLEFT", -10, 8)
-		--self:SkinEditBox(editbox)
-		--self:ScriptEditBox(editbox)
+		f.checkbox = {}
+		local checkbox = CreateFrame("CheckButton", nil, f, "OptionsCheckButtonTemplate")
+		f.checkbox["Offspec"] = checkbox
+		checkbox:SetPoint("TOPLEFT", f.editbox["Diff"], "BOTTOMLEFT", -10, 8)
+		local font = f:CreateFontString("Offspec","OVERLAY","GameTooltipText")
+		font:SetText("Offspec:")
+		font:SetPoint("TOPRIGHT", checkbox, "TOPLEFT", 0, -8)
+		
+		local checkbox = CreateFrame("CheckButton", nil, f, "OptionsCheckButtonTemplate")
+		f.checkbox["Nolist"] = checkbox
+		checkbox:SetPoint("TOPLEFT", f.checkbox["Offspec"], "BOTTOMLEFT", -10, 8)
 		local font = f:CreateFontString("Nolist","OVERLAY","GameTooltipText")
 		font:SetText("No List:")
-		font:SetPoint("TOPRIGHT", editbox, "TOPLEFT", 0, -8)
+		font:SetPoint("TOPRIGHT", checkbox, "TOPLEFT", 0, -8)
 				-- button = 
 				-- {
 					-- name = "Bonus",
@@ -397,8 +399,6 @@ function RPF:CreateFrame()
 		-- });
 		
 	-- end
-	
-	f.state = "Initial"
 end
 
 function featureWindowSetScrollFrameOnClick(rowFrame, cellFrame, data, cols, row, realrow, column, button, down)
@@ -466,7 +466,8 @@ function featureWindowScrollFrameOnClick(rowFrame, cellFrame, data, cols, row, r
 				local MaxPoints = f.editbox["MaxPoints"]
 				local Divisor = f.editbox["Divisor"]
 				local Diff = f.editbox["Diff"]
-				local Nolist = f.editbox["Nolist"]
+				local Nolist = f.checkbox["Nolist"]
+				local Offspec = f.checkbox["Offspec"]
 				
 				local data = f.featureSet[f.scrollSetFrame.selected.cols[cfs.set].value][f.scrollFrame.selected.cols[cfc.command].value]
 				Name:SetText(data["name"] or "")
@@ -479,6 +480,7 @@ function featureWindowScrollFrameOnClick(rowFrame, cellFrame, data, cols, row, r
 				Divisor:SetText(data["divisor"] or "")
 				Diff:SetText(data["diff"] or "")
 				Nolist:SetChecked(data["nolist"] or false)
+				Offspec:SetChecked(data["offspec"] or false)
 			end
 		elseif button == "RightButton" then
 			if data[realrow] then
@@ -566,7 +568,8 @@ function RPF:SaveData()
 	local MaxPoints = f.editbox["MaxPoints"]
 	local Divisor = f.editbox["Divisor"]
 	local Diff = f.editbox["Diff"]
-	local Nolist = f.editbox["Nolist"]
+	local Nolist = f.checkbox["Nolist"]
+	local Offspec = f.checkbox["Offspec"]
 
 	local data = f.featureSet[f.scrollSetFrame.selected.cols[cfs.set].value][f.scrollFrame.selected.cols[cfc.command].value]
 	data["name"]		= Name:GetText()
@@ -579,6 +582,7 @@ function RPF:SaveData()
 	data["divisor"]		= tonumber(Divisor:GetText())
 	data["diff"]		= tonumber(Diff:GetText())
 	data["nolist"]		= Nolist:GetChecked()
+	data["offspec"]		= Offspec:GetChecked()
 	
 end
 

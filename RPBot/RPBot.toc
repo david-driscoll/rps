@@ -40,4 +40,5 @@ SyncCommands.lua
 Loot.lua
 Frame.lua
 RollWindow.lua
+PointsTimer.lua
 ##RPBotClientWindow.lua

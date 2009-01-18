@@ -112,7 +112,7 @@ function RPB:CreateFrameRollWindow()
 
 		local title = f:CreateFontString("Title", "ARTWORK", "GameFontNormal")
 		title:SetPoint("TOP", f, "TOP", 0, -6)
-		title:SetText("Raid Points - Roll Window")
+		title:SetText("Roll Window")
 		f.title = title
 	end
 
@@ -229,34 +229,35 @@ function RPB:CreateFrameRollWindow()
 	local dropdown = AceGUI:Create("Dropdown")
 	dropdown.frame:SetParent(f)
 	dropdown:SetList(raidDropDown)
-	dropdown:SetWidth(150)
+	dropdown:SetWidth(120)
+	dropdown:SetHeight(20)
 	dropdown:SetValue(self.rpoSettings.raid)
 	dropdown:SetPoint("TOPRIGHT", f, "TOPRIGHT", -12, -30)
-	--dropdown.pullout:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
 	dropdown:SetCallback("OnValueChanged", function(object, event, value, ...)
 			RPB:UseDatabase(value)
 		end
 	)
 	f.dropdown["Raid"] = dropdown
+	local font = f:CreateFontString("Raid","OVERLAY","GameTooltipText")
+	font:SetText("Raid:")
+	font:SetPoint("TOPRIGHT", dropdown.frame, "TOPLEFT", -2, -8)
 	
-	f.dropdown = {}
 	local dropdown = AceGUI:Create("Dropdown")
 	dropdown.frame:SetParent(f)
 	dropdown:SetList(featureDropDown)
-	dropdown:SetWidth(150)
-	dropdown:SetValue(RPF.db.realm.settings.featureSet)
+	dropdown:SetWidth(120)
+	dropdown:SetHeight(20)
+	dropdown:SetValue(self.rpfSettings.featureSet)
 	dropdown:SetPoint("TOPRIGHT", f, "TOPRIGHT", -12, -60)
-	--dropdown.pullout:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
 	dropdown:SetCallback("OnValueChanged", function(object, event, value, ...)
 			RPF:SwitchSet(value)
 		end
 	)
-	f.dropdown["Raid"] = dropdown
+	f.dropdown["FeatureSet"] = dropdown
+	local font = f:CreateFontString("Feature","OVERLAY","GameTooltipText")
+	font:SetText("Feature:")
+	font:SetPoint("TOPRIGHT", dropdown.frame, "TOPLEFT", -2, -8)
 
-	local font = f:CreateFontString("Name","OVERLAY","GameTooltipText")
-	font:SetText("Name:")
-	font:SetPoint("TOPRIGHT", editbox, "TOPLEFT", -10, -8)
-	
 	-- Buttons
 		-- Start Bidding
 		-- Stop Bidding
@@ -408,7 +409,7 @@ function RPB:CreateFrameRollWindow()
 		local button = CreateFrame("Button", f:GetName() .. "_ButtonMaster", f, "UIPanelButtonTemplate")
 		button:SetWidth(90)
 		button:SetHeight(21)
-		button:SetPoint("TOP", f.scrollFrameName.frame, "BOTTOM", 0, -4)
+		button:SetPoint("TOP", f.scrollFrameName.frame, "BOTTOM", 0, -2)
 		button:SetText("Master")
 		button:SetScript("OnClick", 
 		function(self)
@@ -417,22 +418,6 @@ function RPB:CreateFrameRollWindow()
 		)
 		f.button["Master"] = button
 	end
-
-	-- Create Loot Frames
-	-- do
-		-- f.item = {}
-		-- for i=1, 1 do 
-			-- f.item[i] = self:CreateLootFrame(f, i)
-		-- end
-		-- f.lootList = {}
-	    -- f.scrollFrameLoot = ScrollingTable:CreateST(RPB.columnDefinitons["RollWindowLootList"], 10, nil, nil, f);
-		-- f.scrollFrameLoot.frame:SetPoint("TOPLEFT", f, "TOPLEFT", 20, -30)
-		-- f.scrollFrame:SetData(f.lootList)
-		-- f.scrollFrame:RegisterEvents({
-			-- ["OnClick"] = rollWindowItemScrollFrameOnClick,
-		-- });
-		
-	-- end
 	
 	f.state = "Initial"
 end
@@ -475,6 +460,17 @@ function RPB:UpdateUI()
 		end
 	end
 	f.scrollFrameName:SortData()
+	f.scrollFrame:Refresh()
+	f.scrollFrameLoot:Refresh()
+	RPB:AutomationTimeGet()
+	
+	if f.scrollFrame.selected then
+		EAwardItem:SetText(RPB_GetLoss(f.scrollFrame.selected.cols[crl.loss].args[1]))
+	else
+		EAwardItem:SetText("0")
+	end
+	f.dropdown["Raid"]:SetValue(self.rpoSettings.raid)
+	f.dropdown["FeatureSet"]:SetValue(self.rpfSettings.featureSet)
 	
 	if self.rpoSettings.master == UnitName("player") then
 		Master:Disable()
@@ -482,6 +478,7 @@ function RPB:UpdateUI()
 			StartBidding:Enable()
 			StartTimedBidding:Enable()
 			StopBidding:Disable()
+			EAddItem:Enable()
 			AddItem:Enable()
 			RemoveItem:Enable()
 			ClearList:Enable()
@@ -489,32 +486,44 @@ function RPB:UpdateUI()
 			StartBidding:Disable()
 			StartTimedBidding:Disable()
 			StopBidding:Enable()
+			EAddItem:Disable()
+			EAddItem:ClearFocus()
 			AddItem:Disable()
 			RemoveItem:Disable()
 			ClearList:Disable()
 		elseif f.state == "Bidding Stopped" then
 			StopBidding:Disable()
+			EAddItem:Disable()
+			EAddItem:ClearFocus()
 			AddItem:Disable()
 			RemoveItem:Disable()
 			ClearList:Disable()
 		end
 		AwardItem:Enable()
-		--EAwardItem:Enable()
+		EAwardItem:Enable()
 		DisenchantItem:Enable()
 		RollClear:Enable()
+		for k,v in pairs(f.dropdown) do
+			v:SetDisabled(false)
+		end
 	else
 		Master:Enable()
-		--EAddItem:Disable()
+		EAddItem:Disable()
+		EAddItem:ClearFocus()
 		AddItem:Disable()
 		RemoveItem:Disable()
 		ClearList:Disable()
 		StartBidding:Disable()
 		StartTimedBidding:Disable()
 		StopBidding:Disable()
+		EAwardItem:Disable()
+		EAwardItem:ClearFocus()
 		AwardItem:Disable()
-		--EAwardItem:Disable()
 		DisenchantItem:Disable()
 		RollClear:Disable()
+		for k,v in pairs(f.dropdown) do
+			v:SetDisabled(true)
+		end
 	end
 end
 
@@ -575,7 +584,7 @@ function rollWindowItemScrollFrameOnClick(rowFrame, cellFrame, data, cols, row, 
 			end
 		elseif button == "RightButton" then
 			if data[realrow] then
-				--f.scrollFrameLoot.selected = data[realrow]
+				f.scrollFrameLoot.selected = data[realrow]
 				RPB:ItemListRemove(data[realrow].cols[cll.link].value)
 				f.scrollFrameLoot:SortData()
 			end
@@ -585,7 +594,7 @@ end
 
 function rollWindowScrollFrameColor(roll)
 	local f = RPB.frames["RollWindow"]
-	local feature = RPB.feature[string.lower(roll.cols[crl.ty].value)]
+	local feature = RPF.feature[string.lower(roll.cols[crl.ty].value)]
 	-- Make this loaclizable, for generic changes.
 	local diff = tonumber(feature.diff) or tonumber(RPB.rpbSettings.diff)
 	local low = 0
@@ -641,7 +650,7 @@ function RPB:RollListAdd(player, cmd, recieved)
 	
 	--self:Print("RPB:RollListAdd", player, cmd, recieved)
 	local class, rank, ty, total, loss
-	local feature = self.feature[string.lower(cmd)]
+	local feature = RPF.feature[string.lower(cmd)]
 	local divisor = feature.divisor or 2
 	ty = feature.name
 	
@@ -679,7 +688,7 @@ function RPB:RollListAdd(player, cmd, recieved)
 	total = self:CalculateMaxPoints(pdata.points, cmd)
 	player = pinfo.name
 	
-	loss = self:CalculateLoss(total, cmd)
+	--loss = self:CalculateLoss(total, cmd)
 	rollList[#rollList+1] = self:BuildRow(
 		{
 			[crl.player]	= 	player,
@@ -733,7 +742,7 @@ end
 function RPB:RollListUpdate(index, player)
 	local f = self.frames["RollWindow"]
 	local rollList = f.rollList
-	local feature = self.feature[string.lower(cmd)]
+	local feature = RPF.feature[string.lower(cmd)]
 	local pdata = self:GetPlayerHistory(player)
 	--rollList[index].cols[crl.points].value = pdata.points
 	--rollList[index].cols[crl.total].value = self:CalculateMaxPoints(pdata.points, rollList[index].cols[crl.ty].value)
@@ -1021,7 +1030,6 @@ end
 
 function RPB:ItemListRemove(link, recieved)
 	local f = self.frames["RollWindow"]
-	if not f.scrollFrameLoot.selected then return end
 	if not link then
 		link = f.scrollFrameLoot.selected.cols[cll.link].value
 	end
@@ -1110,7 +1118,7 @@ RPB.syncCommands[cs.rolllistget] = function(self, msg, sender)
 					}
 			end
 		end
-		self:Send(cs.rolllistset, {sendTable, selectedTable}, sender)
+		self:Send(cs.rolllistset, {sendTable, selectedTable, f.state}, sender)
 	end
 end
 
@@ -1140,6 +1148,7 @@ RPB.syncCommands[cs.rolllistset] = function(self, msg, sender)
 			end
 		end
 	end
+	f.state = msg[3]
 	f.scrollFrame:SetData(f.rollList)
 	self:RollListSort()
 end

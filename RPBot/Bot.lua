@@ -116,7 +116,8 @@ function RPB:OnEnable()
 	
 	self.rpbSettings = RPBS.db.realm.settings
 	self.rpoSettings = RPOS.db.realm.settings
-	self.feature = RPF.feature
+	self.rpfSettings = RPF.db.realm.settings
+	--self.feature = RPF.feature
 	self.options = RPBS.options
 
 	self:RosterScan()
@@ -127,6 +128,7 @@ function RPB:OnEnable()
 	--self.activeraid = nil
 	
 	self:CreateFrameRollWindow()
+	self:CreateFramePointsTimer()
 	self.timer = self:ScheduleTimer("DatabaseSync", 10)
 	self.masterTimer = self:ScheduleTimer("GetMaster", math.random(15, 25))
 	self:Send(cs.getmaster)
@@ -135,9 +137,9 @@ function RPB:OnEnable()
 		self.debugOn = true
 	end
 	
-	db.realm.version.feature = RPF.db.realm.settings.version
+	db.realm.version.feature = self.rpfSettings.version
 	db.realm.version.bot = RPSsyncVersion
-	self.feature = RPF.feature
+	--self.feature = RPF.feature
 end
 
 function RPB:DatabaseSync()
@@ -189,7 +191,7 @@ function RPB:UseDatabase(database, recieved)
 		self:Print("Now running database", string.lower(database))
 		return true
 	else
-		self:Print("Database ",database,"does not exist!")
+		self:Print("Database",database,"does not exist!")
 		return false
 	end
 end
@@ -477,7 +479,7 @@ function RPB:PointsAdd(raid, datetime, player, value, ty, itemid, reason, waitli
 		}
 		db.realm.version.lastaction = datetime
 		if (whisper and not recieved) then
-			if (tonumber(value) > 0) then
+			if (tonumber(value) >= 0) then
 				self:Whisper("Added "..value.." points for "..reason, playerlist[i].name)
 			else
 				self:Whisper("Deducted "..(-value).." points for "..reason, playerlist[i].name)
@@ -657,7 +659,8 @@ function RPB:PointsUpdate(datetime, player, points, ty, itemid, reason, waitlist
 end
 
 function RPB:CalculateLoss(points, cmd)
-	local feature = self.feature[string.lower(cmd)]
+	self:Debug(points, cmd)
+	local feature = RPF.feature[string.lower(cmd)]
 	-- Make this loaclizable, for generic changes.
 	local divisor = tonumber(feature.divisor) or tonumber(self.rpbSettings.divisor)
 	-- local minclass = feature.minclass or db.realm.settings.minclass
@@ -667,12 +670,12 @@ function RPB:CalculateLoss(points, cmd)
 	local loss
 	local total
 	
-	total = ceil( ( points / divisor ) / tonumber(self.rpbSettings.rounding) ) * tonumber(self.rpbSettings.rounding)
+	total = ceil( ( (points*1.0) / divisor ) / tonumber(self.rpbSettings.rounding) ) * tonumber(self.rpbSettings.rounding)
 
 	-- If I want to continue with class specific item logic, this is where we do it.
-	if (total < minnonclass) then
+	if (total <= minnonclass) then
 		loss = minnonclass
-	elseif (total > minnonclass and (not maxnonclass or total < maxnonclass)) then
+	elseif (total > minnonclass and (not maxnonclass or total <= maxnonclass)) then
 		loss = total
 	else
 		loss = maxnonclass
@@ -686,7 +689,7 @@ function RPB:CalculateLoss(points, cmd)
 end
 
 function RPB:CalculateMaxPoints(points, cmd)
-	local feature = self.feature[string.lower(cmd)]
+	local feature = RPF.feature[string.lower(cmd)]
 	-- Make this loaclizable, for generic changes.
 	local maxpoints = feature.maxpoints or tonumber(self.rpbSettings.maxpoints) or 0
 	local maxclass = feature.maxclass or tonumber(self.rpbSettings.maxclass) or 0

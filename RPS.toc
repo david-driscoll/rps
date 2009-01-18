@@ -65,4 +65,5 @@ RPBot\ChatCommands.lua
 RPBot\WhisperCommands.lua
 RPBot\SyncCommands.lua
 RPBot\RollWindow.lua
+RPBot\PointsTimer.lua
 ##RPBot\ClientWindow.lua

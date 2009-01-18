@@ -657,7 +657,7 @@ RPB.syncCommands[cs.fssend] = function(self, msg, sender)
 	if sender == UnitName("player") then return end
 	RPF:UpdateSets(msg[1])
 	RPF.db.realm.settings.version = msg[2]
-	self.feature = RPF.feature
+	--self.feature = RPF.feature
 	self:Send(cs.vsinfo, self.db.realm.version)
 	-- self:ItemListRemove(msg[1], msg[2])
 end
@@ -687,7 +687,7 @@ RPB.syncCommands[cs.getmaster] = function(self, msg, sender)
 end
 
 RPB.syncCommands[cs.setmaster] = function(self, msg, sender)
-	if sender == UnitName("player") then self:Send(cs.setraid, self.rpoSettings.raid); return end
+	if sender == UnitName("player") then self:Send(cs.setraid, self.rpoSettings.raid); self:Send(cs.setset, self.rpfSettings.featureSet); return end
 	RPB:SetMaster(msg, true)
 end
 
@@ -697,6 +697,51 @@ RPB.syncCommands[cs.setraid] = function(self, msg, sender)
 		RPB:CreateDatabase(msg, true)
 	end
 	self.rpoSettings.raid = msg
+end
+
+RPB.syncCommands[cs.setset] = function(self, msg, sender)
+	if sender == UnitName("player") then return end
+	RPF:SwitchSet(msg, true)
+end
+
+RPB.syncCommands[cs.automationget] = function(self, msg, sender)
+	if self.rpoSettings.master ~= UnitName("player") then return end
+	self:Send(cs.automationset, {
+		self.rpbSettings.automationRaidStart,
+		self.rpbSettings.automationRaidEnd,
+		self.rpbSettings.automationWaitlistCutoff,
+		self.rpbSettings.automationPoints,
+		self.rpbSettings.automationReason,
+	}, sender)
+end
+
+RPB.syncCommands[cs.automationset] = function(self, msg, sender)
+	if sender == UnitName("player") then return end
+	self.rpbSettings.automationRaidStart = msg[1]
+	self.rpbSettings.automationRaidEnd = msg[2]
+	self.rpbSettings.automationWaitlistCutoff = msg[3]
+	self.rpbSettings.automationPoints = msg[4]
+	self.rpbSettings.automationReason = msg[5]
+	f.editbox["PointsAdd"]:SetText(msg[4])
+	f.editbox["Reason"]:SetText(msg[5])
+	RPB:AutomationTimeGet()
+end
+
+RPB.syncCommands[cs.automationstart] = function(self, msg, sender)
+	if sender == UnitName("player") then return end
+	self.rpbSettings.automationRaidStart = msg[1]
+	self.rpbSettings.automationRaidEnd = msg[2]
+	self.rpbSettings.automationWaitlistCutoff = msg[3]
+	self.rpbSettings.automationPoints = msg[4]
+	self.rpbSettings.automationReason = msg[5]
+	f.editbox["PointsAdd"]:SetText(msg[4])
+	f.editbox["Reason"]:SetText(msg[5])
+	RPB:AutomationStartTimer(true)
+end
+
+RPB.syncCommands[cs.automationstop] = function(self, msg, sender)
+	if sender == UnitName("player") then return end
+	RPB:AutomationStopTimer(true)
 end
 
 function RPB:ChangePassword(password)
@@ -730,6 +775,7 @@ function RPB:SetMaster(player, recieved)
 		self:Send(cs.setmaster, player)
 	end
 	self:UpdateUI()
+	self:AutomationUpdateUI()
 end
 
 function RPB:GuildLib_Update()

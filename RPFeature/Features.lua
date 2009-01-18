@@ -292,7 +292,7 @@ function RPF:UpdateSets(msg)
 	RPB.db.realm.version.feature = self.db.realm.settings.version
 end
 
-function RPF:SwitchSet(newset)
+function RPF:SwitchSet(newset, recieved)
 	self:RemoveFeatureSet()
 	db.realm.settings.featureSet = newset
 	self:AddFeatureSet(newset)
@@ -300,6 +300,9 @@ function RPF:SwitchSet(newset)
 		if RPB and RPB.Print then
 			RPB:Print("Now using feature set:", newset)
 		end
+	end
+	if (not recieved) then
+		RPB:Send(cs.setset, newset)
 	end
 end
 
@@ -357,26 +360,26 @@ function RPF:AddFeature(data)
 		-- Whisper command hits, sends rollistadd command, which contains the same command.
 		--self:RollListAdd()
 	--end
-	if RPB.frames["ClientWindow"] then
-		for i=1,#RPB.frames["ClientWindow"] do
-			local f = RPB.frames["ClientWindow"][i]
-			local button = CreateFrame("Button", f:GetName() .. "_Button" .. data.button.name, f, data.button.template)
-			button:SetWidth(data.button.width)
-			button:SetHeight(data.button.height)
-			button:SetPoint(data.button.setpoint.anchor, f, data.button.setpoint.frameanchor, data.button.setpoint.x, data.button.setpoint.y)
-			button:SetText(data.button.text)
-			button:SetScript("OnClick", 
-				function(self)
-					RPB:Send(data.command)  
-				end
-			)
-			f.button[data.button.name] = button
-		end
-	end
+	-- if RPB.frames["ClientWindow"] then
+		-- for i=1,#RPB.frames["ClientWindow"] do
+			-- local f = RPB.frames["ClientWindow"][i]
+			-- local button = CreateFrame("Button", f:GetName() .. "_Button" .. data.button.name, f, data.button.template)
+			-- button:SetWidth(data.button.width)
+			-- button:SetHeight(data.button.height)
+			-- button:SetPoint(data.button.setpoint.anchor, f, data.button.setpoint.frameanchor, data.button.setpoint.x, data.button.setpoint.y)
+			-- button:SetText(data.button.text)
+			-- button:SetScript("OnClick", 
+				-- function(self)
+					-- RPB:Send(data.command)  
+				-- end
+			-- )
+			-- f.button[data.button.name] = button
+		-- end
+	-- end
 end
 
 function RPF:RemoveFeatureSet()
-	for key,value in ipairs(self.feature) do
+	for key,value in pairs(self.feature) do
 		self:RemoveFeature(key)
 	end
 	self.cmd1 = nil
@@ -395,11 +398,11 @@ function RPF:RemoveFeature(data)
 		RPB.whisperCommands[data.command] = nil
 	end
 
-	for i=1,#RPB.frames["ClientWindow"] do
-		local f = RPB.frames["ClientWindow"][i]
-		local button = f.button[data.button.name]
-		if button then
-			button:Hide()
-		end
-	end
+	-- for i=1,#RPB.frames["ClientWindow"] do
+		-- local f = RPB.frames["ClientWindow"][i]
+		-- local button = f.button[data.button.name]
+		-- if button then
+			-- button:Hide()
+		-- end
+	-- end
 end

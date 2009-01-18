@@ -43,6 +43,11 @@ function RPBS:OnInitialize()
 			diff 			= "50",
 			allownegative 	= "1",
 			rounding 		= "5",
+			automationRaidStart = 0,
+			automationRaidEnd = 0,
+			automationWaitlistCutoff = 0,
+			automationWaitlistPenalty = "0",
+			automationInterval = "60",
 		}
 	end
 end

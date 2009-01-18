@@ -68,6 +68,11 @@ RPSConstants.syncCommands["Bot"] =
 	rpbSettings		= "sb",
 	dballupdate		= "dballupdate",
 	setraid			= "setraid",
+	setset			= "setset",
+	automationget	= "automationget",
+	automationset	= "automationset",
+	automationstart	= "automationstart",
+	automationstop	= "automationstop",
 	fsupdate		= "fsupdate",
 	fsoutdate		= "fsoutdate",
 	fssend			= "fssend",
@@ -291,7 +296,7 @@ RPSConstants.columnDefinitons["RollWindowLootList"] =
 {
 	{
 	    ["name"] = "Items",
-	    ["width"] = 300,
+	    ["width"] = 200,
 	    ["align"] = "LEFT",
 	    -- ["color"] = { 
 	        -- ["r"] = 0.5, 

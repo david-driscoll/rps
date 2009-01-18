@@ -55,11 +55,15 @@ end
 
 RPB.chatCommands["add"] = function (self, msg)
 	local _, value, player, pos = self:GetArgs(msg, 3, 1)
-	--playerlist = RPB:PlayerToArray(player)
-	local reason = string.sub(msg, pos)
-	datetime = time()
-	wl = wl or false
-	RPB:PointsAdd(self.rpoSettings.raid, datetime, player, value, 'P', 0, reason, false, true)
+	if not value then 
+		self:Send(cs.automationget, "")
+		self.frames["PointsTimer"]:Show()
+	else
+		local reason = string.sub(msg, pos)
+		datetime = time()
+		wl = wl or false
+		RPB:PointsAdd(self.rpoSettings.raid, datetime, player, value, 'P', 0, reason, false, true)
+	end
 end
 
 RPB.chatCommands["additem"] = function (self, msg)

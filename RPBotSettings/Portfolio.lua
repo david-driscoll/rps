@@ -217,6 +217,20 @@ function RPBS:RegisterPortfolio()
 				defaultValue = rpbSettings["rounding"],
 				
 			},
+			{
+				id = "automationWaitlistPenalty",
+				text = "Late Penalty (% off)",
+				type = CONTROLTYPE_EDITBOX,
+				defaultValue = rpbSettings["automationWaitlistPenalty"],
+				
+			},
+			{
+				id = "automationInterval",
+				text = "Points Interval (minutes)",
+				type = CONTROLTYPE_EDITBOX,
+				defaultValue = rpbSettings["automationInterval"],
+				
+			},
 		},
 	}
 	return Portfolio.RegisterOptionSet(optionTable)
