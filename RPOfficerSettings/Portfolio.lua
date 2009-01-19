@@ -120,29 +120,29 @@ function RPOS:RegisterPortfolio()
 				type = CONTROLTYPE_CHECKBOX,
 				defaultValue = rpoSettings["filterOut"],
 			},
-			{
-				id = "settingsHeader",
-				text = "Settings",
-				subText = "Misc. settings.",
-				type = CONTROLTYPE_HEADER,
-				point = {nil, "filterOut", nil, nil, nil},
-			},
-			{
-				id = "raid",
-				headerText = "Current Raid",
-				type = CONTROLTYPE_DROPDOWN,
-				defaultValue = rpoSettings["raid"],
-				menuList = raidDropDown,
-				callback = function(value, isGUI, isUpdate) if not isUpdate then RPB:UseDatabase(value) end end,
-			},
-			{
-				id = "featureSet",
-				headerText = "Current Feature Set",
-				type = CONTROLTYPE_DROPDOWN,
-				defaultValue = rpoSettings["featureSet"],
-				menuList = featureDropDown,
-				callback = function(value, isGUI, isUpdate) if not isUpdate then RPOS:RemoveFeatureSet(); RPOS:AddFeatureSet(value) end end,
-			},
+			-- {
+				-- id = "settingsHeader",
+				-- text = "Settings",
+				-- subText = "Misc. settings.",
+				-- type = CONTROLTYPE_HEADER,
+				-- point = {nil, "filterOut", nil, nil, nil},
+			-- },
+			-- {
+				-- id = "raid",
+				-- headerText = "Current Raid",
+				-- type = CONTROLTYPE_DROPDOWN,
+				-- defaultValue = rpoSettings["raid"],
+				-- menuList = raidDropDown,
+				-- callback = function(value, isGUI, isUpdate) if not isUpdate then RPB:UseDatabase(value) end end,
+			-- },
+			-- {
+				-- id = "featureSet",
+				-- headerText = "Current Feature Set",
+				-- type = CONTROLTYPE_DROPDOWN,
+				-- defaultValue = rpoSettings["featureSet"],
+				-- menuList = featureDropDown,
+				-- callback = function(value, isGUI, isUpdate) if not isUpdate then RPOS:RemoveFeatureSet(); RPOS:AddFeatureSet(value) end end,
+			-- },
 		}
 	}
 	return Portfolio.RegisterOptionSet(optionTable)
