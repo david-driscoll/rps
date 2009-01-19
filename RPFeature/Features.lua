@@ -287,6 +287,12 @@ end
 
 function RPF:UpdateSets(msg)
 	self.db.realm.featureSets = msg
+
+	local featureDropDown = {}
+	for k,v in pairs(self.db.realm.featureSets) do
+		featureDropDown[k] = v.name or k
+	end	
+	RPB.frames["RollWindow"].dropdown["FeatureSet"]:SetList(featureDropDown)
 	self:SwitchSet(db.realm.settings.featureSet)
 	RPB.feature = self.feature
 	RPB.db.realm.version.feature = self.db.realm.settings.version
@@ -296,6 +302,7 @@ function RPF:SwitchSet(newset, recieved)
 	self:RemoveFeatureSet()
 	db.realm.settings.featureSet = newset
 	self:AddFeatureSet(newset)
+	RPB.frames["RollWindow"].dropdown["FeatureSet"]:SetValue(self.db.realm.settings.featureSet)
 	if not self.Print then
 		if RPB and RPB.Print then
 			RPB:Print("Now using feature set:", newset)

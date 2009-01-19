@@ -189,6 +189,8 @@ function RPB:UseDatabase(database, recieved)
 		end
 		--self.activeraid = db.realm.raid[string.lower(database)]
 		self:Print("Now running database", string.lower(database))
+		self:UpdateUI()
+		self.frames["RollWindow"].dropdown["Raid"]:SetValue(self.rpoSettings.raid)
 		return true
 	else
 		self:Print("Database",database,"does not exist!")
@@ -203,7 +205,8 @@ function RPB:CreateDatabase(database, nouse)
 		}
 		self:Print("Database",database,"created!")
 		local t = time()
-		
+		self.frames["RollWindow"].dropdown["Raid"]:AddItem(database, database)
+
 	
 		-- local rdd = self.rpoSettings.raidDropDown
 		-- for i=1,#rdd do

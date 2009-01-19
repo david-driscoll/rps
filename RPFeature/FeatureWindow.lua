@@ -44,7 +44,7 @@ function RPF:CreateFrame()
 	--   f:SetResizeable(true)
 	f:SetFrameStrata("MEDIUM")
 	f:SetHeight(440)
-	f:SetWidth(620)
+	f:SetWidth(400)
 	f:SetPoint("CENTER",0,0)
 	f:Hide()
 	f:SetScript("OnShow", RPF.LoadData)
@@ -209,7 +209,7 @@ function RPF:CreateFrame()
 		editbox:SetHeight(32)
 		editbox:SetWidth(100)
 		--editbox:SetScript("OnEnterPressed", function(self) RPF:CreateFeature() end)
-		editbox:SetPoint("TOPLEFT", f.scrollSetFrame.frame, "TOPRIGHT", 100, 20)
+		editbox:SetPoint("TOPLEFT", f.scrollSetFrame.frame, "TOPRIGHT", 100, -40)
 		self:SkinEditBox(editbox)
 		self:ScriptEditBox(editbox)
 		local font = f:CreateFontString("Name","OVERLAY","GameTooltipText")
@@ -363,7 +363,7 @@ function RPF:CreateFrame()
 		
 		local checkbox = CreateFrame("CheckButton", nil, f, "OptionsCheckButtonTemplate")
 		f.checkbox["Nolist"] = checkbox
-		checkbox:SetPoint("TOPLEFT", f.checkbox["Offspec"], "BOTTOMLEFT", -10, 8)
+		checkbox:SetPoint("TOPLEFT", f.checkbox["Offspec"], "BOTTOMLEFT", 0, 8)
 		local font = f:CreateFontString("Nolist","OVERLAY","GameTooltipText")
 		font:SetText("No List:")
 		font:SetPoint("TOPRIGHT", checkbox, "TOPLEFT", 0, -8)
@@ -448,6 +448,7 @@ function featureWindowScrollFrameOnClick(rowFrame, cellFrame, data, cols, row, r
 	local f = RPF.frames["FeatureWindow"]
 		if button == "LeftButton" then
 			if data[realrow] then
+				if not f.scrollSetFrame.selected then return end
 				if f.scrollFrame.selected then
 					RPF:SaveData()
 					f.scrollFrame.selected.selected = false
@@ -609,6 +610,7 @@ function RPF:DeleteFeatureSet()
 			tremove(f.featureSetList,i)
 			f.scrollSetFrame.selected = nil
 			f.scrollSetFrame:SortData()
+			break
 		end
 	end
 end
@@ -639,6 +641,7 @@ function RPF:DeleteFeature()
 			tremove(f.featureList,i)
 			f.scrollFrame.selected = nil
 			f.scrollFrame:SortData()
+			break
 		end
 	end
 end

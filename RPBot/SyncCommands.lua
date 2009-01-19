@@ -654,10 +654,10 @@ RPB.syncCommands[cs.itemlistclear] = function(self, msg, sender)
 end
 
 RPB.syncCommands[cs.fssend] = function(self, msg, sender)
-	if sender == UnitName("player") then return end
 	RPF:UpdateSets(msg[1])
 	RPF.db.realm.settings.version = msg[2]
 	--self.feature = RPF.feature
+	if sender == UnitName("player") then return end
 	self:Send(cs.vsinfo, self.db.realm.version)
 	-- self:ItemListRemove(msg[1], msg[2])
 end
