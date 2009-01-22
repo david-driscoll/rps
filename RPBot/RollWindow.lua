@@ -88,7 +88,27 @@ function RPB:CreateFrameRollWindow()
 		local button = CreateFrame("Button", f:GetName() .. "_CloseButton", f, "UIPanelCloseButton")
 		button:SetPoint("TOPRIGHT", f, "TOPRIGHT", -2, -2)
 		button:Show()
-		f.CloseButton = button
+		f.CloseButton = button	   
+		
+		local button = CreateFrame("Button", f:GetName() .. "_MinimizeButton", f, "UIPanelCloseButton")
+		button:SetPoint("TOPRIGHT", f.CloseButton, "TOPLEFT", 4, -5)
+		button:SetHeight(18)
+		button:SetWidth(18)
+		button:SetNormalTexture("Interface\\AddOns\\RPS\\RPBot\\MinimizeButton-Up.tga")
+		button:SetPushedTexture("Interface\\AddOns\\RPS\\RPBot\\MinimizeButton-Down.tga")
+		button:SetHighlightTexture("Interface\\Buttons\\UI-Panel-MinimizeButton-Highlight", "ADD")
+		--button:SetNormalTexture("Interface/AddOns/RPBot/MinimizeButton-Up")
+		--button:SetPushedTexture("Interface/AddOns/RPBot/MinimizeButton-Down")
+		button:Show()
+		button:SetScript("OnClick", function(self)
+			if f.minimize then
+				RPB:MaximizeUI()
+			else
+				RPB:MinimizeUI()
+			end
+		end
+		)
+		f.MinimizeButton = button
 
 		local drag = CreateFrame("Button", f:GetName() .. "_DragHeader", f)
 		drag:SetHeight(24)
@@ -226,6 +246,7 @@ function RPB:CreateFrameRollWindow()
 	end
 	
 	f.dropdown = {}
+	f.label = {}
 	local dropdown = AceGUI:Create("Dropdown")
 	dropdown.frame:SetParent(f)
 	dropdown:SetList(raidDropDown)
@@ -241,6 +262,8 @@ function RPB:CreateFrameRollWindow()
 	local font = f:CreateFontString("Raid","OVERLAY","GameTooltipText")
 	font:SetText("Raid:")
 	font:SetPoint("TOPRIGHT", dropdown.frame, "TOPLEFT", -2, -8)
+	f.label["Raid"] = font
+	
 	
 	local dropdown = AceGUI:Create("Dropdown")
 	dropdown.frame:SetParent(f)
@@ -257,6 +280,7 @@ function RPB:CreateFrameRollWindow()
 	local font = f:CreateFontString("Feature","OVERLAY","GameTooltipText")
 	font:SetText("Feature:")
 	font:SetPoint("TOPRIGHT", dropdown.frame, "TOPLEFT", -2, -8)
+	f.label["FeatureSet"] = font
 
 	-- Buttons
 		-- Start Bidding
@@ -420,6 +444,7 @@ function RPB:CreateFrameRollWindow()
 	end
 	
 	f.state = "Initial"
+	f.minimize = false
 end
 
 function RPB:UpdateUI()
@@ -525,6 +550,110 @@ function RPB:UpdateUI()
 			v:SetDisabled(true)
 		end
 	end
+end
+
+function RPB:MinimizeUI()
+	local f = self.frames["RollWindow"]
+	local Master = f.button["Master"]
+	local EAddItem = f.editbox["AddItem"]
+	local AddItem = f.button["AddItem"]
+	local RemoveItem = f.button["RemoveItem"]
+	local ClearList = f.button["ClearList"]
+	local StartBidding = f.button["StartBidding"]
+	local StartTimedBidding = f.button["StartTimedBidding"]
+	local StopBidding = f.button["StopBidding"]
+	local AwardItem = f.button["AwardItem"]
+	local EAwardItem = f.editbox["AwardItem"]
+	local DisenchantItem = f.button["DisenchantItem"]
+	local RollClear = f.button["RollClear"]
+	local DRaid = f.dropdown["Raid"]
+	local DFeatureSet = f.dropdown["FeatureSet"]
+	local SName = f.scrollFrameName
+	local SRoll = f.scrollFrame
+	local SLoot = f.scrollFrameLoot
+	local LRaid = f.label["Raid"]
+	local LFeatureSet = f.label["FeatureSet"]
+	
+	SName:Hide()
+	Master:Hide()
+	EAddItem:Hide()
+	AddItem:Hide()
+	RemoveItem:Hide()
+	ClearList:Hide()
+	StartBidding:Hide()
+	StartTimedBidding:Hide()
+	StopBidding:Hide()
+	AwardItem:Hide()
+	EAwardItem:Hide()
+	DisenchantItem:Hide()
+	RollClear:Hide()
+	DRaid.frame:Hide()
+	DFeatureSet.frame:Hide()
+	LRaid:Hide()
+	LFeatureSet:Hide()
+	SRoll.frame:ClearAllPoints()
+	SRoll.frame:SetPoint("BOTTOM", f, "BOTTOM", 0, 5)
+	SLoot.frame:ClearAllPoints()
+	SLoot.frame:SetPoint("BOTTOMLEFT", SRoll.frame, "TOPLEFT", 0, 15)
+	SRoll:SetDisplayRows(5, SRoll.rowHeight)
+	SLoot:SetDisplayRows(3, SLoot.rowHeight)
+	SLoot:Refresh()
+	SRoll:Refresh()
+	f:SetHeight(180)
+	f:SetWidth(590)
+	f.minimize = true
+end
+
+function RPB:MaximizeUI()
+	local f = self.frames["RollWindow"]
+	local Master = f.button["Master"]
+	local EAddItem = f.editbox["AddItem"]
+	local AddItem = f.button["AddItem"]
+	local RemoveItem = f.button["RemoveItem"]
+	local ClearList = f.button["ClearList"]
+	local StartBidding = f.button["StartBidding"]
+	local StartTimedBidding = f.button["StartTimedBidding"]
+	local StopBidding = f.button["StopBidding"]
+	local AwardItem = f.button["AwardItem"]
+	local EAwardItem = f.editbox["AwardItem"]
+	local DisenchantItem = f.button["DisenchantItem"]
+	local RollClear = f.button["RollClear"]
+	local DRaid = f.dropdown["Raid"]
+	local DFeatureSet = f.dropdown["FeatureSet"]
+	local SName = f.scrollFrameName
+	local SRoll = f.scrollFrame
+	local SLoot = f.scrollFrameLoot
+	local LRaid = f.label["Raid"]
+	local LFeatureSet = f.label["FeatureSet"]
+	
+	SName:Show()
+	Master:Show()
+	EAddItem:Show()
+	AddItem:Show()
+	RemoveItem:Show()
+	ClearList:Show()
+	StartBidding:Show()
+	StartTimedBidding:Show()
+	StopBidding:Show()
+	AwardItem:Show()
+	EAwardItem:Show()
+	DisenchantItem:Show()
+	RollClear:Show()
+	DRaid.frame:Show()
+	DFeatureSet.frame:Show()
+	LRaid:Show()
+	LFeatureSet:Show()
+	SRoll.frame:ClearAllPoints()
+	SRoll.frame:SetPoint("TOPLEFT", f, "TOPLEFT", 20, -240)
+	SLoot.frame:ClearAllPoints()
+	SLoot.frame:SetPoint("TOPLEFT", f, "TOPLEFT", 20, -30)
+	SRoll:SetDisplayRows(10, SRoll.rowHeight)
+	SLoot:SetDisplayRows(10, SLoot.rowHeight)
+	SLoot:Refresh()
+	SRoll:Refresh()
+	f:SetHeight(440)
+	f:SetWidth(620)
+	f.minimize = false
 end
 
 function RPB:CHAT_MSG_SYSTEM()
@@ -911,7 +1040,8 @@ function RPB:StartBidding(recieved)
 		f.state = "Bidding Started"
 		self:UpdateUI()
 		if self.rpoSettings.master == UnitName("player") then
-			self:Broadcast("Declare on " .. item[cll.link].value .. ".")
+			self:Message("RAID_WARNING", "*** Declare on " .. item[cll.link].value .. ". ***")
+			self:Broadcast("*** Declare on " .. item[cll.link].value .. ". ***")
 			f.tm = (tonumber(self.rpbSettings.lastcall) or 5) + 1
 		end
 	end
@@ -929,7 +1059,8 @@ function RPB:StartTimedBidding(recieved)
 		f.inProgress = true
 		f.state = "Bidding Started"
 		if self.rpoSettings.master == UnitName("player") then
-			self:Broadcast("Declare on " .. item[cll.link].value .. ".  Closing in " .. (tonumber(RPB.rpbSettings.bidtime) or 30) .. " seconds.")
+			self:Message("RAID_WARNING", "*** Declare on " .. item[cll.link].value .. ". ***")
+			self:Broadcast("*** Declare on " .. item[cll.link].value .. ".  Closing in " .. (tonumber(RPB.rpbSettings.bidtime) or 30) .. " seconds. ***")
 			f.tm = (tonumber(self.rpbSettings.bidtime) or 30) - 1
 			f.timer = self:ScheduleRepeatingTimer("ContinueBidding", 1)
 			self:UpdateUI()
@@ -947,7 +1078,7 @@ function RPB:ContinueBidding()
 		
 		if (timeleft > lastcall and timeleft % (lastcall*2) == 0) then
 			self:Broadcast("Bidding on " .. item[cll.link].value .. ".  Closing in " .. timeleft .. " seconds.")
-		elseif (timeleft == lastcall+1) then
+		elseif (timeleft <= lastcall+1) then
 			self:CancelTimer(f.timer)
 			f.timer = nil
 			RPB:StopBidding()

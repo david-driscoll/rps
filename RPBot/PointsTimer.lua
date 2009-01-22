@@ -319,7 +319,7 @@ function RPB:AutomationTimeSet(recieved)
 		minute = f.dropdown["WaitlistCutoffMinute"]
 
 		local incday = false
-		if hour.value < f.dropdown["RaidStartHour"].value then
+		if hour.value < f.dropdown["WaitlistCutoffHour"].value then
 			if get_days_in_month(timetable.month, timetable.year) == timetable.day then
 				timetable.month = timetable.month + 1
 				if timetable.month > 12 then
@@ -393,8 +393,8 @@ function RPB:AutomationUpdateUI()
 		f.button["Master"]:Disable()
 		if self.rpbSettings.automationTimer then
 			if not self.automationTimer then
-				f.editbox["PointsAdd"]:SetText(self.rpoSettings.automationPoints or 0)
-				f.editbox["Reason"]:SetText(self.rpoSettings.automationReason or "")
+				f.editbox["PointsAdd"]:SetText(self.rpbSettings.automationPoints or 0)
+				f.editbox["Reason"]:SetText(self.rpbSettings.automationReason or "")
 				RPB:AutomationStartTimer()
 			end
 			f.button["AddPoints"]:Disable()
@@ -437,12 +437,17 @@ function RPB:AutomationStartTimer(recieved)
 	local f = self.frames["PointsTimer"]
 	self.rpbSettings.automationTimer = true
 	RPB:AutomationTimeSet()
-	self.rpoSettings.automationPoints = tonumber(f.editbox["PointsAdd"]:GetText()) or 0
-	self.rpoSettings.automationReason = f.editbox["Reason"]:GetText() or ""
+	self.rpbSettings.automationPoints = tonumber(f.editbox["PointsAdd"]:GetText()) or 0
+	self.rpbSettings.automationReason = f.editbox["Reason"]:GetText() or ""
 	RPB:AutomationTimer()
 	self.automationTimer = self:ScheduleRepeatingTimer("AutomationTimer", 60)
 	RPB:AutomationUpdateUI()
 	if not recieved then
+		self:Debug(msg[1], self.rpbSettings.automationRaidStart)
+		self:Debug(msg[2], self.rpbSettings.automationRaidEnd)
+		self:Debug(msg[3], self.rpbSettings.automationWaitlistCutoff)
+		self:Debug(f.editbox["PointsAdd"]:GetText(), self.rpbSettings.automationPoints)
+		self:Debug(f.editbox["Reason"]:GetText(), self.rpbSettings.automationReason)
 		self:Send(cs.automationstart, {
 			self.rpbSettings.automationRaidStart,
 			self.rpbSettings.automationRaidEnd,
@@ -456,7 +461,7 @@ end
 function RPB:AutomationTimer()
 	if self.rpoSettings.master == UnitName("player") then
 		local f = self.frames["PointsTimer"]
-		--self:Print("AutomationTimer")
+		self:Debug("AutomationTimer")
 		
 		local dt = date()
 		local timetable = 
@@ -479,9 +484,9 @@ function RPB:AutomationTimer()
 		for temp=startTime,endTime,interval do
 			if temp == tme then
 				local datetime = time()
-				local value = tonumber(self.rpoSettings.automationPoints) or 0
+				local value = tonumber(self.rpbSettings.automationPoints) or 0
 				local total = duration / interval
-				local reason = ( self.rpoSettings.automationReason or "" )
+				local reason = ( self.rpbSettings.automationReason or "" )
 				if reason ~= "" then reason = reason .. " " end
 				reason = reason .. ((temp-startTime) / interval) .." / " .. total
 				RPB:PointsAdd(self.rpoSettings.raid, datetime, 'all', value, 'P', 0, reason, false, true)
@@ -498,4 +503,57 @@ function RPB:AutomationStopTimer(recieved)
 	if not recieved then
 		self:Send(cs.automationstop, "adf")
 	end
+end
+
+
+RPB.syncCommands[cs.automationget] = function(self, msg, sender)
+	local f = self.frames["PointsTimer"]
+	if self.rpoSettings.master ~= UnitName("player") then return end
+	self:Send(cs.automationset, {
+		self.rpbSettings.automationTimer,
+		self.rpbSettings.automationRaidStart,
+		self.rpbSettings.automationRaidEnd,
+		self.rpbSettings.automationWaitlistCutoff,
+		self.rpbSettings.automationPoints,
+		self.rpbSettings.automationReason,
+	}, sender)
+end
+
+RPB.syncCommands[cs.automationset] = function(self, msg, sender)
+	local f = self.frames["PointsTimer"]
+	if sender == UnitName("player") then return end
+	self.rpbSettings.automationTimer = msg[1]
+	self.rpbSettings.automationRaidStart = msg[2]
+	self.rpbSettings.automationRaidEnd = msg[3]
+	self.rpbSettings.automationWaitlistCutoff = msg[4]
+	self.rpbSettings.automationPoints = msg[5]
+	self.rpbSettings.automationReason = msg[6]
+	f.editbox["PointsAdd"]:SetText(msg[5] or "")
+	f.editbox["Reason"]:SetText(msg[6] or "")
+	RPB:AutomationTimeGet()
+end
+
+RPB.syncCommands[cs.automationstart] = function(self, msg, sender)
+	local f = self.frames["PointsTimer"]
+	if sender == UnitName("player") then return end
+	self.rpbSettings.automationRaidStart = msg[1]
+	self.rpbSettings.automationRaidEnd = msg[2]
+	self.rpbSettings.automationWaitlistCutoff = msg[3]
+	self.rpbSettings.automationPoints = msg[4]
+	self.rpbSettings.automationReason = msg[5]
+	self:Debug(msg[1], self.rpbSettings.automationRaidStart)
+	self:Debug(msg[2], self.rpbSettings.automationRaidEnd)
+	self:Debug(msg[3], self.rpbSettings.automationWaitlistCutoff)
+	self:Debug(msg[4], self.rpbSettings.automationPoints)
+	self:Debug(msg[5], self.rpbSettings.automationReason)
+	f.editbox["PointsAdd"]:SetText(msg[4] or "")
+	f.editbox["Reason"]:SetText(msg[5] or "")
+	RPB:AutomationTimeGet()
+	RPB:AutomationStartTimer(true)
+end
+
+RPB.syncCommands[cs.automationstop] = function(self, msg, sender)
+	if sender == UnitName("player") then return end
+	RPB:AutomationTimeGet()
+	RPB:AutomationStopTimer(true)
 end

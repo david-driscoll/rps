@@ -22,7 +22,7 @@ local CommCmd = "rpb"
 --@end-non-alpha@]===]
 
 RPSsyncVersion = tonumber("@file-revision@") or 10000
-local compversion = 94
+local compversion = 100
 
 local MDFive = LibStub:GetLibrary("MDFive-1.0")
 local LibCompress = LibStub:GetLibrary("LibCompress")
@@ -702,46 +702,6 @@ end
 RPB.syncCommands[cs.setset] = function(self, msg, sender)
 	if sender == UnitName("player") then return end
 	RPF:SwitchSet(msg, true)
-end
-
-RPB.syncCommands[cs.automationget] = function(self, msg, sender)
-	if self.rpoSettings.master ~= UnitName("player") then return end
-	self:Send(cs.automationset, {
-		self.rpbSettings.automationRaidStart,
-		self.rpbSettings.automationRaidEnd,
-		self.rpbSettings.automationWaitlistCutoff,
-		self.rpbSettings.automationPoints,
-		self.rpbSettings.automationReason,
-	}, sender)
-end
-
-RPB.syncCommands[cs.automationset] = function(self, msg, sender)
-	if sender == UnitName("player") then return end
-	self.rpbSettings.automationRaidStart = msg[1]
-	self.rpbSettings.automationRaidEnd = msg[2]
-	self.rpbSettings.automationWaitlistCutoff = msg[3]
-	self.rpbSettings.automationPoints = msg[4]
-	self.rpbSettings.automationReason = msg[5]
-	f.editbox["PointsAdd"]:SetText(msg[4])
-	f.editbox["Reason"]:SetText(msg[5])
-	RPB:AutomationTimeGet()
-end
-
-RPB.syncCommands[cs.automationstart] = function(self, msg, sender)
-	if sender == UnitName("player") then return end
-	self.rpbSettings.automationRaidStart = msg[1]
-	self.rpbSettings.automationRaidEnd = msg[2]
-	self.rpbSettings.automationWaitlistCutoff = msg[3]
-	self.rpbSettings.automationPoints = msg[4]
-	self.rpbSettings.automationReason = msg[5]
-	f.editbox["PointsAdd"]:SetText(msg[4])
-	f.editbox["Reason"]:SetText(msg[5])
-	RPB:AutomationStartTimer(true)
-end
-
-RPB.syncCommands[cs.automationstop] = function(self, msg, sender)
-	if sender == UnitName("player") then return end
-	RPB:AutomationStopTimer(true)
 end
 
 function RPB:ChangePassword(password)
