@@ -37,21 +37,6 @@ function RPOS:RegisterPortfolio()
 		rpoSettings = self.db.realm.settings
 	end
 	
-	local featureDropDown = {}
-	for k,v in pairs(self.db.realm.featureSets) do
-		-- if self.currentFeature == k then
-			
-		-- end
-		featureDropDown[#featureDropDown+1] = 
-		{
-			text = v.name,
-			value = k,
-		}
-	end
-		
-	self.db.realm.settings.raidDropDown = {}
-	local raidDropDown = self.db.realm.settings.raidDropDown
-	
 	local optionTable = {
 		id="RPOfficerSettings",
 		text="Officer Settings",
