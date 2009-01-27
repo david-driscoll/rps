@@ -66,7 +66,6 @@ function RPOS:OnEnable()
 	--self:Send("syncrequest", "to me")
 	--enablecomm = false
 	--AceComm:RegisterComm("wlupdate")
-	self:AddFeatureSet(db.realm.settings.featureSet)
 	
 end
 

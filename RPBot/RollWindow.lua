@@ -749,7 +749,12 @@ function rollWindowScrollFrameColor(roll)
 		}
 	else
 		--RPB:Print(high, roll.cols[crl.total].value, high - roll.cols[crl.total].value, diff)
-		local ratio = ((high - RPB_GetTotal(roll.cols[crl.total].args[1])) / (diff * 1.000))
+		local ratio
+		if diff == 0 then
+			ratio = 1
+		else
+			ratio = ((high - RPB_GetTotal(roll.cols[crl.total].args[1])) / (diff * 1.000))
+		end
 		--RPB:Print(ratio)
 		local r,g,b = ColorGradient(ratio, 0,1,0, 1,0.5,0)
 		color = {

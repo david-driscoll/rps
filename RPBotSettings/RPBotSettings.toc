@@ -21,5 +21,4 @@ Libs\AceDB-3.0\AceDB-3.0.xml
 Libs\Portfolio\Loader.xml
 
 BotSettings.lua
-Features.lua
 Portfolio.lua

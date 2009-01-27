@@ -36,7 +36,6 @@ RPLibrary\RPLibrary.lua
 
 # RPOfficerSettings
 RPOfficerSettings\OfficerSettings.lua
-RPOfficerSettings\Features.lua
 RPOfficerSettings\Portfolio.lua
 
 # RPFeature
@@ -53,7 +52,6 @@ RPWaitlist\Portfolio.lua
 
 # RPBotSettings
 RPBotSettings\BotSettings.lua
-RPBotSettings\Features.lua
 RPBotSettings\Portfolio.lua
 
 # RPBot
