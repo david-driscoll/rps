@@ -262,7 +262,7 @@ end
 function RPB:CreatePlayerHistory(player, raid)
 	if not raid then raid = self.rpoSettings.raid end
 	--if not db.realm.raid[raid] then self:CreateDatabase(raid) end
-	if raid and db.realm.raid[raid] then
+	if raid and db.realm.raid[raid] and player then
 		db.realm.raid[raid][string.lower(player)] = 
 			{
 				points			= 0,
@@ -287,7 +287,7 @@ function RPB:CreatePlayerHistory(player, raid)
 end
 
 function RPB:GetPlayer(player, col)
-	if db.realm.player[string.lower(player)] then
+	if player and db.realm.player[string.lower(player)] and not db.realm.player[string.lower(player)].delete then
 		if col then
 			return db.realm.player[string.lower(player)][col]
 		else
@@ -299,7 +299,7 @@ end
 
 function RPB:GetPlayerHistory(player, raid)
 	if not raid then raid = self.rpoSettings.raid end
-	if raid then
+	if raid and player then
 		if not db.realm.raid[raid][string.lower(player)] then
 			return self:CreatePlayerHistory(player, raid)
 		else

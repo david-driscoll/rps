@@ -32,7 +32,7 @@ local AceGUI = LibStub:GetLibrary("AceGUI-3.0")
 
 local function RPB_GetPoints(player)
 	local pdata = RPB:GetPlayerHistory(player)
-	return pdata.points
+	return pdata.points or 0
 end
 
 local function RPB_GetTotal(player)

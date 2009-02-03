@@ -189,6 +189,23 @@ function RPB:CreateFramePointsViewer()
 	font:SetPoint("TOPRIGHT", dropdown.frame, "TOPLEFT", -2, -8)
 	f.label["Raid"] = font
 	
+	local button = CreateFrame("Button", f:GetName() .. "_ButtonDelete", f, "UIPanelButtonTemplate")
+	button:SetWidth(75)
+	button:SetHeight(21)
+	button:SetPoint("BOTTOM", f, "BOTTOM", 40, 10)
+	button:SetText("Delete")
+	button:SetScript("OnClick", 
+		function(self)
+			if RPB.frames["PointsViewer"].scrollFrame.selected then
+				local player = RPB:GetPlayer(RPB.frames["PointsViewer"].scrollFrame.selected.cols[c.player].value)
+				player.delete = true
+				RPB.frames["PointsViewer"].scrollFrame.selected = nil
+				RPB:PointsViewerRepopulate()
+			end
+		end
+	)
+	f.button["Delete"] = button
+	
 	local editbox = CreateFrame("EditBox", nil, f)
 	f.editbox["Name"] = editbox
 	editbox:SetAutoFocus(false)
@@ -423,23 +440,26 @@ function RPB:PointsViewerRepopulate()
 	f.scrollFrame.cols[c.player].sort = "dsc";
 	f.nameList = {}
 	for p,v in pairs(self.db.realm.raid[f.raid]) do
-		local class, rank
-		player = self:GetPlayer(p, "fullname")
-		class = self:GetPlayer(p, "class")
-		rank = self:GetPlayer(p, "rank")
-		f.nameList[#f.nameList+1] = self:BuildRow(
-			{
-				[c.player]		= 	player,
-				[c.class]		=	class or "",
-				[c.rank]		=	rank or "",
-				[c.earned]		= 	{GetEarned, {player}},
-				[c.spent]		=	{GetSpent, {player}},
-				[c.total]		=	{GetTotal, {player}},
-			},
-			cArg
-		)	
-		if not f.nameList[#f.nameList].cols[1] then
-			tremove(f.nameList,#f.nameList)
+		local class, rank, player, pinfo
+		pinfo = self:GetPlayer(p)
+		if not pinfo.delete then
+			player = self:GetPlayer(p, "fullname")
+			class = self:GetPlayer(p, "class")
+			rank = self:GetPlayer(p, "rank")
+			f.nameList[#f.nameList+1] = self:BuildRow(
+				{
+					[c.player]		= 	player,
+					[c.class]		=	class or "",
+					[c.rank]		=	rank or "",
+					[c.earned]		= 	{GetEarned, {player}},
+					[c.spent]		=	{GetSpent, {player}},
+					[c.total]		=	{GetTotal, {player}},
+				},
+				cArg
+			)
+			if not f.nameList[#f.nameList].cols[1] then
+				tremove(f.nameList,#f.nameList)
+			end
 		end
 	end
 	f.scrollFrame:SetData(f.nameList)
@@ -1306,20 +1326,5 @@ function PointsViewerPopupScrollFrameOnClick(rowFrame, cellFrame, data, cols, ro
 			--myPopup(RPB, self.frames["PointsViewerPopup"], "Are you sure you want to remove this player?", function() RPB:PointsViewerPopupRemovePlayer() end)
 		end
 	end
-end
-
-local function GetEarned(player)
-	local pdata = RPB:GetPlayerHistory(player)
-	return pdata.lifetime or 0
-end
-
-local function GetSpent(player)
-	local pdata = RPB:GetPlayerHistory(player)
-	return ( pdata.points - pdata.lifetime ) or 0
-end
-
-local function GetTotal(player)
-	local pdata = RPB:GetPlayerHistory(player)
-	return ( pdata.points ) or 0
 end
 
