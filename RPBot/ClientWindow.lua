@@ -28,10 +28,10 @@ function RPB:CreateFrameClientWindow()
 	f:SetMovable(true)
 	f:SetClampedToScreen(true)
 	--   f:SetResizeable(true)
-	f:SetFrameStrata("MEDIUM")
+	f:SetFrameStrata("DIALOG")
 	f:SetHeight(512)
 	f:SetWidth(640)
-	f:SetPoint("CENTER",0,0)
+	f:SetPoint("CENTER")
 
 	-- Frame Textures, Drag Header, Close Button, Title
 	do

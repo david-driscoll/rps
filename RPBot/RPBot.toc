@@ -33,6 +33,7 @@ Libs\BLib\BLib.lua
 Libs\Portfolio\Loader.xml
 
 Constants.lua
+Popup.lua
 Bot.lua
 ChatCommands.lua
 WhisperCommands.lua
@@ -41,4 +42,5 @@ Loot.lua
 Frame.lua
 RollWindow.lua
 PointsTimer.lua
+PointsViewer.lua
 ##RPBotClientWindow.lua

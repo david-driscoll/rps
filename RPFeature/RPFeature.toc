@@ -20,7 +20,7 @@ Libs\AceDB-3.0\AceDB-3.0.xml
 #@end-no-lib-strip@
 Libs\Portfolio\Loader.xml
 
-Consants.lua
+Constants.lua
 Features.lua
 FeatureWindow.lua
 Portfolio.lua

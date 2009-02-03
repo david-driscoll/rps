@@ -18,7 +18,7 @@
 local MAJOR,MINOR = "GuildLib", 1
 --@end-alpha@. 
 --[===[@non-alpha@
-local MAJOR,MINOR = "GuildRoster-3.0", @file-revision@
+local MAJOR,MINOR = "GuildLib", @file-revision@
 --@end-non-alpha@]===]
 local GuildLib = LibStub:NewLibrary(MAJOR, MINOR)
 if not GuildLib then return end
@@ -38,10 +38,12 @@ local mixins = {
 	"GuildRosterByUnit",
 	"GuildRosterCount",
 	"GuildRoster",
-	"GuildRosterScan"
+	"GuildRosterScan",
+	"GuildRanks",
 } 
 
-guildRoster = {}
+local guildRoster = {}
+local guildRanks = {}
 
 --- Event: GUILD_ROSTER_UPDATE.
 -- Fires when the guild roster has been updated.
@@ -85,6 +87,10 @@ end
 function GuildLib:GuildRoster()
 	return guildRoster
 end
+--- Return guildRoster
+function GuildLib:GuildRanks()
+	return guildRanks
+end
 
 --- Roster Update
 -- Update the internal table with the current guild roster.
@@ -127,6 +133,9 @@ function GuildLib:RosterUpdate(rebuild)
 				["online"]		= online,
 				["status"]		= status,
 			}
+		end
+		if not guildRanks[rankIndex] then
+			guildRanks[rankIndex] = rank
 		end
 	end
 	self:SendMessage("GuildLib_Update")

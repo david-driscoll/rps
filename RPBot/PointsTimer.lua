@@ -19,23 +19,6 @@ local cs = RPSConstants.syncCommands["Bot"]
 local AceGUI = LibStub:GetLibrary("AceGUI-3.0")
 local framebuilt = false
 
-do
-  local days_in_month = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 }
-
-  local function is_leap_year(year)
-    return year % 4 == 0 and (year % 100 ~= 0 or year % 400 == 0)
-  end
-
-  function get_days_in_month(month, year)
-    if month == 2 and is_leap_year(year) then
-      return 29
-    else
-      return days_in_month[month]
-    end
-  end
-end
-
-
 function RPB:CreateFramePointsTimer()
 
 	self.frames["PointsTimer"] = CreateFrame("Frame", "RPBPointsTimer", UIParent)
@@ -45,10 +28,10 @@ function RPB:CreateFramePointsTimer()
 	f:SetMovable(true)
 	f:SetClampedToScreen(true)
 	--   f:SetResizeable(true)
-	f:SetFrameStrata("MEDIUM")
+	f:SetFrameStrata("HIGH")
 	f:SetHeight(150)
 	f:SetWidth(420)
-	f:SetPoint("BOTTOM",self.frames["RollWindow"],"TOP",0,0)
+	f:SetPoint("CENTER")
 	f:Hide()
 
 	-- Frame Textures, Drag Header, Close Button, Title
@@ -473,6 +456,7 @@ function RPB:AutomationTimer()
 			min 	= tonumber(string.sub(dt,13,14)),
 		}
 		local tme = time(timetable)
+		if not self.rpbSettings.automationInterval then self.rpbSettings.automationInterval = 60 end
 		local interval = tonumber(self.rpbSettings.automationInterval)*60
 		local startTime = self.rpbSettings.automationRaidStart
 		local endTime = self.rpbSettings.automationRaidEnd

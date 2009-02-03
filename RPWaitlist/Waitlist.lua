@@ -717,25 +717,41 @@ function RPWL:RosterUpdate()
 	-- if not GetGuildRosterShowOffline() then
 		-- SetGuildRosterShowOffline(true)
 	-- end
-	self.guildRosterIndex = {}
+	--self.guildRosterIndex = {}
 	local guildRoster = self:GuildRoster()
 	for key, value in pairs(guildRoster) do
 		local online
-		if (guildRoster[string.lower(key)]["online"]) then online = 'Y' else online = 'N' end
+		local found = false
+		if (value["online"]) then online = 'Y' else online = 'N' end
+		for i=1,#self.guildRosterIndex do
+			if self.guildRosterIndex[i].cols[cgr.name].value == value["name"] then
+				found = i
+			end
+		end
+		if not found then
 			self.guildRosterIndex[#self.guildRosterIndex+1] = self:BuildRow(
 				{
-					[cgr.name] 			=	guildRoster[string.lower(key)]["name"],
-					[cgr.rank] 			=	guildRoster[string.lower(key)]["rank"],
-					[cgr.level] 		=	guildRoster[string.lower(key)]["level"],
-					[cgr.class] 		=	guildRoster[string.lower(key)]["class"],
-					[cgr.zone] 			=	guildRoster[string.lower(key)]["zone"],
-					[cgr.officernote] 	=	guildRoster[string.lower(key)]["officernote"],
+					[cgr.name] 			=	value["name"],
+					[cgr.rank] 			=	value["rank"],
+					[cgr.level] 		=	value["level"],
+					[cgr.class] 		=	value["class"],
+					[cgr.zone] 			=	value["zone"],
+					[cgr.officernote] 	=	value["officernote"],
 					[cgr.online] 		=	online,
-					[cgr.status] 		=	guildRoster[string.lower(key)]["status"],
-					[cgr.rankindex]		= 	guildRoster[string.lower(key)]["rankIndex"],
+					[cgr.status] 		=	value["status"],
+					[cgr.rankindex]		= 	value["rankIndex"],
 				},
 				cgrArg, CheckOnline
 			)
+			found = #self.guildRosterIndex
+		end
+		if self.guildRosterIndex[found].cols[cgr.rank].value ~= value["rank"] then self.guildRosterIndex[found].cols[cgr.rank].value = value["rank"] end
+		if self.guildRosterIndex[found].cols[cgr.level].value ~= value["level"] then self.guildRosterIndex[found].cols[cgr.level].value = value["level"] end
+		if self.guildRosterIndex[found].cols[cgr.class].value ~= value["class"] then self.guildRosterIndex[found].cols[cgr.class].value = value["class"] end
+		if self.guildRosterIndex[found].cols[cgr.officernote].value ~= value["officernote"] then self.guildRosterIndex[found].cols[cgr.officernote].value = value["officernote"] end
+		if self.guildRosterIndex[found].cols[cgr.online].value ~= online then self.guildRosterIndex[found].cols[cgr.online].value = online end
+		if self.guildRosterIndex[found].cols[cgr.status].value ~= value["status"] then self.guildRosterIndex[found].cols[cgr.status].value = value["status"] end
+		if self.guildRosterIndex[found].cols[cgr.rankindex].value ~= value["rankindex"] then self.guildRosterIndex[found].cols[cgr.rankindex].value = value["rankindex"] end
 	end
 	if self.scrollFrameGuild then
 		self.scrollFrameGuild:SetData(self.guildRosterIndex)

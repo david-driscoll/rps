@@ -42,10 +42,10 @@ function RPF:CreateFrame()
 	f:SetMovable(true)
 	f:SetClampedToScreen(true)
 	--   f:SetResizeable(true)
-	f:SetFrameStrata("MEDIUM")
+	f:SetFrameStrata("HIGH")
 	f:SetHeight(440)
 	f:SetWidth(400)
-	f:SetPoint("CENTER",0,0)
+	f:SetPoint("CENTER")
 	f:Hide()
 	f:SetScript("OnShow", RPF.LoadData)
 
@@ -89,6 +89,7 @@ function RPF:CreateFrame()
 	do
 		f.featureSetList = {}
 	    f.scrollSetFrame = ScrollingTable:CreateST(RPSConstants.columnDefinitons["FeatureSet"], 5, nil, nil, f, true);
+		f.scrollSetFrame.frame:SetParent(f)
 		f.scrollSetFrame.frame:SetPoint("TOPLEFT", f, "TOPLEFT", 20, -30)
 		f.scrollSetFrame:SetData(f.featureSetList)
 		f.scrollSetFrame:RegisterEvents({
@@ -97,6 +98,7 @@ function RPF:CreateFrame()
 
 		f.featureList = {}
 	    f.scrollFrame = ScrollingTable:CreateST(RPSConstants.columnDefinitons["FeatureCommand"], 5, nil, nil, f, true);
+		f.scrollFrame.frame:SetParent(f)
 		f.scrollFrame.frame:SetPoint("TOPLEFT", f.scrollSetFrame.frame, "BOTTOMLEFT", 0, -60)
 		f.scrollFrame:SetData(f.featureList)
 		f.scrollFrame:RegisterEvents({
@@ -205,6 +207,7 @@ function RPF:CreateFrame()
 		
 		local editbox = CreateFrame("EditBox", nil, f)
 		f.editbox["FeatureSetName"] = editbox
+		editbox.tabPos = 1
 		editbox:SetAutoFocus(false)
 		editbox:SetHeight(32)
 		editbox:SetWidth(100)
@@ -218,6 +221,7 @@ function RPF:CreateFrame()
 		
 		local editbox = CreateFrame("EditBox", nil, f)
 		f.editbox["FeatureSetDesc"] = editbox
+		editbox.tabPos = 2
 		editbox:SetAutoFocus(false)
 		editbox:SetHeight(32)
 		editbox:SetWidth(100)
@@ -231,6 +235,7 @@ function RPF:CreateFrame()
 		
 		local editbox = CreateFrame("EditBox", nil, f)
 		f.editbox["Name"] = editbox
+		editbox.tabPos = 3
 		editbox:SetAutoFocus(false)
 		editbox:SetHeight(32)
 		editbox:SetWidth(100)
@@ -244,6 +249,7 @@ function RPF:CreateFrame()
 
 		local editbox = CreateFrame("EditBox", nil, f)
 		f.editbox["Command"] = editbox
+		editbox.tabPos = 4
 		editbox:SetAutoFocus(false)
 		editbox:SetHeight(32)
 		editbox:SetWidth(100)
@@ -257,6 +263,7 @@ function RPF:CreateFrame()
 
 		local editbox = CreateFrame("EditBox", nil, f)
 		f.editbox["MinClass"] = editbox
+		editbox.tabPos = 5
 		editbox:SetAutoFocus(false)
 		editbox:SetHeight(32)
 		editbox:SetWidth(100)
@@ -271,6 +278,7 @@ function RPF:CreateFrame()
 
 		local editbox = CreateFrame("EditBox", nil, f)
 		f.editbox["MaxClass"] = editbox
+		editbox.tabPos = 6
 		editbox:SetAutoFocus(false)
 		editbox:SetHeight(32)
 		editbox:SetWidth(100)
@@ -285,6 +293,7 @@ function RPF:CreateFrame()
 
 		local editbox = CreateFrame("EditBox", nil, f)
 		f.editbox["MinNonclass"] = editbox
+		editbox.tabPos = 7
 		editbox:SetAutoFocus(false)
 		editbox:SetHeight(32)
 		editbox:SetWidth(100)
@@ -299,6 +308,7 @@ function RPF:CreateFrame()
 
 		local editbox = CreateFrame("EditBox", nil, f)
 		f.editbox["MaxNonclass"] = editbox
+		editbox.tabPos = 8
 		editbox:SetAutoFocus(false)
 		editbox:SetHeight(32)
 		editbox:SetWidth(100)
@@ -313,6 +323,7 @@ function RPF:CreateFrame()
 
 		local editbox = CreateFrame("EditBox", nil, f)
 		f.editbox["MaxPoints"] = editbox
+		editbox.tabPos = 9
 		editbox:SetAutoFocus(false)
 		editbox:SetHeight(32)
 		editbox:SetWidth(100)
@@ -327,6 +338,7 @@ function RPF:CreateFrame()
 
 		local editbox = CreateFrame("EditBox", nil, f)
 		f.editbox["Divisor"] = editbox
+		editbox.tabPos = 10
 		editbox:SetAutoFocus(false)
 		editbox:SetHeight(32)
 		editbox:SetWidth(100)
@@ -341,6 +353,7 @@ function RPF:CreateFrame()
 
 		local editbox = CreateFrame("EditBox", nil, f)
 		f.editbox["Diff"] = editbox
+		editbox.tabPos = 11
 		editbox:SetAutoFocus(false)
 		editbox:SetHeight(32)
 		editbox:SetWidth(100)
@@ -382,6 +395,27 @@ function RPF:CreateFrame()
 					-- },
 					-- text = "Bonus",
 				-- },
+	end
+	
+	for k,editbox in pairs(f.editbox) do
+		if editbox.tabPos and editbox.tabPos > 0 then
+			editbox:SetScript("OnTabPressed", function(self, ...)
+				local focusset = false
+				local tabone
+				for k,eb in pairs(self:GetParent().editbox) do
+					if eb.tabPos == 1 then
+						tabone = eb
+					end
+					if eb.tabPos == self.tabPos+1 then
+						eb:SetFocus()
+						focusset = true
+					end
+				end
+				if not focusset then
+					tabone:SetFocus()
+				end
+			end)	
+		end
 	end
 
 	-- Create Loot Frames

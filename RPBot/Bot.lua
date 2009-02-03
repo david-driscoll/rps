@@ -129,6 +129,8 @@ function RPB:OnEnable()
 	
 	self:CreateFrameRollWindow()
 	self:CreateFramePointsTimer()
+	self:CreateFramePointsViewer()
+	--self:CreateFrameHistoryViewer()
 	self.timer = self:ScheduleTimer("DatabaseSync", 10)
 	self.masterTimer = self:ScheduleTimer("GetMaster", math.random(15, 25))
 	self:Send(cs.getmaster)
@@ -206,6 +208,7 @@ function RPB:CreateDatabase(database, nouse)
 		self:Print("Database",database,"created!")
 		local t = time()
 		self.frames["RollWindow"].dropdown["Raid"]:AddItem(database, database)
+		self.frames["PointsViewer"].dropdown["Raid"]:AddItem(database, database)
 
 	
 		-- local rdd = self.rpoSettings.raidDropDown
@@ -488,8 +491,9 @@ function RPB:PointsAdd(raid, datetime, player, value, ty, itemid, reason, waitli
 				self:Whisper("Deducted "..(-value).." points for "..reason, playerlist[i].name)
 			end
 		end
-		db.realm.raid[raid][string.lower(playerlist[i].name)].points 	= db.realm.raid[raid][string.lower(playerlist[i].name)].points 	+ tonumber(value)
-		db.realm.raid[raid][string.lower(playerlist[i].name)].lifetime 	= db.realm.raid[raid][string.lower(playerlist[i].name)].lifetime 	+ tonumber(value)
+		--db.realm.raid[raid][string.lower(playerlist[i].name)].points 	= db.realm.raid[raid][string.lower(playerlist[i].name)].points 	+ tonumber(value)
+		--db.realm.raid[raid][string.lower(playerlist[i].name)].lifetime 	= db.realm.raid[raid][string.lower(playerlist[i].name)].lifetime 	+ tonumber(value)
+		self:CalculatePoints(string.lower(playerlist[i].name), raid)
 	end
 end
 
@@ -521,7 +525,7 @@ function RPB:PointsRemove(raid, datetime, player, actiontime, whisper, recieved)
 	for i=1, #playerlist do
 		--found = false
 		--if (db.realm.raid[raid][string.lower(playerlist[i].name)]) then
-			if (db.realm.raid[raid][string.lower(playelist[i].name)]) then
+		if (db.realm.raid[raid][string.lower(playelist[i].name)]) then
 			
 			if db.realm.raid[raid][string.lower(playerlist[i].name)].recentactions[datetime] then
 			--for k,v in pairs(self.activeraid[string.lower(playerlist[i].name)].recentactions) do
@@ -542,8 +546,8 @@ function RPB:PointsRemove(raid, datetime, player, actiontime, whisper, recieved)
 							self:Whisper("Removed "..value.." points for "..reason, name)
 						end
 					end
-					db.realm.raid[raid][string.lower(playerlist[i].name)].points 	= db.realm.raid[raid][string.lower(playerlist[i].name)].points 		- tonumber(db.realm.raid[raid][string.lower(playerlist[i].name)].recentactions[datetime].value)
-					db.realm.raid[raid][string.lower(playerlist[i].name)].lifetime 	= db.realm.raid[raid][string.lower(playerlist[i].name)].lifetime 	- tonumber(db.realm.raid[raid][string.lower(playerlist[i].name)].recentactions[datetime].value)
+					--db.realm.raid[raid][string.lower(playerlist[i].name)].points 	= db.realm.raid[raid][string.lower(playerlist[i].name)].points 		- tonumber(db.realm.raid[raid][string.lower(playerlist[i].name)].recentactions[datetime].value)
+					--db.realm.raid[raid][string.lower(playerlist[i].name)].lifetime 	= db.realm.raid[raid][string.lower(playerlist[i].name)].lifetime 	- tonumber(db.realm.raid[raid][string.lower(playerlist[i].name)].recentactions[datetime].value)
 					--tremove(self.activeraid[string.lower(playerlist[i].name)].recentactions,k)
 					break
 				--end
@@ -564,14 +568,15 @@ function RPB:PointsRemove(raid, datetime, player, actiontime, whisper, recieved)
 						if (whisper) then
 							self:Whisper("Removed "..value.." points for "..reason, playerlist[i].name)
 						end
-						db.realm.raid[raid][string.lower(playerlist[i].name)].points 	= db.realm.raid[raid][string.lower(playerlist[i].name)].points 		- tonumber(db.realm.raid[raid][string.lower(playerlist[i].name)].recenthistory[datetime].value)
-						db.realm.raid[raid][string.lower(playerlist[i].name)].lifetime 	= db.realm.raid[raid][string.lower(playerlist[i].name)].lifetime 	- tonumber(db.realm.raid[raid][string.lower(playerlist[i].name)].recenthistory[datetime].value)
+						--db.realm.raid[raid][string.lower(playerlist[i].name)].points 	= db.realm.raid[raid][string.lower(playerlist[i].name)].points 		- tonumber(db.realm.raid[raid][string.lower(playerlist[i].name)].recenthistory[datetime].value)
+						--db.realm.raid[raid][string.lower(playerlist[i].name)].lifetime 	= db.realm.raid[raid][string.lower(playerlist[i].name)].lifetime 	- tonumber(db.realm.raid[raid][string.lower(playerlist[i].name)].recenthistory[datetime].value)
 						--tremove(self.activeraid[string.lower(playerlist[i].name)].recenthistory,k)
 						break
 					--end
 				--end
 			end
 		end
+		self:CalculatePoints(string.lower(playerlist[i].name), raid)
 	end
 end
 
@@ -629,8 +634,8 @@ function RPB:PointsUpdate(datetime, player, points, ty, itemid, reason, waitlist
 					if (whisper) then
 						self:Whisper("Updated points for "..reason.." Old: "..oldvalue.." New: "..points, playerlist[i].name)
 					end
-					db.realm.raid[raid][string.lower(playerlist[i].name)].points 	= db.realm.raid[raid][string.lower(playerlist[i].name)].points 		- oldvalue + points
-					db.realm.raid[raid][string.lower(playerlist[i].name)].lifetime 	= db.realm.raid[raid][string.lower(playerlist[i].name)].lifetime 	- oldvalue + points
+					--db.realm.raid[raid][string.lower(playerlist[i].name)].points 	= db.realm.raid[raid][string.lower(playerlist[i].name)].points 		- oldvalue + points
+					--db.realm.raid[raid][string.lower(playerlist[i].name)].lifetime 	= db.realm.raid[raid][string.lower(playerlist[i].name)].lifetime 	- oldvalue + points
 					--break
 				--end
 			end
@@ -651,18 +656,19 @@ function RPB:PointsUpdate(datetime, player, points, ty, itemid, reason, waitlist
 						if (whisper) then
 							self:Whisper("Updated points for "..reason.." Old: "..oldvalue.." New: "..points, playerlist[i].name)
 						end
-						db.realm.raid[raid][string.lower(playerlist[i].name)].points 	= db.realm.raid[raid][string.lower(playerlist[i].name)].points 		- oldvalue + points
-						db.realm.raid[raid][string.lower(playerlist[i].name)].lifetime 	= db.realm.raid[raid][string.lower(playerlist[i].name)].lifetime 	- oldvalue + points
+						--db.realm.raid[raid][string.lower(playerlist[i].name)].points 	= db.realm.raid[raid][string.lower(playerlist[i].name)].points 		- oldvalue + points
+						--db.realm.raid[raid][string.lower(playerlist[i].name)].lifetime 	= db.realm.raid[raid][string.lower(playerlist[i].name)].lifetime 	- oldvalue + points
 						--break
 					end
 				--end
 			--end
 		end
+		self:CalculatePoints(string.lower(playerlist[i].name), raid)
 	end
 end
 
 function RPB:CalculateLoss(points, cmd)
-	self:Debug(points, cmd)
+	--self:Debug(points, cmd)
 	local feature = RPF.feature[string.lower(cmd)]
 	-- Make this loaclizable, for generic changes.
 	local divisor = tonumber(feature.divisor) or tonumber(self.rpbSettings.divisor)
@@ -678,7 +684,7 @@ function RPB:CalculateLoss(points, cmd)
 	-- If I want to continue with class specific item logic, this is where we do it.
 	if (total <= minnonclass) then
 		loss = minnonclass
-	elseif (total > minnonclass and (not maxnonclass or total <= maxnonclass)) then
+	elseif (total > minnonclass and (not maxnonclass or maxnonclass == -1 or total <= maxnonclass)) then
 		loss = total
 	else
 		loss = maxnonclass
@@ -701,7 +707,6 @@ function RPB:CalculateMaxPoints(points, cmd)
 	if maxpoints == 0 and (maxclass == 0 and maxnonclass == 0) then
 		total = 0
 	elseif maxpoints > 0 then
-		total = points
 		if total > maxpoints then
 			total = maxpoints
 		end

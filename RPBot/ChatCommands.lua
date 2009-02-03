@@ -49,6 +49,16 @@ RPB.chatCommands["roll"] = function (self, msg)
 	self:Send(cs.rolllistget, "")
 end
 
+RPB.chatCommands["points"] = function (self, msg)
+	self:UpdatePointsViewerUI()
+	self.frames["PointsViewer"]:Show()
+end
+
+RPB.chatCommands["history"] = function (self, msg)
+	self:UpdateHistoryViewerUI()
+	self.frames["HistoryViewer"]:Show()
+end
+
 RPB.chatCommands["feature"] = function (self, msg)
 	RPF.frames["FeatureWindow"]:Show()
 end

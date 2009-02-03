@@ -154,6 +154,7 @@ RPSConstants.columnDefinitons["RollWindow"] =
 	        ["b"] = 0.0, 
 	        ["a"] = 1.0 
 	    },
+		["header"] = true,
 	    --["defaultsort"] = "asc",
 	    
 	},
@@ -174,6 +175,7 @@ RPSConstants.columnDefinitons["RollWindow"] =
 	        ["b"] = 0.0, 
 	        ["a"] = 1.0 
 	    },
+		["header"] = true,
 	    --["defaultsort"] = "asc",
 	},
 	{
@@ -193,6 +195,7 @@ RPSConstants.columnDefinitons["RollWindow"] =
 	        ["b"] = 0.0, 
 	        ["a"] = 1.0 
 	    },
+		["header"] = true,
 	    --["defaultsort"] = "asc",
 	},
 	{
@@ -336,3 +339,332 @@ RPSConstants.columnDefinitons["RollWindowNameList"] =
 	    --["defaultsort"] = "asc",
 	},
 }
+
+RPSConstants.columnDefinitons["PointsViewer"] = 
+{
+	{
+	    ["name"] = "Name",
+	    ["width"] = 100,
+	    ["align"] = "CENTER",
+	    -- ["color"] = { 
+	        -- ["r"] = 0.5, 
+	        -- ["g"] = 0.5, 
+	        -- ["b"] = 1.0, 
+	        -- ["a"] = 1.0 
+	    -- },
+	    ["colorargs"] = nil,
+	    ["bgcolor"] = {
+	        ["r"] = 0.0, 
+	        ["g"] = 0.0, 
+	        ["b"] = 0.0, 
+	        ["a"] = 1.0 
+	    },
+	    ["defaultsort"] = "asc",
+	    
+	},
+	{
+	    ["name"] = "Class",
+	    ["width"] = 100,
+	    ["align"] = "CENTER",
+	    -- ["color"] = { 
+	        -- ["r"] = 0.5, 
+	        -- ["g"] = 0.5, 
+	        -- ["b"] = 1.0, 
+	        -- ["a"] = 1.0 
+	    -- },
+	    ["colorargs"] = nil,
+	    ["bgcolor"] = {
+	        ["r"] = 0.0, 
+	        ["g"] = 0.0, 
+	        ["b"] = 0.0, 
+	        ["a"] = 1.0 
+	    },
+		["sortnext"] = 1,
+	    ["defaultsort"] = "asc",
+	},
+	{
+	    ["name"] = "Rank",
+	    ["width"] = 100,
+	    ["align"] = "CENTER",
+	    -- ["color"] = { 
+	        -- ["r"] = 0.5, 
+	        -- ["g"] = 0.5, 
+	        -- ["b"] = 1.0, 
+	        -- ["a"] = 1.0 
+	    -- },
+	    ["colorargs"] = nil,
+	    ["bgcolor"] = {
+	        ["r"] = 0.0, 
+	        ["g"] = 0.0, 
+	        ["b"] = 0.0, 
+	        ["a"] = 1.0 
+	    },
+		["sortnext"] = 1,
+	    ["defaultsort"] = "asc",
+	},
+	{
+	    ["name"] = "Earned",
+	    ["width"] = 60,
+	    ["align"] = "CENTER",
+	    -- ["color"] = { 
+	        -- ["r"] = 0.5, 
+	        -- ["g"] = 0.5, 
+	        -- ["b"] = 1.0, 
+	        -- ["a"] = 1.0 
+	    -- },
+	    ["colorargs"] = nil,
+	    ["bgcolor"] = {
+	        ["r"] = 0.0, 
+	        ["g"] = 0.0, 
+	        ["b"] = 0.0, 
+	        ["a"] = 1.0 
+	    },
+		["sortnext"] = 1,
+	    ["defaultsort"] = "asc",
+	},
+	{
+	    ["name"] = "Spent",
+	    ["width"] = 60,
+	    ["align"] = "CENTER",
+	    -- ["color"] = { 
+	        -- ["r"] = 0.5, 
+	        -- ["g"] = 0.5, 
+	        -- ["b"] = 1.0, 
+	        -- ["a"] = 1.0 
+	    -- },
+	    ["colorargs"] = nil,
+	    ["bgcolor"] = {
+	        ["r"] = 0.0, 
+	        ["g"] = 0.0, 
+	        ["b"] = 0.0, 
+	        ["a"] = 1.0 
+	    },
+		["sortnext"] = 1,
+	    ["defaultsort"] = "asc",
+	},
+	{
+	    ["name"] = "Total",
+	    ["width"] = 60,
+	    ["align"] = "CENTER",
+	    -- ["color"] = { 
+	        -- ["r"] = 0.5, 
+	        -- ["g"] = 0.5, 
+	        -- ["b"] = 1.0, 
+	        -- ["a"] = 1.0 
+	    -- },
+	    ["colorargs"] = nil,
+	    ["bgcolor"] = {
+	        ["r"] = 0.0, 
+	        ["g"] = 0.0, 
+	        ["b"] = 0.0, 
+	        ["a"] = 1.0 
+	    },
+		["sortnext"] = 1,
+	    ["defaultsort"] = "asc",
+	},
+}
+
+RPSConstants.stConstants["PointsViewer"] = 
+{
+	player = 1,
+	class = 2,
+	rank = 3,
+	earned = 4,
+	spent = 5,
+	total = 6,
+}
+
+RPSConstants.stArgs["PointsViewer"] = 
+{
+	[RPSConstants.stConstants["PointsViewer"].player]		= { },
+	[RPSConstants.stConstants["PointsViewer"].class]		= { ClassColor },
+	[RPSConstants.stConstants["PointsViewer"].rank]		= { },
+	[RPSConstants.stConstants["PointsViewer"].earned]		= { },
+	[RPSConstants.stConstants["PointsViewer"].spent]		= { },
+	[RPSConstants.stConstants["PointsViewer"].total]		= { },
+}
+
+RPSConstants.columnDefinitons["PointsViewerPopup"] = 
+{
+	{
+	    ["name"] = "Action Date",
+	    ["width"] = 150,
+	    ["align"] = "CENTER",
+	    ["color"] = { 
+	        ["r"] = 1.0, 
+	        ["g"] = 1.0, 
+	        ["b"] = 1.0, 
+	        ["a"] = 1.0 
+	    },
+	    ["colorargs"] = nil,
+	    ["bgcolor"] = {
+	        ["r"] = 0.0, 
+	        ["g"] = 0.0, 
+	        ["b"] = 0.0, 
+	        ["a"] = 1.0 
+	    },
+	    ["defaultsort"] = "asc",
+	},
+	{
+	    ["name"] = "Date",
+	    ["width"] = 150,
+	    ["align"] = "CENTER",
+	    ["color"] = { 
+	        ["r"] = 1.0, 
+	        ["g"] = 1.0, 
+	        ["b"] = 1.0, 
+	        ["a"] = 1.0 
+	    },
+	    ["colorargs"] = nil,
+	    ["bgcolor"] = {
+	        ["r"] = 0.0, 
+	        ["g"] = 0.0, 
+	        ["b"] = 0.0, 
+	        ["a"] = 1.0 
+	    },
+	    ["defaultsort"] = "asc",
+	},
+	{
+	    ["name"] = "Type",
+	    ["width"] = 30,
+	    ["align"] = "CENTER",
+	    -- ["color"] = { 
+	        -- ["r"] = 0.5, 
+	        -- ["g"] = 0.5, 
+	        -- ["b"] = 1.0, 
+	        -- ["a"] = 1.0 
+	    -- },
+	    ["colorargs"] = nil,
+	    ["bgcolor"] = {
+	        ["r"] = 0.0, 
+	        ["g"] = 0.0, 
+	        ["b"] = 0.0, 
+	        ["a"] = 1.0 
+	    },
+	    ["defaultsort"] = "asc",
+		["sortnext"] = 1,
+	},
+	{
+	    ["name"] = "Value",
+	    ["width"] = 60,
+	    ["align"] = "CENTER",
+	    -- ["color"] = { 
+	        -- ["r"] = 0.5, 
+	        -- ["g"] = 0.5, 
+	        -- ["b"] = 1.0, 
+	        -- ["a"] = 1.0 
+	    -- },
+	    ["colorargs"] = nil,
+	    ["bgcolor"] = {
+	        ["r"] = 0.0, 
+	        ["g"] = 0.0, 
+	        ["b"] = 0.0, 
+	        ["a"] = 1.0 
+	    },
+	    ["defaultsort"] = "asc",
+	},
+	{
+	    ["name"] = "Waitlist",
+	    ["width"] = 60,
+	    ["align"] = "CENTER",
+	    -- ["color"] = { 
+	        -- ["r"] = 0.5, 
+	        -- ["g"] = 0.5, 
+	        -- ["b"] = 1.0, 
+	        -- ["a"] = 1.0 
+	    -- },
+	    ["colorargs"] = nil,
+	    ["bgcolor"] = {
+	        ["r"] = 0.0, 
+	        ["g"] = 0.0, 
+	        ["b"] = 0.0, 
+	        ["a"] = 1.0 
+	    },
+		["sortnext"] = 1,
+	    ["defaultsort"] = "asc",
+	},
+	{
+	    ["name"] = "Itemid",
+	    ["width"] = 60,
+	    ["align"] = "CENTER",
+	    -- ["color"] = { 
+	        -- ["r"] = 0.5, 
+	        -- ["g"] = 0.5, 
+	        -- ["b"] = 1.0, 
+	        -- ["a"] = 1.0 
+	    -- },
+	    ["colorargs"] = nil,
+	    ["bgcolor"] = {
+	        ["r"] = 0.0, 
+	        ["g"] = 0.0, 
+	        ["b"] = 0.0, 
+	        ["a"] = 1.0 
+	    },
+	    ["defaultsort"] = "asc",
+	},
+	{
+	    ["name"] = "Reason",
+	    ["width"] = 200,
+	    ["align"] = "CENTER",
+	    -- ["color"] = { 
+	        -- ["r"] = 0.5, 
+	        -- ["g"] = 0.5, 
+	        -- ["b"] = 1.0, 
+	        -- ["a"] = 1.0 
+	    -- },
+	    ["colorargs"] = nil,
+	    ["bgcolor"] = {
+	        ["r"] = 0.0, 
+	        ["g"] = 0.0, 
+	        ["b"] = 0.0, 
+	        ["a"] = 1.0 
+	    },
+	    ["defaultsort"] = "asc",
+	},
+	{
+	    ["name"] = "Action",
+	    ["width"] = 60,
+	    ["align"] = "CENTER",
+	    -- ["color"] = { 
+	        -- ["r"] = 0.5, 
+	        -- ["g"] = 0.5, 
+	        -- ["b"] = 1.0, 
+	        -- ["a"] = 1.0 
+	    -- },
+	    ["colorargs"] = nil,
+	    ["bgcolor"] = {
+	        ["r"] = 0.0, 
+	        ["g"] = 0.0, 
+	        ["b"] = 0.0, 
+	        ["a"] = 1.0 
+	    },
+		["sortnext"] = 1,
+	    ["defaultsort"] = "asc",
+	},
+}
+
+RPSConstants.stConstants["PointsViewerPopup"] = 
+{
+	datetime = 2,
+	ty = 3,
+	value = 4,
+	waitlist = 5,
+	itemid = 6,
+	reason = 7,
+	action = 8,
+	actiontime = 1,
+}
+
+RPSConstants.stArgs["PointsViewerPopup"] = 
+{
+	[RPSConstants.stConstants["PointsViewerPopup"].datetime]	= { nil, nil, DoTimestampUpdate },
+	[RPSConstants.stConstants["PointsViewerPopup"].ty]			= { },
+	[RPSConstants.stConstants["PointsViewerPopup"].value]		= { },
+	[RPSConstants.stConstants["PointsViewerPopup"].waitlist]	= { },
+	[RPSConstants.stConstants["PointsViewerPopup"].itemid]		= { },
+	[RPSConstants.stConstants["PointsViewerPopup"].reason]		= { },
+	[RPSConstants.stConstants["PointsViewerPopup"].action]		= { },
+	[RPSConstants.stConstants["PointsViewerPopup"].actiontime]	= { nil, nil, DoTimestampUpdate },
+}
+
+

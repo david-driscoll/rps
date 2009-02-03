@@ -21,7 +21,7 @@ own project if needed.
 local MAJOR,MINOR = "BLib", 1
 --@end-alpha@. 
 --[===[@non-alpha@
-local MAJOR,MINOR = "Roster-3.0", @file-revision@
+local MAJOR,MINOR = "BLib", @file-revision@
 --@end-non-alpha@]===]
 local BLib = LibStub:NewLibrary(MAJOR, MINOR)
 if not BLib then return end

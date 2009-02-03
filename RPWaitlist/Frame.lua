@@ -26,10 +26,10 @@ function RPWL:CreateFrame()
 	f:SetMovable(true)
 	f:SetClampedToScreen(true)
 	--   f:SetResizeable(true)
-	f:SetFrameStrata("MEDIUM")
+	f:SetFrameStrata("HIGH")
 	f:SetHeight(512)
 	f:SetWidth(640)
-	f:SetPoint("CENTER",0,0)
+	f:SetPoint("CENTER")
 	
 	self:Skin(f)
 
@@ -64,6 +64,7 @@ function RPWL:CreateFrame()
 	self.title = title
 
 	self.scrollFrame = ScrollingTable:CreateST(RPSConstants.columnDefinitons["Waitlist"], 12, nil, nil, self.Frame, true);
+	self.scrollFrame.frame:SetParent(f)
 	self.scrollFrame.frame:SetPoint("TOPLEFT", self.Frame, "TOPLEFT", 100, -35)
 	self.scrollFrame:SetData(self.db.realm.waitlist)
 	self.scrollFrame:RegisterEvents({
@@ -71,6 +72,7 @@ function RPWL:CreateFrame()
 	});
 	
 	self.scrollFrameGuild = ScrollingTable:CreateST(RPSConstants.columnDefinitons["Roster"], 12, nil, nil, self.Frame, true);
+	self.scrollFrameGuild.frame:SetParent(f)
 	self.scrollFrameGuild.frame:SetPoint("TOPLEFT", self.Frame, "TOPLEFT", 100, -275)
 	self.scrollFrameGuild:SetData({})
 	self.scrollFrameGuild:RegisterEvents({

@@ -56,6 +56,7 @@ RPBotSettings\Portfolio.lua
 
 # RPBot
 RPBot\Constants.lua
+RPBot\Popup.lua
 RPBot\Bot.lua
 RPBot\Loot.lua
 RPBot\Frame.lua
@@ -64,4 +65,5 @@ RPBot\WhisperCommands.lua
 RPBot\SyncCommands.lua
 RPBot\RollWindow.lua
 RPBot\PointsTimer.lua
+RPBot\PointsViewer.lua
 ##RPBot\ClientWindow.lua

@@ -136,7 +136,6 @@ RPSConstants.stConstants["Waitlist"] =
 	alt			= 2,
 	class		= 3,
 	status		= 4,
-	--datetime	= 5,
 	timestamp	= 5,
 }
 

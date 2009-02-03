@@ -75,10 +75,10 @@ function RPB:CreateFrameRollWindow()
 	f:SetMovable(true)
 	f:SetClampedToScreen(true)
 	--   f:SetResizeable(true)
-	f:SetFrameStrata("MEDIUM")
+	f:SetFrameStrata("HIGH")
 	f:SetHeight(440)
 	f:SetWidth(620)
-	f:SetPoint("CENTER",0,0)
+	f:SetPoint("CENTER")
 	f:Hide()
 
 	-- Frame Textures, Drag Header, Close Button, Title
@@ -140,6 +140,7 @@ function RPB:CreateFrameRollWindow()
 	do
 		f.rollList = {}
 	    f.scrollFrame = ScrollingTable:CreateST(RPSConstants.columnDefinitons["RollWindow"], 10, nil, nil, f, true);
+		f.scrollFrame.frame:SetParent(f)
 		f.scrollFrame.frame:SetPoint("TOPLEFT", f, "TOPLEFT", 20, -240)
 		f.scrollFrame:SetData(f.rollList)
 		f.scrollFrame:RegisterEvents({
@@ -174,6 +175,11 @@ function RPB:CreateFrameRollWindow()
 				GameTooltip:Hide()
 			end,
 		});
+		for i=1,#f.scrollFrame.cols do
+			local colFrameName = f.scrollFrame.head:GetName().."Col"..i;
+			local col = getglobal(colFrameName)
+			col:SetScript("OnClick", nil)
+		end
 
 		-- f.item = {}
 		-- for i=1, 1 do 
@@ -181,6 +187,7 @@ function RPB:CreateFrameRollWindow()
 		-- end
 		f.lootList = {}
 	    f.scrollFrameLoot = ScrollingTable:CreateST(RPSConstants.columnDefinitons["RollWindowLootList"], 10, nil, nil, f, true);
+		f.scrollFrameLoot.frame:SetParent(f)
 		f.scrollFrameLoot.frame:SetPoint("TOPLEFT", f, "TOPLEFT", 20, -30)
 		f.scrollFrameLoot:SetData(f.lootList)
 		f.scrollFrameLoot:RegisterEvents({
@@ -188,10 +195,12 @@ function RPB:CreateFrameRollWindow()
 			["OnEnter"] = 
 			function(rowFrame, cellFrame, data, cols, row, realrow, column, ...) 
 				if data[realrow] then
-					GameTooltip:SetOwner(rowFrame, "ANCHOR_CURSOR")
-					GameTooltip:ClearLines()
-					GameTooltip:SetHyperlink(data[realrow].cols[cll.link].value)
-					GameTooltip:Show()
+					if RPB:GetItemID(data[realrow].cols[cll.link].value) then
+						GameTooltip:SetOwner(rowFrame, "ANCHOR_CURSOR")
+						GameTooltip:ClearLines()
+						GameTooltip:SetHyperlink(data[realrow].cols[cll.link].value)
+						GameTooltip:Show()
+					end
 				end
 			end,
 			["OnLeave"] = 
@@ -199,7 +208,11 @@ function RPB:CreateFrameRollWindow()
 				GameTooltip:Hide()
 			end,
 		});
-		getglobal("ScrollTable2HeadCol1"):SetScript("OnClick", nil);
+		for i=1,#f.scrollFrameLoot.cols do
+			local colFrameName =  f.scrollFrameLoot.head:GetName().."Col"..i;
+			local col = getglobal(colFrameName)
+			col:SetScript("OnClick", nil)
+		end
 		
 		-- f.item = {}
 		-- for i=1, 1 do 
@@ -207,6 +220,7 @@ function RPB:CreateFrameRollWindow()
 		-- end
 		f.nameList = {}
 	    f.scrollFrameName = ScrollingTable:CreateST(RPSConstants.columnDefinitons["RollWindowNameList"], 5, nil, nil, f, true);
+		f.scrollFrameName.frame:SetParent(f)
 		f.scrollFrameName.frame:SetPoint("TOPRIGHT", f, "TOPRIGHT", -10, -110)
 		f.scrollFrameName:SetData(f.nameList)
 		f.scrollFrameName:RegisterEvents({
@@ -788,10 +802,9 @@ function RPB:RollListAdd(player, cmd, recieved)
 	local divisor = feature.divisor or 2
 	ty = feature.name
 	
-	if pinfo then
-		class = pinfo["class"] or ""
-		rank = pinfo["rank"] or ""
-	end	
+	player = self:GetPlayer(player, "fullname")
+	class = self:GetPlayer(player, "class")
+	rank = self:GetPlayer(player, "rank")
 
 	local rollList = self.frames["RollWindow"].rollList
 	for i=1,#rollList do
@@ -820,7 +833,6 @@ function RPB:RollListAdd(player, cmd, recieved)
 
 	pdata = self:GetPlayerHistory(player)
 	total = self:CalculateMaxPoints(pdata.points, cmd)
-	player = pinfo.name
 	
 	--loss = self:CalculateLoss(total, cmd)
 	rollList[#rollList+1] = self:BuildRow(
@@ -993,7 +1005,7 @@ function RPB:RollListAward(recieved)
 		loss = -(loss)
 	end
 	roll = winner[crl.roll].value
-	ptotal = self:GetPlayerHistory(player).points
+	ptotal = RPB_GetTotal(player)
 	f.state = "Initial"
 	self:UpdateUI()
 	if self.rpoSettings.master == UnitName("player") then

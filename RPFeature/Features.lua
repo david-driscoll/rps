@@ -45,21 +45,6 @@ function RPF:OnInitialize()
 			["bonus"] = 
 			{
 				name = "Bonus",
-				button = 
-				{
-					name = "Bonus",
-					template = "UIPanelButtonTemplate",
-					width = 91,
-					height = 21,
-					setpoint =
-					{
-						anchor = "TOPLEFT",
-						frameanchor = "TOPLEFT",
-						x = 10,
-						y = -60
-					},
-					text = "Bonus",
-				},
 				command = "bonus",
 				minclass = 25, -- Only override the value if its required by the feature
 				maxclass = 50,
@@ -77,21 +62,6 @@ function RPF:OnInitialize()
 			{
 				name = "Upgrade",
 				command = "upgrade",
-				button = 
-				{
-					name = "Upgrade",
-					template = "UIPanelButtonTemplate",
-					width = 91,
-					height = 21,
-					setpoint =
-					{
-						anchor = "TOPLEFT",
-						frameanchor = "TOPLEFT",
-						x = 10,
-						y = -60
-					},
-					text = "Upgrade",
-				},
 				minclass = 25, -- Only override the value if its required by the feature
 				maxclass = 25,
 				minnonclass = 25,
@@ -107,21 +77,6 @@ function RPF:OnInitialize()
 			{
 				name = "Offspec",
 				command = "offspec",
-				button = 
-				{
-					name = "Offspec",
-					template = "UIPanelButtonTemplate",
-					width = 91,
-					height = 21,
-					setpoint =
-					{
-						anchor = "TOPLEFT",
-						frameanchor = "TOPLEFT",
-						x = 10,
-						y = -60
-					},
-					text = "Offspec",
-				},
 				minclass = 0, -- Only override the value if its required by the feature
 				maxclass = 0,
 				minnonclass = 0,
@@ -133,55 +88,10 @@ function RPF:OnInitialize()
 				bgcolor = nil,
 				nolist = false, -- Only true for special cases such as pass, we don't need them added to the roll list.
 			},
-			["sidegrade"] = 
-			{
-				name = "Sidegrade",
-				command = "sidegrade",
-				button = 
-				{
-					name = "Sidegrade",
-					template = "UIPanelButtonTemplate",
-					width = 91,
-					height = 21,
-					setpoint =
-					{
-						anchor = "TOPLEFT",
-						frameanchor = "TOPLEFT",
-						x = 10,
-						y = -60
-					},
-					text = "Sidegrade",
-				},
-				minclass = 10, -- Only override the value if its required by the feature
-				maxclass = 10,
-				minnonclass = 10,
-				maxnonclass = 10,
-				maxpoints = 0,
-				divisor = 2,
-				diff = 50,
-				color = nil,
-				bgcolor = nil,
-				nolist = false, -- Only true for special cases such as pass, we don't need them added to the roll list.
-			},
 			["pass"] = 
 			{
 				name = "Pass",
 				command = "pass",
-				button = 
-				{
-					name = "Pass",
-					template = "UIPanelButtonTemplate",
-					width = 91,
-					height = 21,
-					setpoint =
-					{
-						anchor = "TOPLEFT",
-						frameanchor = "TOPLEFT",
-						x = 10,
-						y = -60
-					},
-					text = "Pass",
-				},
 				minclass = nil, -- Only override the value if its required by the feature
 				maxclass = nil,
 				minnonclass = nil,
@@ -193,8 +103,6 @@ function RPF:OnInitialize()
 				nolist = true, -- Only true for special cases such as pass, we don't need them added to the roll list.
 			},
 		}
-		--featureSets["deus"]["rot"] = featureSets["deus"]["sidegrade"]
-
 		featureSets["nikarma"] = 
 		{
 			["name"]		= "Ni Karma",
@@ -202,58 +110,27 @@ function RPF:OnInitialize()
 			["bonus"] = 
 			{
 				name = "Bonus",
-				button = 
-				{
-					name = "Bonus",
-					template = "UIPanelButtonTemplate",
-					width = 91,
-					height = 21,
-					setpoint =
-					{
-						anchor = "TOPLEFT",
-						frameanchor = "TOPLEFT",
-						x = 10,
-						y = -60
-					},
-					text = "Bonus",
-				},
 				command = "bonus",
-				minclass = nil, -- Only override the value if its required by the feature
-				maxclass = nil,
-				minnonclass = nil,
-				maxnonclass = nil,
-				maxpoints = nil,
-				divisor = nil,
-				diff = nil,
-				totalpoints = nil,
+				minclass = 25, -- Only override the value if its required by the feature
+				maxclass = 100,
+				minnonclass = 0,
+				maxnonclass = -1,
+				maxpoints = 0,
+				divisor = 2,
+				diff = 50,
 				color = nil,
 				bgcolor = nil,
 				nolist = false, -- Only true for special cases such as pass, we don't need them added to the roll list.
 			},
 			["nobonus"] = 
 			{
-				name = "Upgrade",
-				command = "upgrade",
-				button = 
-				{
-					name = "Upgrade",
-					template = "UIPanelButtonTemplate",
-					width = 91,
-					height = 21,
-					setpoint =
-					{
-						anchor = "TOPLEFT",
-						frameanchor = "TOPLEFT",
-						x = 10,
-						y = -60
-					},
-					text = "Upgrade",
-				},
-				minclass = 50, -- Only override the value if its required by the feature
-				maxclass = 50,
-				minnonclass = 50,
-				maxnonclass = 50,
-				maxpoints = 50,
+				name = "Nobonus",
+				command = "nobonus",
+				minclass = 0, -- Only override the value if its required by the feature
+				maxclass = 0,
+				minnonclass = 0,
+				maxnonclass = 0,
+				maxpoints = 0,
 				divisor = 2,
 				diff = nil,
 				color = nil,

@@ -45,6 +45,7 @@ local mixins = {
 	"Split",
 	"classList",
 	"tierList",
+	"talentList",
 	"GetItemID",
 	"GetColor",
 } 
@@ -330,7 +331,7 @@ end
 function RPLibrary:BuildColumn(value, color, colorargs, dce)
 	local args = nil
 	if (type(value) == "table") then
-		RPB:Debug(value[1], value[2])
+		--RPB:Debug(value[1], value[2])
 		args = value[2]
 		value = value[1]
 	end
@@ -451,6 +452,20 @@ RPLibrary.tierList =
 ["WARRIOR"] 	 = {"WARRIOR", "HUNTER", "SHAMAN"},
 }
 
+RPLibrary.talentList =
+{
+["DEATH KNIGHT "] = {"Blood","Frost","Unholy","Unknown"},
+["DRUID"] = {"Balance","Feral","Restoration","Unknown"},
+["HUNTER"] = {"Beast Mastery","Marksmanship","Survival","Unknown"},
+["MAGE"] = {"Arcane","Fire","Frost","Unknown"},
+["PALADIN"] = {"Holy","Protection","Retribution","Unknown"},
+["PRIEST"] = {"Discipline","Holy","Shadow","Unknown"},
+["ROGUE"] = {"Assassination","Combat","Subtlety","Unknown"},
+["SHAMAN"] = {"Elemental","Enchancement","Restoration","Unknown"},
+["WARLOCK"] = {"Affliction","Demonology","Destruction","Unknown"},
+["WARRIOR"] = {"Arms","Fury","Protection","Unknown"},
+}
+
 function ClassColor(class)
 	if (class and classColors[string.upper(class)]) then
 		return classColors[string.upper(class)]
@@ -472,7 +487,7 @@ DoTimestampUpdate = function(rowFrame, cellFrame, data, cols, row, realrow, colu
 			if not color then 
 				color = data[realrow].color;
 				if not color then 
-					color = defaultcolor;
+					color = {r = 1.0, g = 1.0, b = 1.0, a = 1.0}
 				else
 					colorargs = data[realrow].colorargs;
 				end
@@ -547,6 +562,21 @@ for target, v in pairs(RPLibrary.embeds) do
 	RPLibrary:Embed(target)
 end
 
+do
+  local days_in_month = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 }
+
+  local function is_leap_year(year)
+    return year % 4 == 0 and (year % 100 ~= 0 or year % 400 == 0)
+  end
+
+  function get_days_in_month(month, year)
+    if month == 2 and is_leap_year(year) then
+      return 29
+    else
+      return days_in_month[month]
+    end
+  end
+end
 
 local optionTable = {
 	id="RPS",
