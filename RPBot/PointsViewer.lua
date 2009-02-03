@@ -155,7 +155,7 @@ function RPB:CreateFramePointsViewer()
     -- Scroll Frame
 	do
 		f.nameList = {}
-	    f.scrollFrame = ScrollingTable:CreateST(RPSConstants.columnDefinitons["PointsViewer"], 10, nil, nil, f, true);
+	    f.scrollFrame = ScrollingTable2:CreateST(RPSConstants.columnDefinitons["PointsViewer"], 10, nil, nil, f, true);
 		f.scrollFrame.frame:SetParent(f)
 		f.scrollFrame.frame:SetPoint("TOP", f, "TOP", 0, -35)
 		f.scrollFrame:SetData(f.nameList)
@@ -520,7 +520,7 @@ function RPB:CreateFramePointsViewerPopup()
     -- Scroll Frame
 	do
 		f.nameList = {}
-	    f.scrollFrame = ScrollingTable:CreateST(RPSConstants.columnDefinitons["PointsViewerPopup"], 10, nil, nil, f, true);
+	    f.scrollFrame = ScrollingTable2:CreateST(RPSConstants.columnDefinitons["PointsViewerPopup"], 10, nil, nil, f, true);
 		f.scrollFrame.frame:SetParent(f)
 		f.scrollFrame.frame:SetPoint("TOP", f, "TOP", 0, -35)
 		f.scrollFrame:SetData(f.nameList)

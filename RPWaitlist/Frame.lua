@@ -63,7 +63,7 @@ function RPWL:CreateFrame()
 	title:SetText("Raid Points Waitlist")
 	self.title = title
 
-	self.scrollFrame = ScrollingTable:CreateST(RPSConstants.columnDefinitons["Waitlist"], 12, nil, nil, self.Frame, true);
+	self.scrollFrame = ScrollingTable2:CreateST(RPSConstants.columnDefinitons["Waitlist"], 12, nil, nil, self.Frame, true);
 	self.scrollFrame.frame:SetParent(f)
 	self.scrollFrame.frame:SetPoint("TOPLEFT", self.Frame, "TOPLEFT", 100, -35)
 	self.scrollFrame:SetData(self.db.realm.waitlist)
@@ -71,7 +71,7 @@ function RPWL:CreateFrame()
 		["OnClick"] = scrollFrameOnClick,
 	});
 	
-	self.scrollFrameGuild = ScrollingTable:CreateST(RPSConstants.columnDefinitons["Roster"], 12, nil, nil, self.Frame, true);
+	self.scrollFrameGuild = ScrollingTable2:CreateST(RPSConstants.columnDefinitons["Roster"], 12, nil, nil, self.Frame, true);
 	self.scrollFrameGuild.frame:SetParent(f)
 	self.scrollFrameGuild.frame:SetPoint("TOPLEFT", self.Frame, "TOPLEFT", 100, -275)
 	self.scrollFrameGuild:SetData({})

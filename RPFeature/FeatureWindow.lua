@@ -88,7 +88,7 @@ function RPF:CreateFrame()
     -- Scroll Frame
 	do
 		f.featureSetList = {}
-	    f.scrollSetFrame = ScrollingTable:CreateST(RPSConstants.columnDefinitons["FeatureSet"], 5, nil, nil, f, true);
+	    f.scrollSetFrame = ScrollingTable2:CreateST(RPSConstants.columnDefinitons["FeatureSet"], 5, nil, nil, f, true);
 		f.scrollSetFrame.frame:SetParent(f)
 		f.scrollSetFrame.frame:SetPoint("TOPLEFT", f, "TOPLEFT", 20, -30)
 		f.scrollSetFrame:SetData(f.featureSetList)
@@ -97,7 +97,7 @@ function RPF:CreateFrame()
 		});
 
 		f.featureList = {}
-	    f.scrollFrame = ScrollingTable:CreateST(RPSConstants.columnDefinitons["FeatureCommand"], 5, nil, nil, f, true);
+	    f.scrollFrame = ScrollingTable2:CreateST(RPSConstants.columnDefinitons["FeatureCommand"], 5, nil, nil, f, true);
 		f.scrollFrame.frame:SetParent(f)
 		f.scrollFrame.frame:SetPoint("TOPLEFT", f.scrollSetFrame.frame, "BOTTOMLEFT", 0, -60)
 		f.scrollFrame:SetData(f.featureList)
@@ -425,7 +425,7 @@ function RPF:CreateFrame()
 			-- f.item[i] = self:CreateLootFrame(f, i)
 		-- end
 		-- f.lootList = {}
-	    -- f.scrollFrameLoot = ScrollingTable:CreateST(RPF.columnDefinitons["FeatureWindowLootList"], 10, nil, nil, f);
+	    -- f.scrollFrameLoot = ScrollingTable2:CreateST(RPF.columnDefinitons["FeatureWindowLootList"], 10, nil, nil, f);
 		-- f.scrollFrameLoot.frame:SetPoint("TOPLEFT", f, "TOPLEFT", 20, -30)
 		-- f.scrollFrame:SetData(f.lootList)
 		-- f.scrollFrame:RegisterEvents({

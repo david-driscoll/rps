@@ -139,7 +139,7 @@ function RPB:CreateFrameRollWindow()
     -- Scroll Frame
 	do
 		f.rollList = {}
-	    f.scrollFrame = ScrollingTable:CreateST(RPSConstants.columnDefinitons["RollWindow"], 10, nil, nil, f, true);
+	    f.scrollFrame = ScrollingTable2:CreateST(RPSConstants.columnDefinitons["RollWindow"], 10, nil, nil, f, true);
 		f.scrollFrame.frame:SetParent(f)
 		f.scrollFrame.frame:SetPoint("TOPLEFT", f, "TOPLEFT", 20, -240)
 		f.scrollFrame:SetData(f.rollList)
@@ -186,7 +186,7 @@ function RPB:CreateFrameRollWindow()
 			-- f.item[i] = self:CreateLootFrame(f, i)
 		-- end
 		f.lootList = {}
-	    f.scrollFrameLoot = ScrollingTable:CreateST(RPSConstants.columnDefinitons["RollWindowLootList"], 10, nil, nil, f, true);
+	    f.scrollFrameLoot = ScrollingTable2:CreateST(RPSConstants.columnDefinitons["RollWindowLootList"], 10, nil, nil, f, true);
 		f.scrollFrameLoot.frame:SetParent(f)
 		f.scrollFrameLoot.frame:SetPoint("TOPLEFT", f, "TOPLEFT", 20, -30)
 		f.scrollFrameLoot:SetData(f.lootList)
@@ -219,7 +219,7 @@ function RPB:CreateFrameRollWindow()
 			-- f.item[i] = self:CreateLootFrame(f, i)
 		-- end
 		f.nameList = {}
-	    f.scrollFrameName = ScrollingTable:CreateST(RPSConstants.columnDefinitons["RollWindowNameList"], 5, nil, nil, f, true);
+	    f.scrollFrameName = ScrollingTable2:CreateST(RPSConstants.columnDefinitons["RollWindowNameList"], 5, nil, nil, f, true);
 		f.scrollFrameName.frame:SetParent(f)
 		f.scrollFrameName.frame:SetPoint("TOPRIGHT", f, "TOPRIGHT", -10, -110)
 		f.scrollFrameName:SetData(f.nameList)
