@@ -442,7 +442,7 @@ function RPB:PointsViewerRepopulate()
 	for p,v in pairs(self.db.realm.raid[f.raid]) do
 		local class, rank, player, pinfo
 		pinfo = self:GetPlayer(p)
-		if not pinfo.delete then
+		if pinfo and not pinfo.delete then
 			player = self:GetPlayer(p, "fullname")
 			class = self:GetPlayer(p, "class")
 			rank = self:GetPlayer(p, "rank")
