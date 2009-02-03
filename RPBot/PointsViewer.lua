@@ -415,23 +415,34 @@ end
 
 function RPB:PointsViewerRepopulate()
 	local f = self.frames["PointsViewer"]
+	for i, col in ipairs(f.scrollFrame.cols) do 
+		if i ~= c.player then -- clear out all other sort marks
+			f.scrollFrame.cols[i].sort = nil;
+		end
+	end
+	f.scrollFrame.cols[c.player].sort = "asc";
 	f.nameList = {}
 	for player,v in pairs(self.db.realm.raid[f.raid]) do
-		local class, rank
-		player = self:GetPlayer(player, "fullname")
-		class = self:GetPlayer(player, "class")
-		rank = self:GetPlayer(player, "rank")
-		f.nameList[#f.nameList+1] = self:BuildRow(
-			{
-				[c.player]		= 	player,
-				[c.class]		=	class or "",
-				[c.rank]		=	rank or "",
-				[c.earned]		= 	{GetEarned, {player}},
-				[c.spent]		=	{GetSpent, {player}},
-				[c.total]		=	{GetTotal, {player}},
-			},
-			cArg
-		)
+		if player then
+			local class, rank
+			player = self:GetPlayer(player, "fullname")
+			class = self:GetPlayer(player, "class")
+			rank = self:GetPlayer(player, "rank")
+			f.nameList[#f.nameList+1] = self:BuildRow(
+				{
+					[c.player]		= 	player,
+					[c.class]		=	class or "",
+					[c.rank]		=	rank or "",
+					[c.earned]		= 	{GetEarned, {player}},
+					[c.spent]		=	{GetSpent, {player}},
+					[c.total]		=	{GetTotal, {player}},
+				},
+				cArg
+			)
+		end
+		if not f.nameList[#f.nameList].cols[1] then
+			tremove(f.nameList,#f.nameList)
+		end
 	end
 	f.scrollFrame:SetData(f.nameList)
 end

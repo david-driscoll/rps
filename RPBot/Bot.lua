@@ -129,7 +129,6 @@ function RPB:OnEnable()
 	
 	self:CreateFrameRollWindow()
 	self:CreateFramePointsTimer()
-	self:CreateFramePointsViewer()
 	--self:CreateFrameHistoryViewer()
 	self.timer = self:ScheduleTimer("DatabaseSync", 10)
 	self.masterTimer = self:ScheduleTimer("GetMaster", math.random(15, 25))
@@ -208,7 +207,9 @@ function RPB:CreateDatabase(database, nouse)
 		self:Print("Database",database,"created!")
 		local t = time()
 		self.frames["RollWindow"].dropdown["Raid"]:AddItem(database, database)
-		self.frames["PointsViewer"].dropdown["Raid"]:AddItem(database, database)
+		if self.frames["PointsViewer"] then
+			self.frames["PointsViewer"].dropdown["Raid"]:AddItem(database, database)
+		end
 
 	
 		-- local rdd = self.rpoSettings.raidDropDown

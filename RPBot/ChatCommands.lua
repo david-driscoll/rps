@@ -50,6 +50,7 @@ RPB.chatCommands["roll"] = function (self, msg)
 end
 
 RPB.chatCommands["points"] = function (self, msg)
+	self:CreateFramePointsViewer()
 	self:UpdatePointsViewerUI()
 	self.frames["PointsViewer"]:Show()
 end
