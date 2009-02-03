@@ -464,6 +464,7 @@ RPLibrary.talentList =
 ["SHAMAN"] = {"Elemental","Enchancement","Restoration","Unknown"},
 ["WARLOCK"] = {"Affliction","Demonology","Destruction","Unknown"},
 ["WARRIOR"] = {"Arms","Fury","Protection","Unknown"},
+["UNKNOWN"] = {"Unknown","Unknown","Unknown","Unknown"},
 }
 
 function ClassColor(class)

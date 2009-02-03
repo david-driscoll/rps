@@ -372,6 +372,13 @@ RPB.syncCommands[cs.dballupdate] = function(self, msg, sender)
 	self:Send(cs.dbupdate, "you", sender)
 end
 
+-- RPB.syncCommands[cs.dbreset] = function(self, msg, sender)
+	-- if sender == UnitName("player") then return end
+	-- self.db.realm.player = {}
+	-- self.db.realm.raid = {}
+	-- self:Send(cs.dbupdate, "you", sender)
+-- end
+
 RPB.syncCommands[cs.dbupdate] = function(self, msg, sender)
 	if not self.dbupTimer then
 		self.dbupTimer = self:ScheduleTimer("DatabaseUpdate", 10)
