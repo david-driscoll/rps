@@ -99,6 +99,30 @@ function RPB:OnInitialize()
 			lastloot = 0, -- date and time last looted item was taken
 		}
 	end
+	for k,v in pairs(db.realm.raid) do
+		for key, value in pairs(v) do
+			for key2, value2 in pairs(value.recenthistory) do
+				if value2.link == nil then
+					value2.link = 0
+					value2.actiontime = value2.datetime
+				else
+					break
+					break
+					break
+				end
+			end
+			for key2, value2 in pairs(value.recentactions) do
+				if value2.link == nil then
+					value2.link = 0
+					value2.actiontime = value2.datetime
+				else
+					break
+					break
+					break
+				end
+			end
+		end
+	end
 	self.debugOn = false
 end
 
