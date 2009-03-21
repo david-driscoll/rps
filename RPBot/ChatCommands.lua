@@ -72,8 +72,9 @@ RPB.chatCommands["add"] = function (self, msg)
 	else
 		local reason = string.sub(msg, pos)
 		datetime = time()
-		wl = wl or false
-		RPB:PointsAdd(self.rpoSettings.raid, datetime, player, value, 'P', 0, reason, false, true)
+		--wl = wl or false
+		--function RPB:PointsAdd(raid, actiontime, datetime, player, value, ty, itemid, reason, waitlist, whisper, recieved)
+		self:PointsAdd(self.rpoSettings.raid, datetime, datetime, player, value, 'P', 0, reason, false, true)
 	end
 end
 
@@ -83,8 +84,8 @@ RPB.chatCommands["additem"] = function (self, msg)
 	--local itemid = RPB:GetItemid(reason) or 0
 	local reason = string.sub(msg, pos)
 	datetime = time()
-	wl = wl or false
-	RPB:PointsAdd(self.rpoSettings.raid, datetime, player, value, 'I', 0, reason, wl, true)
+	--wl = wl or false
+	self:PointsAdd(self.rpoSettings.raid, datetime, datetime, player, value, 'I', 0, reason, false, true)
 end
 
 RPB.chatCommands["show"] = function (self, msg)
@@ -118,7 +119,7 @@ RPB.chatCommands["force"] = function (self, msg)
 end
 
 RPB.chatCommands["?"] = function (self, msg)
-	RPB:Print("help stuff")
+	self:Print("help stuff")
 end
 RPB.chatCommands["help"] = RPB.chatCommands["?"]
 

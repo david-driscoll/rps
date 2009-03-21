@@ -479,7 +479,7 @@ DoTimestampUpdate = function(rowFrame, cellFrame, data, cols, row, realrow, colu
 	if fShow then
 		local cellData = data[realrow].cols[column];
 
-		cellFrame.text:SetText(date("%A %b %d %I:%M%p",cellData.value));
+		cellFrame.text:SetText(date(nil,cellData.value));
 		
 		local color = cellData.color;
 		local colorargs = nil;

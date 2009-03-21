@@ -25,6 +25,8 @@ local cp = RPSConstants.stConstants["PointsViewerPopup"]
 local cpArg = RPSConstants.stArgs["PointsViewerPopup"]
 
 local AceGUI = LibStub:GetLibrary("AceGUI-3.0")
+--local f
+--local fp
 
 local function myFilter(self, row)
 	local f = RPB.frames["PointsViewer"]
@@ -101,7 +103,11 @@ function RPB:CreateFramePointsViewer()
 	if not self.frames then
 		self.frames = {}
 	end
+	if self.frames["PointsViewer"] then
+		return
+	end
 	self.frames["PointsViewer"] = CreateFrame("Frame", "RPBPointsViewer", UIParent)
+	--f = self.frames["PointsViewer"]
 
 	local f = self.frames["PointsViewer"]
 	f:EnableMouse(true)
@@ -432,7 +438,7 @@ end
 
 function RPB:PointsViewerRepopulate()
 	local f = self.frames["PointsViewer"]
-	for i, col in ipairs(f.scrollFrame.cols) do 
+	for i, col in pairs(f.scrollFrame.cols) do 
 		if i ~= c.player then -- clear out all other sort marks
 			f.scrollFrame.cols[i].sort = nil;
 		end
@@ -474,9 +480,12 @@ function RPB:CreateFramePointsViewerPopup()
 	if not self.frames then
 		self.frames = {}
 	end
+	if self.frames["PointsViewerPopup"] then
+		return
+	end
 	self.frames["PointsViewerPopup"] = CreateFrame("Frame", "RPBPointsViewerPopup", UIParent)
-
 	local f = self.frames["PointsViewerPopup"]
+
 	f:EnableMouse(true)
 	f:SetMovable(true)
 	f:SetClampedToScreen(true)
@@ -903,7 +912,7 @@ function RPB:CreateFramePointsViewerPopup()
 
 	local checkbox = CreateFrame("CheckButton", nil, f, "OptionsCheckButtonTemplate")
 	f.checkbox["Whisper"] = checkbox
-	checkbox:SetPoint("TOPRIGHT", f.checkbox["Waitlist"], "BOTTOMRIGHT", 0, 8)
+	checkbox:SetPoint("BOTTOMRIGHT", f.button["Commit"], "TOPRIGHT", 0, 0)
 	local font = f:CreateFontString("Whisper","OVERLAY","GameTooltipText")
 	font:SetText("Whisper:")
 	font:SetPoint("TOPRIGHT", checkbox, "TOPLEFT", 0, -8)
@@ -911,7 +920,7 @@ function RPB:CreateFramePointsViewerPopup()
 	local button = CreateFrame("Button", f:GetName() .. "_ButtonSave", f, "UIPanelButtonTemplate")
 	button:SetWidth(75)
 	button:SetHeight(21)
-	button:SetPoint("TOPRIGHT", f.checkbox["Whisper"], "BOTTOMRIGHT", 0, 0)
+	button:SetPoint("TOPRIGHT", f.checkbox["Waitlist"], "BOTTOMRIGHT", 0, 0)
 	button:SetText("Save")
 	button:SetScript("OnClick", 
 		function(self)
@@ -920,11 +929,57 @@ function RPB:CreateFramePointsViewerPopup()
 	)
 	f.button["Save"] = button
 	-- Generate Data
+	f.actionList = {}
+end
+
+function PointsViewerPopupScrollFrameColor(row)
+	local f = RPB.frames["PointsViewerPopup"]
+	for k,v in pairs(f.actionList) do
+		if row.cols[cp.actiontime].value == v.at then
+			if row.cols[cp.action].value ~= v.action then
+				return {
+					["r"] = 1.0,
+					["g"] = 0.0,
+					["b"] = 0.0,
+					["a"] = 1.0
+					}
+				elseif row.cols[cp.action].value == "Update" then
+				return {
+					["r"] = 0.0,
+					["g"] = 0.0,
+					["b"] = 1.0,
+					["a"] = 1.0
+					}
+			else
+				return {
+					["r"] = 0.0,
+					["g"] = 1.0,
+					["b"] = 0.0,
+					["a"] = 1.0
+					}
+			end
+		elseif row.cols[cp.actiontime].value == v.actiontime then
+			if row.cols[cp.action].value ~= v.action then
+				return {
+					["r"] = 1.0,
+					["g"] = 0.0,
+					["b"] = 0.0,
+					["a"] = 1.0
+					}
+			end
+		end
+	end
+	return {
+		["r"] = 1.0,
+		["g"] = 1.0,
+		["b"] = 1.0,
+		["a"] = 1.0
+		}
 end
 
 function RPB:PointsViewerPopupScrollFrameRefresh()
 	local f = self.frames["PointsViewerPopup"]
-	for i, col in ipairs(f.scrollFrame.cols) do 
+	for i, col in pairs(f.scrollFrame.cols) do 
 		if i ~= cp.actiontime then -- clear out all other sort marks
 			f.scrollFrame.cols[i].sort = nil;
 		end
@@ -968,7 +1023,7 @@ function RPB:PointsViewerPopupSetup(raid, player)
 				[cp.action]		=	value.action,
 				[cp.actiontime]	=	actiontime,
 			},
-			cpArg
+			cpArg, PointsViewerPopupScrollFrameColor
 		)
 	end
 	for actiontime,value in pairs(history.recentactions) do
@@ -983,7 +1038,7 @@ function RPB:PointsViewerPopupSetup(raid, player)
 				[cp.action]		=	value.action,
 				[cp.actiontime]	=	actiontime,
 			},
-			cpArg
+			cpArg, PointsViewerPopupScrollFrameColor
 		)
 	end
 	
@@ -1005,28 +1060,61 @@ function RPB:PointsViewerPopupSetup(raid, player)
 	f.dropdown["Minute"]:SetValue(0)
 	f.dropdown["Second"]:SetValue(0)
 	
+	f.dropdown["Date"]:SetDisabled(true)
+	f.dropdown["Hour"]:SetDisabled(true)
+	f.dropdown["Minute"]:SetDisabled(true)
+	f.dropdown["Second"]:SetDisabled(true)
+	
 	f.editbox["Type"]:SetText("")
 	f.editbox["Value"]:SetText("")
 	f.editbox["Reason"]:SetText("")
 	f.checkbox["Waitlist"]:SetChecked(0)
-	f.checkbox["Whisper"]:SetChecked(0)
+	--f.checkbox["Whisper"]:SetChecked(0)
 	
 	f.actionList = {}
-	RPB:PointsViewerPopupScrollFrameRefresh()
+	self:PointsViewerPopupScrollFrameRefresh()
 end
 
 function RPB:PointsViewerPopupCommitChanges()
-	local f = RPB.frames["PointsViewerPopup"]
+	local f = self.frames["PointsViewerPopup"]
+	
+	-- f.actionList[#f.actionList+1] = 
+	-- {
+		-- at 			-- Time this action was processed.
+		-- actiontime 	-- Time this action was done in the past
+		-- datetime 	-- Time this action was done originally.
+		-- --datetime = actiontime when they were added for the same time
+		-- ty			-- Type, item or points
+		-- itemid		-- Itemid if type is an item, this can always be gained from 'reason'
+		-- reason		-- Item link, or reason text.
+		-- value		-- Value given or taken away
+		-- waitlist	-- Toggle if the person was on the waitlist
+		-- whiser		-- Wether or not this change should be whispered to the player
+		-- action		-- The action to be performed by the base data classes.
+	-- }
+	
+	local whisper = f.checkbox["Whisper"]:GetChecked()
+	
+	for k,v in ipairs(f.actionList) do
+		if v.action == "Insert" then
+			   self:PointsAdd(f.raid, v.actiontime, v.datetime, f.player, v.value, v.ty, v.itemid, v.reason, v.waitlist, whisper)
+		elseif v.action == "Update" then
+			self:PointsUpdate(f.raid, v.at, v.actiontime, v.datetime, f.player, v.value, v.ty, v.itemid, v.reason, v.waitlist, whisper)
+		elseif v.action == "Delete" then
+			self:PointsRemove(f.raid, v.at, v.actiontime, v.datetime, f.player, whisper)
+		end
+	end
+	
 	f:Hide()
 end
 
 function RPB:PointsViewerPopupCancelChanges()
-	local f = RPB.frames["PointsViewerPopup"]
+	local f = self.frames["PointsViewerPopup"]
 	f:Hide()
 end
 
 function RPB:PointsViewerPopupAddClick()
-	local f = RPB.frames["PointsViewerPopup"]
+	local f = self.frames["PointsViewerPopup"]
 	local dt = date()
 	local tt = 
 	{
@@ -1045,16 +1133,21 @@ function RPB:PointsViewerPopupAddClick()
 	f.dropdown["Minute"]:SetValue(tt.min)
 	f.dropdown["Second"]:SetValue(tt.sec)
 	
+	f.dropdown["Date"]:SetDisabled(false)
+	f.dropdown["Hour"]:SetDisabled(false)
+	f.dropdown["Minute"]:SetDisabled(false)
+	f.dropdown["Second"]:SetDisabled(false)
+	
 	f.editbox["Type"]:SetText("")
 	f.editbox["Value"]:SetText("")
 	f.editbox["Reason"]:SetText("")
 	f.checkbox["Waitlist"]:SetChecked(0)
-	f.checkbox["Whisper"]:SetChecked(0)
+	--f.checkbox["Whisper"]:SetChecked(0)
 	f.action = "Add"
 end
 
 function RPB:PointsViewerPopupEditClick()
-	local f = RPB.frames["PointsViewerPopup"]
+	local f = self.frames["PointsViewerPopup"]
 	if not f.scrollFrame.selected then return end
 	
 	local dt = date(nil,f.scrollFrame.selected.cols[cp.datetime].value)
@@ -1075,68 +1168,44 @@ function RPB:PointsViewerPopupEditClick()
 	f.dropdown["Minute"]:SetValue(tt.min)
 	f.dropdown["Second"]:SetValue(tt.sec)
 	
+	f.dropdown["Date"]:SetDisabled(true)
+	f.dropdown["Hour"]:SetDisabled(true)
+	f.dropdown["Minute"]:SetDisabled(true)
+	f.dropdown["Second"]:SetDisabled(true)
+	
 	f.editbox["Type"]:SetText(f.scrollFrame.selected.cols[cp.ty].value)
 	f.editbox["Value"]:SetText(tonumber(f.scrollFrame.selected.cols[cp.value].value))
 	f.editbox["Reason"]:SetText(f.scrollFrame.selected.cols[cp.reason].value)
 	f.checkbox["Waitlist"]:SetChecked(f.scrollFrame.selected.cols[cp.waitlist].value)
-	f.checkbox["Whisper"]:SetChecked(0)
+	--f.checkbox["Whisper"]:SetChecked(0)
 	f.action = "Edit"
+	f.actiontime = f.scrollFrame.selected.cols[cp.actiontime].value
+	f.datetime = f.scrollFrame.selected.cols[cp.datetime].value
 end
 
 function RPB:PointsViewerPopupRemoveClick()
-	local f = RPB.frames["PointsViewerPopup"]
+	local f = self.frames["PointsViewerPopup"]
 	if not f.scrollFrame.selected then return end
 
 	local found = false
 	for i=1,#f.actionList do
-		if f.actionList[i].at == f.scrollFrame.selected.cols[cp.actiontime].value then
-			for j=1,#f.historyList do
-				if f.historyList[j].cols[cp.actiontime].value == f.actionList[i].at then
-					for k=1,#f.historyList do
-						if f.historyList[k].cols[cp.actiontime].value == f.actionList[i].actiontime then
-							f.historyList[k].color = nil
-						end
-					end
-					tremove(f.historyList,j)
-					found = true
-					break
-				end
-			end
+		if f.actionList[i].actiontime == f.scrollFrame.selected.cols[cp.actiontime].value then
+			tremove(f.historyList,f.actionList[i].historyList)
 			tremove(f.actionList,i)
+			found = true
 			break
-		elseif f.actionList[i].actiontime == f.scrollFrame.selected.cols[cp.actiontime].value then
-			f.scrollFrame.selected.color = nil
-			for j=1,#f.historyList do
-				if f.historyList[j].cols[cp.actiontime].value == f.actionList[i].at then
-					tremove(f.historyList,j)
-					found = true
-					break
-				end
-			end
-			tremove(f.actionList,i)
-			break
-		end
-	end
-	
-	for i=1,#f.actionList do
-		for j=1,#f.historyList do
-			if f.actionList[i].at == f.historyList[j].cols[cp.actiontime].value then
-				tremove(f.historyList,j)
-				tremove(f.actionList,i)
-				break
-			end
 		end
 	end
 	
 	if found then RPB:PointsViewerPopupScrollFrameRefresh() return end
-	local actiontime = time()
+	local deletetime = time()
 	local action
 	local color = {r = 0.0, g = 1.0, b = 0.0, a = 1.0}
 	if f.scrollFrame.selected.cols[cp.action].value == "Insert" then
 		f.actionList[#f.actionList+1] = 
 		{
-			at 			= actiontime,
-			actiontime 	= f.scrollFrame.selected.cols[cp.actiontime].value,
+			at			= deletetime,
+			actiontime 	= deletetime,
 			datetime 	= f.scrollFrame.selected.cols[cp.datetime].value,
 			ty			= f.scrollFrame.selected.cols[cp.ty].value,
 			itemid		= self:GetItemID(f.scrollFrame.selected.cols[cp.reason].value) or 0,
@@ -1149,22 +1218,22 @@ function RPB:PointsViewerPopupRemoveClick()
 	elseif f.scrollFrame.selected.cols[cp.action].value == "Delete" then
 		f.actionList[#f.actionList+1] = 
 		{
-			at 			= actiontime,
-			actiontime 	= f.scrollFrame.selected.cols[cp.actiontime].value,
+			at			= deletetime,
+			actiontime 	= deletetime,
 			datetime 	= f.scrollFrame.selected.cols[cp.datetime].value,
 			ty			= f.scrollFrame.selected.cols[cp.ty].value,
 			itemid		= self:GetItemID(f.scrollFrame.selected.cols[cp.reason].value) or 0,
 			reason		= f.scrollFrame.selected.cols[cp.reason].value,
 			value		= tonumber(f.scrollFrame.selected.cols[cp.value].value),
 			waitlist	= f.scrollFrame.selected.cols[cp.waitlist].value,
-			action		= "Insert",
+			action		= "Delete",
 		}
-		action = "Insert"
+		action = "Delete"
 	elseif f.scrollFrame.selected.cols[cp.action].value == "Update" then
 		f.actionList[#f.actionList+1] = 
 		{
-			at 			= actiontime,
-			actiontime 	= f.scrollFrame.selected.cols[cp.actiontime].value,
+			at			= deletetime,
+			actiontime 	= deletetime,
 			datetime 	= f.scrollFrame.selected.cols[cp.datetime].value,
 			ty			= f.scrollFrame.selected.cols[cp.ty].value,
 			itemid		= self:GetItemID(f.scrollFrame.selected.cols[cp.reason].value) or 0,
@@ -1176,10 +1245,9 @@ function RPB:PointsViewerPopupRemoveClick()
 		action = "Delete"
 		color = {r = 0.0, g = 0.0, b = 1.0, a = 1.0}
 	end
-	f.scrollFrame.selected.color = {r = 1.0, g = 0.0, b = 0.0, a = 1.0}
 	f.historyList[#f.historyList+1] = self:BuildRow(
 		{
-			[cp.actiontime]	= 	actiontime,
+			[cp.actiontime]	= 	deletetime,
 			[cp.datetime]	= 	f.actionList[#f.actionList].datetime,
 			[cp.ty]			=	f.actionList[#f.actionList].ty,
 			[cp.itemid]		=	f.actionList[#f.actionList].itemid,
@@ -1188,22 +1256,39 @@ function RPB:PointsViewerPopupRemoveClick()
 			[cp.waitlist]	=	f.actionList[#f.actionList].waitlist,
 			[cp.action]		=	action,
 		},
-		cpArg, color
+		cpArg, PointsViewerPopupScrollFrameColor
 	)
-	RPB:PointsViewerPopupScrollFrameRefresh()
+	self:PointsViewerPopupScrollFrameRefresh()
+	f.actionList[#f.actionList].historyList = #f.historyList
 end
 
 function RPB:PointsViewerPopupSaveClick()
-	local f = RPB.frames["PointsViewerPopup"]
-	if not f.scrollFrame.selected then return end
-	local actiontime = time()
+	local f = self.frames["PointsViewerPopup"]
+	local savetime = time()
 	local action
 	local color = {r = 0.0, g = 1.0, b = 0.0, a = 1.0}
+	
+	local dt = date(nil, f.dropdown["Date"].value)
+	local timetable = 
+	{
+		year 	= tonumber("20"..string.sub(dt,7,8)),
+		month 	= tonumber(string.sub(dt,1,2)),
+		day 	= tonumber(string.sub(dt,4,5)),
+		hour 	= tonumber(f.dropdown["Hour"].value),
+		min 	= tonumber(f.dropdown["Minute"].value),
+		sec 	= tonumber(f.dropdown["Second"].value),
+	}
+	
+	f.dropdown["Date"]:SetDisabled(true)
+	f.dropdown["Hour"]:SetDisabled(true)
+	f.dropdown["Minute"]:SetDisabled(true)
+	f.dropdown["Second"]:SetDisabled(true)
+	
 	if f.action == "Add" then
 		f.actionList[#f.actionList+1] = 
 		{
-			at 			= actiontime,
-			actiontime 	= actiontime,
+			at 			= time(timetable),
+			actiontime 	= time(timetable),
 			datetime 	= time(timetable),
 			ty			= f.editbox["Type"]:GetText(),
 			itemid		= self:GetItemID(f.editbox["Reason"]:GetText()) or 0,
@@ -1215,17 +1300,12 @@ function RPB:PointsViewerPopupSaveClick()
 		action = "Insert"
 		color = {r = 0.0, g = 1.0, b = 0.0, a = 1.0}
 	elseif f.action == "Edit" then
+		if not f.scrollFrame.selected then return end
 		local found = false
 		for i=1,#f.actionList do
 			if f.actionList[i].at == f.scrollFrame.selected.cols[cp.actiontime].value then
-				f.scrollFrame.selected.color = nil
 				for j=1,#f.historyList do
 					if f.historyList[j].cols[cp.actiontime].value == f.actionList[i].at then
-						for k=1,#f.historyList do
-							if f.historyList[k].cols[cp.actiontime].value == f.actionList[i].actiontime then
-								f.historyList[k].color = nil
-							end
-						end
 						tremove(f.historyList,j)
 						found = true
 						break
@@ -1234,7 +1314,6 @@ function RPB:PointsViewerPopupSaveClick()
 				tremove(f.actionList,i)
 				break
 			elseif f.actionList[i].actiontime == f.scrollFrame.selected.cols[cp.actiontime].value then
-				f.scrollFrame.selected.color = nil
 				for j=1,#f.historyList do
 					if f.historyList[j].cols[cp.actiontime].value == f.actionList[i].at then
 						tremove(f.historyList,j)
@@ -1248,30 +1327,18 @@ function RPB:PointsViewerPopupSaveClick()
 		end
 		
 		for i=1,#f.actionList do
-			for j=1,#f.historyList do
-				if f.actionList[i].at == f.historyList[j].cols[cp.actiontime].value then
-					tremove(f.historyList,j)
-					tremove(f.actionList,i)
-					break
-				end
+			if f.actionList[i].actiontime == f.scrollFrame.selected.cols[cp.actiontime].value then
+				tremove(f.historyList,f.actionList[i].historyList)
+				tremove(f.actionList,i)
+				break
 			end
-		end
+		end	
 		
-		local dt = date(nil, f.dropdown["Date"].value)
-		local timetable = 
-		{
-			year 	= tonumber("20"..string.sub(dt,7,8)),
-			month 	= tonumber(string.sub(dt,1,2)),
-			day 	= tonumber(string.sub(dt,4,5)),
-			hour 	= tonumber(f.dropdown["Hour"].value),
-			min 	= tonumber(f.dropdown["Minute"].value),
-			sec 	= tonumber(f.dropdown["Second"].value),
-		}
 		f.actionList[#f.actionList+1] = 
 		{
-			at 			= actiontime,
-			actiontime 	= actiontime,
-			datetime 	= time(timetable),
+			at 			= savetime,
+			actiontime 	= savetime,
+			datetime 	= f.datetime,
 			ty			= f.editbox["Type"]:GetText(),
 			itemid		= self:GetItemID(f.editbox["Reason"]:GetText()) or 0,
 			reason		= f.editbox["Reason"]:GetText(),
@@ -1282,12 +1349,9 @@ function RPB:PointsViewerPopupSaveClick()
 		action = "Update"
 		color = {r = 0.0, g = 0.0, b = 1.0, a = 1.0}
 	end
-	if f.scrollFrame.selected.color and f.scrollFrame.selected.color.g ~= 1.0 then
-		f.scrollFrame.selected.color = {r = 1.0, g = 0.0, b = 0.0, a = 1.0}
-	end
 	f.historyList[#f.historyList+1] = self:BuildRow(
 		{
-			[cp.actiontime]	= 	actiontime,
+			[cp.actiontime]	= 	savetime,
 			[cp.datetime]	= 	f.actionList[#f.actionList].datetime,
 			[cp.ty]			=	f.actionList[#f.actionList].ty,
 			[cp.itemid]		=	f.actionList[#f.actionList].itemid,
@@ -1296,9 +1360,10 @@ function RPB:PointsViewerPopupSaveClick()
 			[cp.waitlist]	=	f.actionList[#f.actionList].waitlist,
 			[cp.action]		=	action,
 		},
-		cpArg, color
+		cpArg, PointsViewerPopupScrollFrameColor
 	)
-	RPB:PointsViewerPopupScrollFrameRefresh()
+	self:PointsViewerPopupScrollFrameRefresh()
+	f.actionList[#f.actionList].historyList = #f.historyList
 end
 
 function PointsViewerPopupScrollFrameOnClick(rowFrame, cellFrame, data, cols, row, realrow, column, button, down)

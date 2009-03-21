@@ -1017,7 +1017,10 @@ function RPB:RollListAward(recieved)
 		self:ItemListRemove(item[cll.link].value)
 		self:RollListUpdateRoll(player)
 	end
-	f.timer = nil
+	if f.timer then
+		self:CancelTimer(f.timer)
+		f.timer = nil
+	end
 end
 
 function RPB:RollListDisenchant(recieved)
@@ -1041,7 +1044,10 @@ function RPB:RollListDisenchant(recieved)
 		self:Broadcast(	"Disenchant wins " .. item[cll.link].value)
 		self:ItemListRemove(item[cll.link].value)
 	end
-	f.timer = nil
+	if f.timer then
+		self:CancelTimer(f.timer)
+		f.timer = nil
+	end
 end
 
 function RPB:StartBidding(recieved)
@@ -1112,6 +1118,10 @@ end
 function RPB:StopBidding(recieved)
 	local f = self.frames["RollWindow"]
 	if f.inProgress then
+		if f.timer then
+			self:CancelTimer(f.timer)
+			f.timer = nil
+		end
 		f.timer = self:ScheduleTimer("StopBidding", 1)
 		f.tm = f.tm - 1
 		local timeleft = f.tm

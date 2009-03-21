@@ -425,8 +425,12 @@ function RPB:PlayerToArray(player, to)
 	return list
 end
 
-function RPB:PointsAdd(raid, datetime, player, value, ty, itemid, reason, waitlist, whisper, recieved)
+function RPB:PointsAdd(raid, actiontime, datetime, player, value, ty, itemid, reason, waitlist, whisper, recieved)
 	local playerlist
+	
+	if not actiontime then
+		actiontime = datetime
+	end
 	if type(player) == "table" then
 		playerlist = player
 	else
@@ -445,7 +449,7 @@ function RPB:PointsAdd(raid, datetime, player, value, ty, itemid, reason, waitli
 		--	other clients. This will cause them to run the exact same command.
 		-- This edge case can not happen in Update or Remove because they handle "all" differently,
 		--	since they are searching the entire database to deal with that specific entry.
-		self:Send(cs.pointsadd, {raid, datetime, playerlist, value, ty, itemid, reason, waitlist, false, true})
+		self:Send(cs.pointsadd, {raid, actiontime, datetime, playerlist, value, ty, itemid, reason, waitlist, false, true})
 		-- self:Send(cs.pointsadd, 
 			-- {
 				-- ["datetime"] = datetime,
@@ -476,7 +480,9 @@ function RPB:PointsAdd(raid, datetime, player, value, ty, itemid, reason, waitli
 			end
 		end
 		db.realm.raid[raid][string.lower(playerlist[i].name)].recentactions[datetime] = {
+			actiontime 	= actiontime,
 			datetime 	= datetime,
+			link	 	= 0,
 			ty			= ty,
 			itemid		= tonumber(itemid),
 			reason		= reason,
@@ -484,7 +490,7 @@ function RPB:PointsAdd(raid, datetime, player, value, ty, itemid, reason, waitli
 			waitlist	= waitlist or playerlist[i].waitlist,
 			action		= "Insert",
 		}
-		db.realm.version.lastaction = datetime
+		db.realm.version.lastaction = actiontime
 		if (whisper and not recieved) then
 			if (tonumber(value) >= 0) then
 				self:Whisper("Added "..value.." points for "..reason, playerlist[i].name)
@@ -498,8 +504,51 @@ function RPB:PointsAdd(raid, datetime, player, value, ty, itemid, reason, waitli
 	end
 end
 
-function RPB:PointsRemove(raid, datetime, player, actiontime, whisper, recieved)
+local function LastLink(phistory, entry)
+	local p = 0
+	local myentry = nil
+	local datetime = tonumber(entry)
+	if datetime and datetime > 0 then
+		if phistory.recentactions[datetime] then
+			entry = phistory.recentactions[datetime]
+		else
+			entry = phistory.recenthistory[datetime]
+		end
+	end
+	if entry.link > 0 then
+		local obj
+		if phistory.recentactions[entry.link] then
+			obj = phistory.recentactions[entry.link]
+			myentry = LastLink(phistory, obj)
+		end
+	else
+		myentry = entry
+	end
+	return myentry
+end
+
+local function LastLinkValue(phistory, entry)
+	local e = LastLink(phistory, entry)
+	if e.action == "Delete" then
+		return (-e.value)
+	else
+		return e.value
+	end
+end
+
+function RPB:PointsRemove(raid, removetime, actiontime, datetime, player, whisper, recieved)
 	local playerlist
+	
+	-- local link
+	-- if not actiontime then
+		-- actiontime = datetime
+	-- end	
+	-- if actiontime ~= datetime then
+		-- link = actiontime
+	-- else
+		-- link = 0
+	-- end
+	
 	-- If we're removing "all" this is a special case
 	-- we want to remove all points, only in recentactions.
 	if (player == "all") then
@@ -514,75 +563,114 @@ function RPB:PointsRemove(raid, datetime, player, actiontime, whisper, recieved)
 	local found
 	
 	if not recieved then
-		self:Send(cs.pointsremove, {raid, datetime, player, actiontime, false, true})
-		-- self:Send(cs.pointsremove, 
-			-- {
-				-- ["datetime"] = datetime,
-				-- ["player"] = player,
-				-- ["actiontime"] = actiontime,
-			-- }
-		-- )
+		self:Send(cs.pointsremove, {raid, removetime, actiontime, datetime, player, false, true})
 	end
 	for i=1, #playerlist do
-		--found = false
-		--if (db.realm.raid[raid][string.lower(playerlist[i].name)]) then
-		if (db.realm.raid[raid][string.lower(playelist[i].name)]) then
-			
+		if (db.realm.raid[raid][string.lower(playerlist[i].name)]) then
 			if db.realm.raid[raid][string.lower(playerlist[i].name)].recentactions[datetime] then
-			--for k,v in pairs(self.activeraid[string.lower(playerlist[i].name)].recentactions) do
-				--if (db.realm.raid[raid][string.lower(playerlist[i].name)].recentactions[k].datetime == datetime) then
-					--found = true
-					db.realm.raid[raid][string.lower(playerlist[i].name)].recentactions[actiontime] = {
-						datetime 	= db.realm.raid[raid][string.lower(playerlist[i].name)].recentactions[datetime].datetime,
-						ty			= db.realm.raid[raid][string.lower(playerlist[i].name)].recentactions[datetime].ty,
-						itemid		= db.realm.raid[raid][string.lower(playerlist[i].name)].recentactions[datetime].itemid,
-						reason		= db.realm.raid[raid][string.lower(playerlist[i].name)].recentactions[datetime].reason,
-						value		= db.realm.raid[raid][string.lower(playerlist[i].name)].recentactions[datetime].value,
-						waitlist	= db.realm.raid[raid][string.lower(playerlist[i].name)].recentactions[datetime].waitlist,
-						action	= "Delete",
+				local obj = db.realm.raid[raid][string.lower(playerlist[i].name)].recentactions[datetime]
+				local points = LastLinkValue(db.realm.raid[raid][string.lower(playerlist[i].name)], datetime)
+				db.realm.raid[raid][string.lower(playerlist[i].name)].recentactions[removetime] = {
+					actiontime 	= actiontime,
+					datetime 	= datetime,
+					link	 	= 0,
+					ty			= obj.ty,
+					itemid		= obj.itemid,
+					reason		= obj.reason,
+					value		= points,
+					waitlist	= obj.waitlist,
+					action		= "Delete",
 					}
-					db.realm.version.lastaction = actiontime
-					if (whisper) then
-						if (whisper) then
-							self:Whisper("Removed "..value.." points for "..reason, name)
-						end
+				LastLink(db.realm.raid[raid][string.lower(playerlist[i].name)], obj).link = removetime
+				db.realm.version.lastaction = removetime
+				if (whisper) then
+					local value = db.realm.raid[raid][string.lower(playerlist[i].name)].recentactions[datetime].value
+					if (tonumber(value) >= 0) then
+						self:Whisper("Entry Removed: \"Added "..value.." points for "..reason.."\"", name)
+					else
+						self:Whisper("Entry Removed: \"Deducted "..(-value).." points for "..reason.."\"", name)
 					end
-					--db.realm.raid[raid][string.lower(playerlist[i].name)].points 	= db.realm.raid[raid][string.lower(playerlist[i].name)].points 		- tonumber(db.realm.raid[raid][string.lower(playerlist[i].name)].recentactions[datetime].value)
-					--db.realm.raid[raid][string.lower(playerlist[i].name)].lifetime 	= db.realm.raid[raid][string.lower(playerlist[i].name)].lifetime 	- tonumber(db.realm.raid[raid][string.lower(playerlist[i].name)].recentactions[datetime].value)
-					--tremove(self.activeraid[string.lower(playerlist[i].name)].recentactions,k)
-					break
-				--end
+				end
 			end
-			--if (not found and player ~= "all") then
-				--for k,v in pairs(self.activeraid[string.lower(playerlist[i].name)].recenthistory) do
+
 			if (db.realm.raid[raid][string.lower(playerlist[i].name)].recenthistory[datetime]) then
-						db.realm.raid[raid][string.lower(playerlist[i].name)].recentactions[actiontime] = {
-							datetime 	= db.realm.raid[raid][string.lower(playerlist[i].name)].recenthistory[datetime].datetime,
-							ty			= db.realm.raid[raid][string.lower(playerlist[i].name)].recenthistory[datetime].ty,
-							itemid		= db.realm.raid[raid][string.lower(playerlist[i].name)].recenthistory[datetime].itemid,
-							reason		= db.realm.raid[raid][string.lower(playerlist[i].name)].recenthistory[datetime].reason,
-							value		= db.realm.raid[raid][string.lower(playerlist[i].name)].recenthistory[datetime].value,
-							waitlist	= db.realm.raid[raid][string.lower(playerlist[i].name)].recenthistory[datetime].waitlist,
-							action	= "Delete",
-						}
-						db.realm.version.lastaction = actiontime
-						if (whisper) then
-							self:Whisper("Removed "..value.." points for "..reason, playerlist[i].name)
-						end
-						--db.realm.raid[raid][string.lower(playerlist[i].name)].points 	= db.realm.raid[raid][string.lower(playerlist[i].name)].points 		- tonumber(db.realm.raid[raid][string.lower(playerlist[i].name)].recenthistory[datetime].value)
-						--db.realm.raid[raid][string.lower(playerlist[i].name)].lifetime 	= db.realm.raid[raid][string.lower(playerlist[i].name)].lifetime 	- tonumber(db.realm.raid[raid][string.lower(playerlist[i].name)].recenthistory[datetime].value)
-						--tremove(self.activeraid[string.lower(playerlist[i].name)].recenthistory,k)
-						break
-					--end
-				--end
+				local obj = db.realm.raid[raid][string.lower(playerlist[i].name)].recenthistory[datetime]
+				local points = LastLinkValue(db.realm.raid[raid][string.lower(playerlist[i].name)], datetime)
+				db.realm.raid[raid][string.lower(playerlist[i].name)].recentactions[removetime] = {
+					actiontime 	= actiontime,
+					datetime 	= datetime,
+					link	 	= 0,
+					ty			= obj.ty,
+					itemid		= obj.itemid,
+					reason		= obj.reason,
+					value		= points,
+					waitlist	= obj.waitlist,
+					action		= "Delete",
+				}
+				LastLink(db.realm.raid[raid][string.lower(playerlist[i].name)], obj).link = removetime
+				db.realm.version.lastaction = removetime
+				if (whisper) then
+					local value = db.realm.raid[raid][string.lower(playerlist[i].name)].recenthistory[datetime].value
+					if (tonumber(value) >= 0) then
+						self:Whisper("Entry Removed: \"Added "..value.." points for "..reason.."\"", name)
+					else
+						self:Whisper("Entry Removed: \"Deducted "..(-value).." points for "..reason.."\"", name)
+					end
+				end
 			end
 		end
 		self:CalculatePoints(string.lower(playerlist[i].name), raid)
 	end
 end
 
-function RPB:PointsUpdate(datetime, player, points, ty, itemid, reason, waitlist, actiontime, whisper, recieved)
+function FollowLink(phistory, entry)
+	local p, l = 0, 0
+	
+	local datetime = tonumber(entry)
+	if datetime and datetime > 0 then
+		if phistory.recentactions[datetime] then
+			entry = phistory.recentactions[datetime]
+		else
+			entry = phistory.recenthistory[datetime]
+		end
+	end	
+
+	if entry.link > 0 then
+		local obj
+		if phistory.recentactions[entry.link] then
+			obj = phistory.recentactions[entry.link]
+			p, l = FollowLink(phistory, obj)
+		end
+	end
+
+	if entry.action == "Delete" then
+		p = p + (-entry.value)
+		--RPB:Debug(p)
+		if (entry.value > 0) then
+			l = l - entry.value
+		end
+	else
+		p = p + entry.value
+		--RPB:Debug(p)
+		if (entry.value > 0) then
+			l = l + entry.value
+		end
+	end
+	return p, l
+end
+
+function RPB:PointsUpdate(raid, updatetime, actiontime, datetime, player, value, ty, itemid, reason, waitlist, whisper, recieved)
 	local playerlist
+	
+	-- local link
+	-- if not actiontime then
+		-- actiontime = datetime
+	-- end	
+	-- if actiontime ~= datetime then
+		-- link = actiontime
+	-- else
+		-- link = 0
+	-- end
 	-- If we're updating "all" this is a special case
 	-- we want to update all points, only in recentactions.
 	if (player == "all") then
@@ -597,74 +685,108 @@ function RPB:PointsUpdate(datetime, player, points, ty, itemid, reason, waitlist
 	local found
 		
 	if not recieved then
-		self:Send(cs.pointsupdate, {datetime, player, value, ty, itemid, reason, waitlist, actiontime, false, true})
-		-- self:Send(cs.pointsupdate, 
-			-- {
-				-- ["datetime"] = datetime,
-				-- ["player"] = player,
-				-- ["value"] = value,
-				-- ["ty"] = ty,
-				-- ["itemid"] = itemid,
-				-- ["reason"] = reason,
-				-- ["waitlist"] = waitlist,
-				-- ["actiontime"] = actiontime,
-			-- }
-		-- )
+		self:Send(cs.pointsupdate, {raid, updatetime, actiontime, datetime, player, value, ty, itemid, reason, waitlist, false, true})
 	end
 
 	for i=1, #playerlist do
-		--found = false
 		if (db.realm.raid[raid][string.lower(playerlist[i].name)]) then
 			if db.realm.raid[raid][string.lower(playerlist[i].name)].recentactions[datetime] then
-			--for k,v in pairs(self.activeraid[string.lower(playerlist[i].name)].recentactions) do
-			--for j=1, #self.activeraid[string.lower(playerlist[i].name)].recentactions do
-				--if (db.realm.raid[raid][string.lower(playerlist[i].name)].recentactions[k].datetime == datetime) then
-					local oldvalue = db.realm.raid[raid][string.lower(playerlist[i].name)].recentactions[datetime].value
-					db.realm.raid[raid][string.lower(playerlist[i].name)].recentactions[actiontime] = {
-						datetime 	= datetime,
-						ty			= ty,
-						itemid		= itemid,
-						reason		= reason,
-						value		= points,
-						waitlist	= waitlist or playerlist[i].waitlist,
-						action		= "Update",
-					}
-					--tremove(self.activeraid[string.lower(playerlist[i].name)].recentactions,k)
-					db.realm.version.lastaction = actiontime
-					--found = true
-					if (whisper) then
-						self:Whisper("Updated points for "..reason.." Old: "..oldvalue.." New: "..points, playerlist[i].name)
-					end
-					--db.realm.raid[raid][string.lower(playerlist[i].name)].points 	= db.realm.raid[raid][string.lower(playerlist[i].name)].points 		- oldvalue + points
-					--db.realm.raid[raid][string.lower(playerlist[i].name)].lifetime 	= db.realm.raid[raid][string.lower(playerlist[i].name)].lifetime 	- oldvalue + points
-					--break
-				--end
+				local obj = db.realm.raid[raid][string.lower(playerlist[i].name)].recentactions[datetime]
+				local points, _ = FollowLink(db.realm.raid[raid][string.lower(playerlist[i].name)], datetime)
+				points = value - points
+				db.realm.raid[raid][string.lower(playerlist[i].name)].recentactions[updatetime] = {
+					actiontime	= actiontime,
+					datetime 	= datetime,
+					link		= 0,
+					ty			= ty,
+					itemid		= itemid,
+					reason		= reason,
+					value		= points,
+					waitlist	= waitlist or playerlist[i].waitlist,
+					action		= "Update",
+				}
+				LastLink(db.realm.raid[raid][string.lower(playerlist[i].name)], obj).link = updatetime
+				db.realm.version.lastaction = updatetime
+				if (whisper) then
+					self:Whisper("Updated points for "..reason.." New: "..points, playerlist[i].name)
+				end
 			end
-			--if (not found and player ~= "all") then
-				--for k,v in pairs(self.activeraid[string.lower(playerlist[i].name)].recenthistory) do
-					if (db.realm.raid[raid][string.lower(playerlist[i].name)].recenthistory[datetime]) then
-						local oldvalue = db.realm.raid[raid][string.lower(playerlist[i].name)].recenthistory[datetime].value
-						db.realm.raid[raid][string.lower(playerlist[i].name)].recenthistory[actiontime] = {
-							datetime 	= datetime,
-							ty			= ty,
-							itemid		= itemid,
-							reason		= reason,
-							value		= value,
-							waitlist	= waitlist or playerlist[i].waitlist,
-							action	= "Update",
-						}
-						db.realm.version.lastaction = actiontime
-						if (whisper) then
-							self:Whisper("Updated points for "..reason.." Old: "..oldvalue.." New: "..points, playerlist[i].name)
-						end
-						--db.realm.raid[raid][string.lower(playerlist[i].name)].points 	= db.realm.raid[raid][string.lower(playerlist[i].name)].points 		- oldvalue + points
-						--db.realm.raid[raid][string.lower(playerlist[i].name)].lifetime 	= db.realm.raid[raid][string.lower(playerlist[i].name)].lifetime 	- oldvalue + points
-						--break
-					end
-				--end
-			--end
+			if (db.realm.raid[raid][string.lower(playerlist[i].name)].recenthistory[datetime]) then
+				local obj = db.realm.raid[raid][string.lower(playerlist[i].name)].recentactions[datetime]
+				local points, _ = FollowLink(db.realm.raid[raid][string.lower(playerlist[i].name)], datetime)
+				points = value - points
+				db.realm.raid[raid][string.lower(playerlist[i].name)].recenthistory[updatetime] = {
+					actiontime	= actiontime,
+					datetime 	= datetime,
+					link		= 0,
+					ty			= ty,
+					itemid		= itemid,
+					reason		= reason,
+					value		= points,
+					waitlist	= waitlist or playerlist[i].waitlist,
+					action		= "Update",
+				}
+				LastLink(db.realm.raid[raid][string.lower(playerlist[i].name)], obj).link = updatetime
+				db.realm.version.lastaction = updatetime
+				if (whisper) then
+					self:Whisper("Updated points for "..reason.." New: "..points, playerlist[i].name)
+				end
+			end
 		end
 		self:CalculatePoints(string.lower(playerlist[i].name), raid)
+	end
+end
+
+function RPB:CalculatePoints(player, raid)
+	local phistory = self:GetPlayerHistory(player, raid)
+	local points = 0
+	local lifetime = 0
+	
+	-- This code is insufficent to deal with Delete and Update entries!
+	-- for k,v in pairs(phistory.recenthistory) do
+		-- points = points + v.value
+		-- if v.value > 0 then
+			-- lifetime = lifetime + v.value
+		-- end
+	-- end
+	-- for k,v in pairs(phistory.recentactions) do
+		-- points = points + v.value
+		-- if v.value > 0 then
+			-- lifetime = lifetime + v.value
+		-- end
+	-- end
+	
+	-- How to handle delete and update entries
+		-- Follow the'link' back to the the base entry.
+		-- Find all entries that affect this base entry, or datetime
+		-- Calculate the points that entry really grants.
+			-- Update changes the point total.
+				-- Only the last update counts.
+			-- Delete inverts the point total.
+				-- Two deletes negate eachother.
+	for udtime, entry in pairs(phistory.recenthistory) do
+		if entry.datetime == entry.actiontime then
+			local p, l = FollowLink(phistory, entry)
+			points  = points + p
+			lifetime = lifetime + l
+			self:Debug(points, lifetime)
+		end
+	end
+	
+	for udtime, entry in pairs(phistory.recentactions) do
+		if entry.datetime == entry.actiontime then
+			local p, l = FollowLink(phistory, entry)
+			points  = points + p
+			lifetime = lifetime + l
+			self:Debug(points, lifetime)
+		end
+	end
+	
+	if points ~= phistory.points then
+		phistory.points = points
+	end
+	if lifetime ~= phistory.lifetime then
+		phistory.lifetime = lifetime
 	end
 end
 
@@ -713,30 +835,6 @@ function RPB:CalculateMaxPoints(points, cmd)
 		end
 	end
 	return total
-end
-
-function RPB:CalculatePoints(player, raid)
-	local phistory = self:GetPlayerHistory(player, raid)
-	local points = 0
-	local lifetime = 0
-	for k,v in pairs(phistory.recenthistory) do
-		points = points + v.value
-		if v.value > 0 then
-			lifetime = lifetime + v.value
-		end
-	end
-	for k,v in pairs(phistory.recentactions) do
-		points = points + v.value
-		if v.value > 0 then
-			lifetime = lifetime + v.value
-		end
-	end
-	if points ~= phistory.points then
-		phistory.points = points
-	end
-	if lifetime ~= phistory.lifetime then
-		phistory.lifetime = lifetime
-	end
 end
 
 function RPB:CompressPoints(player, raid)
