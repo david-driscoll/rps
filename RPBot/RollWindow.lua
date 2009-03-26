@@ -1013,7 +1013,7 @@ function RPB:RollListAward(recieved)
 
 		--self:Print(self.rpoSettings.raid, dt, player, -(loss), 'I', item[cll.item].value, item[cll.link].value, false, true)
 		self:Broadcast(	player .. " wins " .. item[cll.link].value .. " via " .. ty .. " for cost of ".. (loss) .." with a total of " .. total .. " (" .. ptotal .. " points + " .. roll .. " roll).")
-		self:PointsAdd(self.rpoSettings.raid, dt, player, (loss), 'I', item[cll.item].value, item[cll.link].value, true, true)
+		self:PointsAdd(self.rpoSettings.raid, dt, dt, player, (loss), 'I', item[cll.item].value, item[cll.link].value, true, true)
 		self:ItemListRemove(item[cll.link].value)
 		self:RollListUpdateRoll(player)
 	end

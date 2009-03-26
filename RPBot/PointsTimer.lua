@@ -133,7 +133,7 @@ function RPB:CreateFramePointsTimer()
 		local total = duration / interval
 		local reason = ( f.editbox["Reason"]:GetText() or "" )
 		if reason ~= "" then reason = "<blank>" end
-		RPB:PointsAdd(self.rpoSettings.raid, datetime, 'all', value, 'P', 0, reason, false, true)
+		RPB:PointsAdd(self.rpoSettings.raid, datetime, datetime, 'all', value, 'P', 0, reason, false, true)
 	end
 	)
 	f.button["AddPoints"] = button
@@ -473,7 +473,7 @@ function RPB:AutomationTimer()
 				local reason = ( self.rpbSettings.automationReason or "" )
 				if reason ~= "" then reason = reason .. " " end
 				reason = reason .. ((temp-startTime) / interval) .." / " .. total
-				RPB:PointsAdd(self.rpoSettings.raid, datetime, 'all', value, 'P', 0, reason, false, true)
+				RPB:PointsAdd(self.rpoSettings.raid, datetime, datetime, 'all', value, 'P', 0, reason, false, true)
 			end
 		end
 	end
