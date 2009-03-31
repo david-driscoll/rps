@@ -1118,9 +1118,11 @@ end
 function RPB:StopBidding(recieved)
 	local f = self.frames["RollWindow"]
 	if f.inProgress then
+		local lastcall = tonumber(self.rpbSettings.lastcall) or 5
 		if f.timer then
 			self:CancelTimer(f.timer)
 			f.timer = nil
+			f.tm = lastcall
 		end
 		f.timer = self:ScheduleTimer("StopBidding", 1)
 		f.tm = f.tm - 1
