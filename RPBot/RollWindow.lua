@@ -1124,7 +1124,7 @@ function RPB:StopBidding(recieved)
 			f.timer = nil
 			f.tm = lastcall
 		end
-		f.timer = self:ScheduleTimer("StopBidding", 1)
+		f.stimer = self:ScheduleTimer("StopBidding", 1)
 		f.tm = f.tm - 1
 		local timeleft = f.tm
 		local item = f.scrollFrameLoot.selected.cols
@@ -1136,8 +1136,8 @@ function RPB:StopBidding(recieved)
 			self:Broadcast(timeleft)
 		end
 		if (timeleft == 1) then
-			self:CancelTimer(f.timer)
-			f.timer = nil
+			self:CancelTimer(f.stimer)
+			f.stimer = nil
 		end
 		f.state = "Bidding Stopped"
 		self:UpdateUI()
