@@ -104,7 +104,7 @@ function RPB:OnInitialize()
 	for k,v in pairs(db.realm.raid) do
 		for key, value in pairs(v) do
 			for key2, value2 in pairs(value.recenthistory) do
-				if value2.link == nil then
+				if value2.link == nil or value2.actiontime == nil then
 					value2.link = 0
 					value2.actiontime = value2.datetime
 				else
@@ -116,7 +116,7 @@ function RPB:OnInitialize()
 				break
 			end
 			for key2, value2 in pairs(value.recentactions) do
-				if value2.link == nil then
+				if value2.link == nil or value2.actiontime == nil then
 					value2.link = 0
 					value2.actiontime = value2.datetime
 				else
@@ -669,7 +669,7 @@ function FollowLink(entry, phistory)
 	end
 	
 	local datetime = tonumber(entry)
-	if datetime and datetime > 0 then
+	if datetime and datetime >= 0 then
 		if recHistory.recentactions[datetime] then
 			entry = recHistory.recentactions[datetime]
 		else
@@ -677,7 +677,7 @@ function FollowLink(entry, phistory)
 		end
 	end	
 
-	if entry.link > 0 then
+	if entry and entry.link and entry.link > 0 then
 		--local obj
 		if recHistory.recentactions[entry.link] then
 			--obj = phistory.recentactions[entry.link]
@@ -685,13 +685,13 @@ function FollowLink(entry, phistory)
 		end
 	end
 
-	if entry.action == "Delete" then
+	if entry and entry.value and entry.action == "Delete" then
 		p = p + (-entry.value)
 		--RPB:Debug(p)
 		if (entry.value > 0) then
 			l = l - entry.value
 		end
-	else
+	elseif entry and entry.value then
 		p = p + entry.value
 		--RPB:Debug(p)
 		if (entry.value > 0) then
@@ -807,6 +807,10 @@ function RPB:CalculatePoints(player, raid)
 			-- Delete inverts the point total.
 				-- Two deletes negate eachother.
 	for udtime, entry in pairs(phistory.recenthistory) do
+		if entry.actiontime == nil or entry.link == nil then
+			entry.actiontime = entry.datetime
+			entry.link = 0
+		end
 		if entry.datetime == entry.actiontime then
 			local p, l = FollowLink(udtime, phistory)
 			points  = points + p
