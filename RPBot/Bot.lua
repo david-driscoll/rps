@@ -685,13 +685,13 @@ function FollowLink(entry, phistory)
 		end
 	end
 
-	if entry and entry.value and entry.action == "Delete" then
+	if entry and entry.action == "Delete" then
 		p = p + (-entry.value)
 		--RPB:Debug(p)
 		if (entry.value > 0) then
 			l = l - entry.value
 		end
-	elseif entry and entry.value then
+	elseif entry then
 		p = p + entry.value
 		--RPB:Debug(p)
 		if (entry.value > 0) then
