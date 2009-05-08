@@ -454,7 +454,7 @@ RPLibrary.tierList =
 
 RPLibrary.talentList =
 {
-["DEATH KNIGHT "] = {"Blood","Frost","Unholy","Unknown"},
+["DEATH KNIGHT"] = {"Blood","Frost","Unholy","Unknown"},
 ["DRUID"] = {"Balance","Feral","Restoration","Unknown"},
 ["HUNTER"] = {"Beast Mastery","Marksmanship","Survival","Unknown"},
 ["MAGE"] = {"Arcane","Fire","Frost","Unknown"},
