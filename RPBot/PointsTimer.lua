@@ -426,11 +426,11 @@ function RPB:AutomationStartTimer(recieved)
 	self.automationTimer = self:ScheduleRepeatingTimer("AutomationTimer", 60)
 	RPB:AutomationUpdateUI()
 	if not recieved then
-		self:Debug(msg[1], self.rpbSettings.automationRaidStart)
-		self:Debug(msg[2], self.rpbSettings.automationRaidEnd)
-		self:Debug(msg[3], self.rpbSettings.automationWaitlistCutoff)
-		self:Debug(f.editbox["PointsAdd"]:GetText(), self.rpbSettings.automationPoints)
-		self:Debug(f.editbox["Reason"]:GetText(), self.rpbSettings.automationReason)
+		-- self:Debug(msg[1], self.rpbSettings.automationRaidStart)
+		-- self:Debug(msg[2], self.rpbSettings.automationRaidEnd)
+		-- self:Debug(msg[3], self.rpbSettings.automationWaitlistCutoff)
+		-- self:Debug(f.editbox["PointsAdd"]:GetText(), self.rpbSettings.automationPoints)
+		-- self:Debug(f.editbox["Reason"]:GetText(), self.rpbSettings.automationReason)
 		self:Send(cs.automationstart, {
 			self.rpbSettings.automationRaidStart,
 			self.rpbSettings.automationRaidEnd,
@@ -444,7 +444,7 @@ end
 function RPB:AutomationTimer()
 	if self.rpoSettings.master == UnitName("player") then
 		local f = self.frames["PointsTimer"]
-		self:Debug("AutomationTimer")
+		--self:Debug("AutomationTimer")
 		
 		local dt = date()
 		local timetable = 
@@ -525,11 +525,11 @@ RPB.syncCommands[cs.automationstart] = function(self, msg, sender)
 	self.rpbSettings.automationWaitlistCutoff = msg[3]
 	self.rpbSettings.automationPoints = msg[4]
 	self.rpbSettings.automationReason = msg[5]
-	self:Debug(msg[1], self.rpbSettings.automationRaidStart)
-	self:Debug(msg[2], self.rpbSettings.automationRaidEnd)
-	self:Debug(msg[3], self.rpbSettings.automationWaitlistCutoff)
-	self:Debug(msg[4], self.rpbSettings.automationPoints)
-	self:Debug(msg[5], self.rpbSettings.automationReason)
+	-- self:Debug(msg[1], self.rpbSettings.automationRaidStart)
+	-- self:Debug(msg[2], self.rpbSettings.automationRaidEnd)
+	-- self:Debug(msg[3], self.rpbSettings.automationWaitlistCutoff)
+	-- self:Debug(msg[4], self.rpbSettings.automationPoints)
+	-- self:Debug(msg[5], self.rpbSettings.automationReason)
 	f.editbox["PointsAdd"]:SetText(msg[4] or "")
 	f.editbox["Reason"]:SetText(msg[5] or "")
 	RPB:AutomationTimeGet()

@@ -62,7 +62,15 @@ end
 
 function RPB:Debug(...)
 	if self.debugOn then
-		self:Print(...)
+		if _Dev then
+			temp = {}
+			for i=1,select('#', ...) do
+				temp[i] = select(i, ...)
+			end
+			self:Dump(temp, "Debug")
+		else
+			self:Print(...)
+		end
 	end
 end
 
@@ -549,7 +557,7 @@ local function LastLink(phistory, entry)
 	if datetime and datetime > 0 then
 		if recHistory.recentactions[datetime] then
 			entry = recHistory.recentactions[datetime]
-		else
+		elseif recHistory.recenthistory[datetime] then
 			entry = recHistory.recenthistory[datetime]
 		end
 	end

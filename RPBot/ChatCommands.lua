@@ -129,10 +129,10 @@ RPB.chatCommands["help"] = RPB.chatCommands["?"]
 RPB.chatCommands["debug"] = function (self, msg)
 	if self.debugOn then
 		self.debugOn = false
-		self:Print("Debug on")
+		self:Print("Debug off")
 	else
 		self.debugOn = true
-		self:Print("Debug off")
+		self:Print("Debug on")
 	end
 end
 

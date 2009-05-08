@@ -524,10 +524,15 @@ function ColorGradient(perc, ...)
 	return r1 + (r2-r1)*relperc, g1 + (g2-g1)*relperc, b1 + (b2-b1)*relperc
 end
 
-
 function RPLibrary:GetItemID(link)
 	local _, _, itemid  = string.find(link, "item:(%d+)")
 	return itemid
+end
+
+function RPLibrary:Dump(text, title)
+	if _Dev then
+		dump(text, title)
+	end
 end
 
 -- Taken from Prat 3.0, credits to Sylvanaar and the entire Prat Team
