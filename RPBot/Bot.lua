@@ -67,7 +67,7 @@ function RPB:Debug(...)
 			for i=1,select('#', ...) do
 				temp[i] = select(i, ...)
 			end
-			self:Dump(temp, "Debug")
+			dump("Debug", temp)
 		else
 			self:Print(...)
 		end
@@ -545,7 +545,7 @@ function RPB:PointsAdd(raid, actiontime, datetime, player, value, ty, itemid, re
 	end
 end
 
-local function LastLink(phistory, entry)
+local function LastLink(entry, phistory)
 	local p = 0
 	local myentry = nil
 	
@@ -557,11 +557,11 @@ local function LastLink(phistory, entry)
 	if datetime and datetime > 0 then
 		if recHistory.recentactions[datetime] then
 			entry = recHistory.recentactions[datetime]
-		elseif recHistory.recenthistory[datetime] then
+		else
 			entry = recHistory.recenthistory[datetime]
 		end
 	end
-	if entry.link > 0 then
+	if entry and entry.link and entry.link > 0 then
 		--local obj
 		if recHistory.recentactions[entry.link] then
 			--obj = recHistory.recentactions[entry.link]
