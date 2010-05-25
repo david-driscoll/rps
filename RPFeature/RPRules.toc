@@ -1,9 +1,9 @@
-## Title: RPReature 0.1
+## Title: RPRules 0.1
 ## Author: Sithy
 ## Version: 0.1
 ## Interface: 30000
 ## Notes: Raid Points Automation
-## SavedVariables: RPReatureDB, rpDEBUGFeatureDB
+## SavedVariables: rpRulesDB, rpDEBUGRulesDB
 ## RequiredDeps: RPLibrary
 ## X-Misc
 ## * File-Revision: @file-revision@ 
@@ -21,6 +21,7 @@ Libs\AceDB-3.0\AceDB-3.0.xml
 Libs\Portfolio\Loader.xml
 
 Constants.lua
-Features.lua
-FeatureWindow.lua
+Rules.lua
+RulesWindow.lua
+ItemIlvlWindow.lua
 Portfolio.lua
