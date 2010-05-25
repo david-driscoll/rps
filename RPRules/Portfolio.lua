@@ -15,13 +15,13 @@
 local Portfolio = LibStub and LibStub("Portfolio")
 if not Portfolio then return end
 
-function RPR:RegisterPortfolio()
+function RPF:RegisterPortfolio()
 	-- local optionTable = {
 		-- id="RPClientSettings",
 		-- text="Client Settings",
 		----addon="RPClientSettings",
 		-- parent="Raid Points System",
-		-- savedVarTable = RPRSettings,
+		-- savedVarTable = rpfSettings,
 		-- options = {
 		-- }
 	-- return Portfolio.RegisterOptionSet(optionTable)

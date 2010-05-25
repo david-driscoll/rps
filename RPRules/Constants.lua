@@ -6,10 +6,10 @@
 	* Project-Version: @project-version@
 	* Last edited by: @file-author@ on @file-date-iso@ 
 	* Last commit by: @project-author@ on @project-date-iso@ 
-	* Filename: RPReature/Constants.lua
+	* Filename: RPRules/Constants.lua
 	* Component: Core
 	* Details:
-		Constants for RPReatures.
+		Constants for RPRules.
 ]]
 
 if not RPSConstants then
@@ -25,10 +25,10 @@ if not RPSConstants.stArgs then
 	RPSConstants.stArgs = {}
 end
 
-RPSConstants.columnDefinitons["FeatureSet"] = 
+RPSConstants.columnDefinitons["RulesSet"] = 
 {
 	{
-	    ["name"] = "Feature Set",
+	    ["name"] = "Rules Set",
 	    ["width"] = 100,
 	    ["align"] = "CENTER",
 	    -- ["color"] = { 
@@ -48,7 +48,7 @@ RPSConstants.columnDefinitons["FeatureSet"] =
 	},
 }
 
-RPSConstants.columnDefinitons["FeatureCommand"] = 
+RPSConstants.columnDefinitons["RulesCommand"] = 
 {
 	{
 	    ["name"] = "Command",
@@ -71,21 +71,75 @@ RPSConstants.columnDefinitons["FeatureCommand"] =
 	},
 }
 
-RPSConstants.stConstants["FeatureSet"] =  
+RPSConstants.stConstants["RulesSet"] =  
 {
 	set = 1,
 }
-RPSConstants.stArgs["FeatureSet"] = 
+RPSConstants.stArgs["RulesSet"] = 
 {
-	[RPSConstants.stConstants["FeatureSet"].set]	= { },
+	[RPSConstants.stConstants["RulesSet"].set]	= { },
 }
 
-RPSConstants.stConstants["FeatureCommand"] = 
+RPSConstants.stConstants["RulesCommand"] = 
 {
 	command = 1,
 }
 
-RPSConstants.stArgs["FeatureCommand"] =
+RPSConstants.stArgs["RulesCommand"] =
 {
-	[RPSConstants.stConstants["FeatureCommand"].command]	= { },
+	[RPSConstants.stConstants["RulesCommand"].command]	= { },
+}
+
+RPSConstants.columnDefinitons["ItemList"] = 
+{
+	{
+	    ["name"] = "Item",
+	    ["width"] = 300,
+	    ["align"] = "LEFT",
+	    -- ["color"] = { 
+	        -- ["r"] = 0.5, 
+	        -- ["g"] = 0.5, 
+	        -- ["b"] = 1.0, 
+	        -- ["a"] = 1.0 
+	    -- },
+	    ["colorargs"] = nil,
+	    ["bgcolor"] = {
+	        ["r"] = 0.0, 
+	        ["g"] = 0.0, 
+	        ["b"] = 0.0, 
+	        ["a"] = 1.0 
+	    },
+	    --["defaultsort"] = "asc",
+	},
+	{
+	    ["name"] = "iLlvl",
+	    ["width"] = 100,
+	    ["align"] = "LEFT",
+	    -- ["color"] = { 
+	        -- ["r"] = 0.5, 
+	        -- ["g"] = 0.5, 
+	        -- ["b"] = 1.0, 
+	        -- ["a"] = 1.0 
+	    -- },
+	    ["colorargs"] = nil,
+	    ["bgcolor"] = {
+	        ["r"] = 0.0, 
+	        ["g"] = 0.0, 
+	        ["b"] = 0.0, 
+	        ["a"] = 1.0 
+	    },
+	    --["defaultsort"] = "asc",
+	},
+}
+
+
+RPSConstants.stConstants["ItemList"] =  
+{
+	itemid = 1,
+	ilvl = 2,
+}
+RPSConstants.stArgs["ItemList"] = 
+{
+	[RPSConstants.stConstants["ItemList"].itemid]	= { },
+	[RPSConstants.stConstants["ItemList"].ilvl]		= { },
 }
