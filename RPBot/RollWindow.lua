@@ -169,7 +169,7 @@ function RPB:CreateFrameRollWindow()
 		sb:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar");
 		local fs = sb:CreateFontString("$parentText","ARTWORK","GameFontNormal");
 		fs:SetAllPoints();
-		fs:SetText("0%");
+		fs:SetText("");
 		fs:SetPoint("CENTER",sb,"CENTER");
 		local fss = sbf:CreateFontString("$parentText2","ARTWORK","GameFontNormal");
 		fss:ClearAllPoints();
@@ -181,37 +181,69 @@ function RPB:CreateFrameRollWindow()
 		sbf:SetBackdropColor(0, 0, 0, 1)
 		sbf:SetScript("OnUpdate", function(self)
 			local sbf = RPB.frames["RollWindow"].sbfin
-			if not RPB.ip.incon then return end
 			local sb = sbf.sb
 			local fs = sb.fs
-			local ipin = RPB.ip.inc
-			if ipin and RPB.ip.incactive and ipin > RPB.ip.incl[RPB.ip.incactive] then
-				ipin = RPB.ip.incl[RPB.ip.incactive]
+
+			local found = false
+			for k,v in pairs(RPB.ip.incon) do
+				if RPB.ip.incon[k] then
+					found = true
+					break
+				end
 			end
-			local perc
-			if RPB.ip.incactive then
-				perc = (ipin/RPB.ip.incl[RPB.ip.incactive])*100
-			else
-				perc = 0
+			if not found then
+				if sb:GetValue() ~= 0 then
+					sb:SetValue(0)
+					fs:SetText("")
+				end
+				return nil
 			end
+
+			local ipin = 0
+			for k,v in pairs(RPB.ip.inc) do
+				ipin = ipin + v
+			end
+
+			local ipintotal = 0
+			local desc
+			local at = {}
+			for k,v in pairs(RPB.ip.incactive) do
+				ipintotal = ipintotal + RPB.ip.incl[k][v]
+				if not desc then
+					desc = RPSConstants.actionText["Bot"][RPB.ip.incactive[k]] or RPB.ip.incactive[k] or ""
+				end
+			end
+
+			local perc = (ipin/ipintotal)*100
 			sb:SetValue(perc)
-			local desc = RPSConstants.actionText["Bot"][RPB.ip.incactive] or RPB.ip.incactive or ""
-			fs:SetText(desc.." " .. math.floor(perc) .."%")
+			fs:SetText(desc.." " .. math.ceil(perc) .."%")
 		end)
 		sb:SetScript("OnEnter", function(self) 
-			if not RPB.ip.incwho then return end
-			if not RPB.ip.incon then return end
-			local color = GetColor(UnitName("player"))
-			local who = ""
-			if RPB.ip.incwho then
-				who = RPB.ip.incwho
-				color = GetColor(RPB.ip.incwho)
+			local found = false
+			for k,v in pairs(RPB.ip.incwho) do
+				if RPB.ip.incwho[k] then
+					found = true
+					break
+				end
 			end
+			if not found then return end
+			local found = false
+			for k,v in pairs(RPB.ip.incon) do
+				if RPB.ip.incon[k] then
+					found = true
+					break
+				end
+			end
+			if not found then return end
+			local color = GetColor(UnitName("player"))
 			GameTooltip:SetOwner(RPB.frames["RollWindow"].sbfin, "ANCHOR_CURSOR")
 			GameTooltip:ClearLines()
-			GameTooltip:AddLine("Recieveing from "..who, color.r, color.g, color.b)
-			GameTooltip:AddLine(RPB.ip.incactive)
-			GameTooltip:AddLine(RPB.ip.inc .. " of " .. RPB.ip.incl[RPB.ip.incactive])
+			for k,v in pairs(RPB.ip.incactive) do
+				color = GetColor(RPB.ip.incwho[k] or UnitName("player"))
+				GameTooltip:AddLine("Recieving from "..( RPB.ip.incwho[k] or "" ), color.r, color.g, color.b)
+				GameTooltip:AddLine(RPB.ip.incactive[k])
+				GameTooltip:AddLine(RPB.ip.inc[k] .. " of " .. RPB.ip.incl[k][RPB.ip.incactive[k]])
+			end
 			GameTooltip:Show()
 		end)
 		sb:SetScript("OnLeave", function(self)
@@ -242,7 +274,7 @@ function RPB:CreateFrameRollWindow()
 		sb:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar");
 		local fs = sb:CreateFontString("$parentText","ARTWORK","GameFontNormal");
 		fs:SetAllPoints();
-		fs:SetText("0%");
+		fs:SetText("");
 		fs:SetPoint("CENTER",sb,"CENTER");
 		local fss = sbf:CreateFontString("$parentText2","ARTWORK","GameFontNormal");
 		fss:ClearAllPoints();
@@ -254,37 +286,70 @@ function RPB:CreateFrameRollWindow()
 		sbf:SetBackdropColor(0, 0, 0, 1)
 		sbf:SetScript("OnUpdate", function(self)
 			local sbf = RPB.frames["RollWindow"].sbfout
-			if not RPB.ip.outon then return end
 			local sb = sbf.sb
 			local fs = sb.fs
-			local ipout = RPB.ip.out
-			if ipout and RPB.ip.outactive and ipout > RPB.ip.outl[RPB.ip.outactive] then
-				ipout = RPB.ip.outl[RPB.ip.outactive]
+
+			local found = false
+			for k,v in pairs(RPB.ip.outon) do
+				if RPB.ip.outon[k] then
+					found = true
+					break
+				end
 			end
-			local perc
-			if RPB.ip.outactive then
-				perc = (ipout/RPB.ip.outl[RPB.ip.outactive])*100
-			else
-				perc = 0
+			if not found then
+				if sb:GetValue() ~= 0 then
+					sb:SetValue(0)
+					fs:SetText("")
+				end
+				return nil
 			end
+
+
+			local ipout = 0
+			for k,v in pairs(RPB.ip.out) do
+				ipout = ipout + v
+			end
+
+			local ipouttotal = 0
+			local desc
+			local at = {}
+			for k,v in pairs(RPB.ip.outactive) do
+				ipouttotal = ipouttotal + RPB.ip.outl[k][v]
+				if not desc then
+					desc = RPSConstants.actionText["Bot"][RPB.ip.outactive[k]] or RPB.ip.outactive[k] or ""
+				end
+			end
+
+			local perc = (ipout/ipouttotal)*100
 			sb:SetValue(perc)
-			local desc = RPSConstants.actionText["Bot"][RPB.ip.outactive] or RPB.ip.outactive or ""
-			fs:SetText(desc.." ".. math.floor(perc) .."%")
+			fs:SetText(desc.." " .. math.ceil(perc) .."%")
 		end)
 		sb:SetScript("OnEnter", function(self)
-			if not RPB.ip.outwho then return end
-			if not RPB.ip.outon then return end
-			local color = GetColor(UnitName("player"))
-			local who = ""
-			if RPB.ip.outwho then
-				who = RPB.ip.outwho
-				color = GetColor(RPB.ip.outwho)
+			local found = false
+			for k,v in pairs(RPB.ip.outwho) do
+				if RPB.ip.outwho[k] then
+					found = true
+					break
+				end
 			end
+			if not found then return end
+			local found = false
+			for k,v in pairs(RPB.ip.outon) do
+				if RPB.ip.outon[k] then
+					found = true
+					break
+				end
+			end
+			if not found then return end
+			local color = GetColor(UnitName("player"))
 			GameTooltip:SetOwner(RPB.frames["RollWindow"].sbfout, "ANCHOR_CURSOR")
 			GameTooltip:ClearLines()
-			GameTooltip:AddLine("Sending to "..who, color.r, color.g, color.b)
-			GameTooltip:AddLine(RPB.ip.outactive)
-			GameTooltip:AddLine(RPB.ip.out .. " of " .. RPB.ip.outl[RPB.ip.outactive])
+			for k,v in pairs(RPB.ip.outactive) do
+				color = GetColor(RPB.ip.outwho[k] or UnitName("player"))
+				GameTooltip:AddLine("Sending from "..( RPB.ip.outwho[k] or "" ), color.r, color.g, color.b)
+				GameTooltip:AddLine(RPB.ip.outactive[k])
+				GameTooltip:AddLine(RPB.ip.out[k] .. " of " .. RPB.ip.outl[k][RPB.ip.outactive[k]])
+			end
 			GameTooltip:Show()
 		end)
 		sb:SetScript("OnLeave", function(self)

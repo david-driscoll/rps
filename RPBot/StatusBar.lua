@@ -30,16 +30,16 @@ local function MD5(data)
 end
 
 RPB.ip = {}
-RPB.ip.incon = false
-RPB.ip.inc = nil
-RPB.ip.incactive = nil
+RPB.ip.incon = {}
+RPB.ip.inc = {}
+RPB.ip.incactive = {}
 RPB.ip.incl = {}
-RPB.ip.incwho = nil
-RPB.ip.outon = false
-RPB.ip.out = nil
-RPB.ip.outactive = nil
+RPB.ip.incwho = {}
+RPB.ip.outon = {}
+RPB.ip.out = {}
+RPB.ip.outactive = {}
 RPB.ip.outl = {}
-RPB.ip.outwho = nil
+RPB.ip.outwho = {}
 
 local AceCommOldOnEvent = AceComm30Frame:GetScript("OnEvent")
 local function RPBStausOnEvent(this, event, ...)
@@ -49,18 +49,21 @@ local function RPBStausOnEvent(this, event, ...)
 		if prefix == CommCmd.."SB" then
 			success, cmd, length = RPB:Deserialize(message)
 			--RPB:Debug(length, message)
-			RPB.ip.incl[cmd] = length
-			RPB.ip.inc = 0
-			RPB.ip.incactive = cmd
-			RPB.ip.incon = true
-			RPB.ip.incwho = sender
+			if not RPB.ip.incl[sender] then
+				RPB.ip.incl[sender] = {}
+			end
+			RPB.ip.incl[sender][cmd] = length
+			RPB.ip.inc[sender] = 0
+			RPB.ip.incactive[sender] = cmd
+			RPB.ip.incon[sender] = true
+			RPB.ip.incwho[sender] = sender
 		elseif string.sub(prefix, 1, string.len(CommCmd.."LC")) == CommCmd.."LC" then
-			if RPB.ip.incon then
-				RPB.ip.inc = RPB.ip.inc + 1
+			if RPB.ip.incon[sender] then
+				RPB.ip.inc[sender] = RPB.ip.inc[sender] + 1
 			end
 			if (prefix == CommCmd.."LC".."\003") then
-				RPB.ip.incon = false
-				RPB.ip.incwho = nil
+				RPB.ip.incon[sender] = nil
+				RPB.ip.incwho[sender] = nil
 			end
 		end
 	end
@@ -72,18 +75,21 @@ function RPBSendAddonMessage(prefix, text, chattype, destination, ...)
 	if prefix == CommCmd.."SB" then
 		success, cmd, length = RPB:Deserialize(text)
 		--RPB:Debug(length, message)
-		RPB.ip.outl[cmd] = length
-		RPB.ip.out = 0
-		RPB.ip.outactive = cmd
-		RPB.ip.outon = true
-		RPB.ip.outwho = destination
+		if not RPB.ip.outl[destination] then
+			RPB.ip.outl[destination] = {}
+		end
+		RPB.ip.outl[destination][cmd] = length
+		RPB.ip.out[destination] = 0
+		RPB.ip.outactive[destination] = cmd
+		RPB.ip.outon[destination] = true
+		RPB.ip.outwho[destination] = destination
 	elseif string.sub(prefix, 1, string.len(CommCmd.."LC")) == CommCmd.."LC" then
-		if RPB.ip.outon then
-			RPB.ip.out = RPB.ip.out + 1
+		if RPB.ip.outon[destination] then
+			RPB.ip.out[destination] = RPB.ip.out[destination] + 1
 		end
 		if (prefix == CommCmd.."LC".."\003") then
-			RPB.ip.outon = false
-			RPB.ip.outwho = nil
+			RPB.ip.outon[destination] = nil
+			RPB.ip.outwho[destination] = nil
 		end
 	end
 end
