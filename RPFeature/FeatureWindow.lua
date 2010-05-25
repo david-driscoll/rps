@@ -6,14 +6,14 @@
 	* Project-Version: @project-version@
 	* Last edited by: @file-author@ on @file-date-iso@ 
 	* Last commit by: @project-author@ on @project-date-iso@ 
-	* Filename: RPFot/FeatureWindow.lua
+	* Filename: RPRot/FeatureWindow.lua
 	* Component: Roll Interface
 	* Details:
 		This is the rolling interface.  Deals with displaying the proper lists, and awarding items.
 ]]
 
---local prefix = "<RPF>"
-local db = RPF.db
+--local prefix = "<RPR>"
+local db = RPR.db
 
 --  Constants Roll List
 local cfs = RPSConstants.stConstants["FeatureSet"]
@@ -24,10 +24,11 @@ local cfc = RPSConstants.stConstants["FeatureCommand"]
 local cfcArg = RPSConstants.stArgs["FeatureCommand"]
 
 local cs
+local ScrollingTable = LibStub:GetLibrary("ScrollingTable");
 
-function RPF:CreateFrame()
+function RPR:CreateFrame()
 	cs = RPSConstants.syncCommands["Bot"]
-	db = RPF.db
+	db = RPR.db
 	-- if self.Frame then
 	  -- self.Frame:Hide()
 	-- end
@@ -35,7 +36,7 @@ function RPF:CreateFrame()
 	if not self.frames then
 		self.frames = {}
 	end
-	self.frames["FeatureWindow"] = CreateFrame("Frame", "RPFFeatureWindow", UIParent)
+	self.frames["FeatureWindow"] = CreateFrame("Frame", "RPRFeatureWindow", UIParent)
 
 	local f = self.frames["FeatureWindow"]
 	f:EnableMouse(true)
@@ -47,7 +48,7 @@ function RPF:CreateFrame()
 	f:SetWidth(400)
 	f:SetPoint("CENTER")
 	f:Hide()
-	f:SetScript("OnShow", RPF.LoadData)
+	f:SetScript("OnShow", RPR.LoadData)
 
 	-- Frame Textures, Drag Header, Close Button, Title
 	do
@@ -88,7 +89,8 @@ function RPF:CreateFrame()
     -- Scroll Frame
 	do
 		f.featureSetList = {}
-	    f.scrollSetFrame = ScrollingTable2:CreateST(RPSConstants.columnDefinitons["FeatureSet"], 5, nil, nil, f, true);
+	    f.scrollSetFrame = ScrollingTable:CreateST(RPSConstants.columnDefinitons["FeatureSet"], 5, nil, nil, f);
+		f.scrollSetFrame:EnableSelection(true);
 		f.scrollSetFrame.frame:SetParent(f)
 		f.scrollSetFrame.frame:SetPoint("TOPLEFT", f, "TOPLEFT", 20, -30)
 		f.scrollSetFrame:SetData(f.featureSetList)
@@ -97,7 +99,8 @@ function RPF:CreateFrame()
 		});
 
 		f.featureList = {}
-	    f.scrollFrame = ScrollingTable2:CreateST(RPSConstants.columnDefinitons["FeatureCommand"], 5, nil, nil, f, true);
+	    f.scrollFrame = ScrollingTable:CreateST(RPSConstants.columnDefinitons["FeatureCommand"], 5, nil, nil, f);
+		f.scrollFrame:EnableSelection(true);
 		f.scrollFrame.frame:SetParent(f)
 		f.scrollFrame.frame:SetPoint("TOPLEFT", f.scrollSetFrame.frame, "BOTTOMLEFT", 0, -60)
 		f.scrollFrame:SetData(f.featureList)
@@ -118,7 +121,7 @@ function RPF:CreateFrame()
 		editbox:SetAutoFocus(false)
 		editbox:SetHeight(32)
 		editbox:SetWidth(130)
-		editbox:SetScript("OnEnterPressed", function(self) RPF:CreateFeatureSet() end)
+		editbox:SetScript("OnEnterPressed", function(self) RPR:CreateFeatureSet() end)
 		editbox:SetPoint("TOPLEFT", f.scrollSetFrame.frame, "BOTTOMLEFT", 4, 6)
 		self:SkinEditBox(editbox)
 		self:ScriptEditBox(editbox)
@@ -130,7 +133,7 @@ function RPF:CreateFrame()
 		button:SetText("Create")
 		button:SetScript("OnClick", 
 			function(self)
-				RPF:CreateFeatureSet()
+				RPR:CreateFeatureSet()
 			end
 		)
 		f.button["CreateFeatureSet"] = button	
@@ -142,7 +145,7 @@ function RPF:CreateFrame()
 		button:SetText("Delete")
 		button:SetScript("OnClick", 
 			function(self)
-				RPF:DeleteFeatureSet()
+				RPR:DeleteFeatureSet()
 			end
 		)
 		f.button["DeleteFeatureSet"] = button
@@ -152,7 +155,7 @@ function RPF:CreateFrame()
 		editbox:SetAutoFocus(false)
 		editbox:SetHeight(32)
 		editbox:SetWidth(130)
-		editbox:SetScript("OnEnterPressed", function(self) RPF:CreateFeature() end)
+		editbox:SetScript("OnEnterPressed", function(self) RPR:CreateFeature() end)
 		editbox:SetPoint("TOPLEFT", f.scrollFrame.frame, "BOTTOMLEFT", 4, 6)
 		self:SkinEditBox(editbox)
 		self:ScriptEditBox(editbox)
@@ -164,7 +167,7 @@ function RPF:CreateFrame()
 		button:SetText("Create")
 		button:SetScript("OnClick", 
 			function(self)
-				RPF:CreateFeature()
+				RPR:CreateFeature()
 			end
 		)
 		f.button["CreateFeature"] = button	
@@ -176,7 +179,7 @@ function RPF:CreateFrame()
 		button:SetText("Delete")
 		button:SetScript("OnClick", 
 			function(self)
-				RPF:DeleteFeature()
+				RPR:DeleteFeature()
 			end
 		)
 		f.button["DeleteFeature"] = button
@@ -188,7 +191,7 @@ function RPF:CreateFrame()
 		button:SetText("Commit")
 		button:SetScript("OnClick", 
 			function(self)
-				RPF:CommitChanges()
+				RPR:CommitChanges()
 			end
 		)
 		f.button["Commit"] = button
@@ -200,7 +203,7 @@ function RPF:CreateFrame()
 		button:SetText("Cancel")
 		button:SetScript("OnClick", 
 			function(self)
-				RPF:CancelChanges()
+				RPR:CancelChanges()
 			end
 		)
 		f.button["Cancel"] = button
@@ -211,7 +214,7 @@ function RPF:CreateFrame()
 		editbox:SetAutoFocus(false)
 		editbox:SetHeight(32)
 		editbox:SetWidth(100)
-		--editbox:SetScript("OnEnterPressed", function(self) RPF:CreateFeature() end)
+		--editbox:SetScript("OnEnterPressed", function(self) RPR:CreateFeature() end)
 		editbox:SetPoint("TOPLEFT", f.scrollSetFrame.frame, "TOPRIGHT", 100, -40)
 		self:SkinEditBox(editbox)
 		self:ScriptEditBox(editbox)
@@ -225,7 +228,7 @@ function RPF:CreateFrame()
 		editbox:SetAutoFocus(false)
 		editbox:SetHeight(32)
 		editbox:SetWidth(100)
-		--editbox:SetScript("OnEnterPressed", function(self) RPF:CreateFeature() end)
+		--editbox:SetScript("OnEnterPressed", function(self) RPR:CreateFeature() end)
 		editbox:SetPoint("TOPLEFT", f.editbox["FeatureSetName"], "BOTTOMLEFT", 0, 8)
 		self:SkinEditBox(editbox)
 		self:ScriptEditBox(editbox)
@@ -239,7 +242,7 @@ function RPF:CreateFrame()
 		editbox:SetAutoFocus(false)
 		editbox:SetHeight(32)
 		editbox:SetWidth(100)
-		--editbox:SetScript("OnEnterPressed", function(self) RPF:CreateFeature() end)
+		--editbox:SetScript("OnEnterPressed", function(self) RPR:CreateFeature() end)
 		editbox:SetPoint("TOPLEFT", f.scrollFrame.frame, "TOPRIGHT", 100, 20)
 		self:SkinEditBox(editbox)
 		self:ScriptEditBox(editbox)
@@ -253,7 +256,7 @@ function RPF:CreateFrame()
 		editbox:SetAutoFocus(false)
 		editbox:SetHeight(32)
 		editbox:SetWidth(100)
-		--editbox:SetScript("OnEnterPressed", function(self) RPF:CreateFeature() end)
+		--editbox:SetScript("OnEnterPressed", function(self) RPR:CreateFeature() end)
 		editbox:SetPoint("TOPLEFT", f.editbox["Name"], "BOTTOMLEFT", 0, 8)
 		self:SkinEditBox(editbox)
 		self:ScriptEditBox(editbox)
@@ -268,7 +271,7 @@ function RPF:CreateFrame()
 		editbox:SetHeight(32)
 		editbox:SetWidth(100)
 		editbox:SetNumeric()
-		--editbox:SetScript("OnEnterPressed", function(self) RPF:CreateFeature() end)
+		--editbox:SetScript("OnEnterPressed", function(self) RPR:CreateFeature() end)
 		editbox:SetPoint("TOPLEFT", f.editbox["Command"], "BOTTOMLEFT", 0, 8)
 		self:SkinEditBox(editbox)
 		self:ScriptEditBox(editbox)
@@ -283,7 +286,7 @@ function RPF:CreateFrame()
 		editbox:SetHeight(32)
 		editbox:SetWidth(100)
 		editbox:SetNumeric()
-		--editbox:SetScript("OnEnterPressed", function(self) RPF:CreateFeature() end)
+		--editbox:SetScript("OnEnterPressed", function(self) RPR:CreateFeature() end)
 		editbox:SetPoint("TOPLEFT", f.editbox["MinClass"], "BOTTOMLEFT", 0, 8)
 		self:SkinEditBox(editbox)
 		self:ScriptEditBox(editbox)
@@ -298,7 +301,7 @@ function RPF:CreateFrame()
 		editbox:SetHeight(32)
 		editbox:SetWidth(100)
 		editbox:SetNumeric()
-		--editbox:SetScript("OnEnterPressed", function(self) RPF:CreateFeature() end)
+		--editbox:SetScript("OnEnterPressed", function(self) RPR:CreateFeature() end)
 		editbox:SetPoint("TOPLEFT", f.editbox["MaxClass"], "BOTTOMLEFT", 0, 8)
 		self:SkinEditBox(editbox)
 		self:ScriptEditBox(editbox)
@@ -313,7 +316,7 @@ function RPF:CreateFrame()
 		editbox:SetHeight(32)
 		editbox:SetWidth(100)
 		editbox:SetNumeric()
-		--editbox:SetScript("OnEnterPressed", function(self) RPF:CreateFeature() end)
+		--editbox:SetScript("OnEnterPressed", function(self) RPR:CreateFeature() end)
 		editbox:SetPoint("TOPLEFT", f.editbox["MinNonclass"], "BOTTOMLEFT", 0, 8)
 		self:SkinEditBox(editbox)
 		self:ScriptEditBox(editbox)
@@ -328,7 +331,7 @@ function RPF:CreateFrame()
 		editbox:SetHeight(32)
 		editbox:SetWidth(100)
 		editbox:SetNumeric()
-		--editbox:SetScript("OnEnterPressed", function(self) RPF:CreateFeature() end)
+		--editbox:SetScript("OnEnterPressed", function(self) RPR:CreateFeature() end)
 		editbox:SetPoint("TOPLEFT", f.editbox["MaxNonclass"], "BOTTOMLEFT", 0, 8)
 		self:SkinEditBox(editbox)
 		self:ScriptEditBox(editbox)
@@ -343,7 +346,7 @@ function RPF:CreateFrame()
 		editbox:SetHeight(32)
 		editbox:SetWidth(100)
 		editbox:SetNumeric()
-		--editbox:SetScript("OnEnterPressed", function(self) RPF:CreateFeature() end)
+		--editbox:SetScript("OnEnterPressed", function(self) RPR:CreateFeature() end)
 		editbox:SetPoint("TOPLEFT", f.editbox["MaxPoints"], "BOTTOMLEFT", 0, 8)
 		self:SkinEditBox(editbox)
 		self:ScriptEditBox(editbox)
@@ -358,7 +361,7 @@ function RPF:CreateFrame()
 		editbox:SetHeight(32)
 		editbox:SetWidth(100)
 		editbox:SetNumeric()
-		--editbox:SetScript("OnEnterPressed", function(self) RPF:CreateFeature() end)
+		--editbox:SetScript("OnEnterPressed", function(self) RPR:CreateFeature() end)
 		editbox:SetPoint("TOPLEFT", f.editbox["Divisor"], "BOTTOMLEFT", 0, 8)
 		self:SkinEditBox(editbox)
 		self:ScriptEditBox(editbox)
@@ -425,7 +428,7 @@ function RPF:CreateFrame()
 			-- f.item[i] = self:CreateLootFrame(f, i)
 		-- end
 		-- f.lootList = {}
-	    -- f.scrollFrameLoot = ScrollingTable2:CreateST(RPF.columnDefinitons["FeatureWindowLootList"], 10, nil, nil, f);
+	    -- f.scrollFrameLoot = ScrollingTable:CreateST(RPR.columnDefinitons["FeatureWindowLootList"], 10, nil, nil, f);
 		-- f.scrollFrameLoot.frame:SetPoint("TOPLEFT", f, "TOPLEFT", 20, -30)
 		-- f.scrollFrame:SetData(f.lootList)
 		-- f.scrollFrame:RegisterEvents({
@@ -435,11 +438,11 @@ function RPF:CreateFrame()
 	-- end
 end
 
-function featureWindowSetScrollFrameOnClick(rowFrame, cellFrame, data, cols, row, realrow, column, button, down)
-	local f = RPF.frames["FeatureWindow"]
+function featureWindowSetScrollFrameOnClick(rowFrame, cellFrame, data, cols, row, realrow, column, table, button, down)
+	local f = RPR.frames["FeatureWindow"]
 		if button == "LeftButton" then
 			if data[realrow] then
-				RPF:SaveData()
+				RPR:SaveData()
 				if f.scrollSetFrame.selected then
 					f.scrollSetFrame.selected.selected = false
 					f.scrollSetFrame.selected.highlight = nil
@@ -459,7 +462,7 @@ function featureWindowSetScrollFrameOnClick(rowFrame, cellFrame, data, cols, row
 				f.featureList = {}
 				for key,value in pairs(f.featureSet[f.scrollSetFrame.selected.cols[cfs.set].value]) do
 					if type(value) == "table" then
-						f.featureList[#f.featureList+1] = RPF:BuildRow(
+						f.featureList[#f.featureList+1] = RPR:BuildRow(
 							{
 								[cfc.command]	= 	key,
 							},
@@ -473,18 +476,18 @@ function featureWindowSetScrollFrameOnClick(rowFrame, cellFrame, data, cols, row
 		elseif button == "RightButton" then
 			if data[realrow] then
 				f.scrollSetFrame.selected = data[realrow]
-				RPF:DeleteFeatureSet()
+				RPR:DeleteFeatureSet()
 			end
 		end
 end
 
-function featureWindowScrollFrameOnClick(rowFrame, cellFrame, data, cols, row, realrow, column, button, down)
-	local f = RPF.frames["FeatureWindow"]
+function featureWindowScrollFrameOnClick(rowFrame, cellFrame, data, cols, row, realrow, column, table, button, down)
+	local f = RPR.frames["FeatureWindow"]
 		if button == "LeftButton" then
 			if data[realrow] then
 				if not f.scrollSetFrame.selected then return end
 				if f.scrollFrame.selected then
-					RPF:SaveData()
+					RPR:SaveData()
 					f.scrollFrame.selected.selected = false
 					f.scrollFrame.selected.highlight = nil
 				end
@@ -520,18 +523,18 @@ function featureWindowScrollFrameOnClick(rowFrame, cellFrame, data, cols, row, r
 		elseif button == "RightButton" then
 			if data[realrow] then
 				f.scrollFrame.selected = data[realrow]
-				RPF:DeleteFeature()
+				RPR:DeleteFeature()
 			end
 		end
 end
 
-function RPF:LoadData()
-	local f = RPF.frames["FeatureWindow"]
+function RPR:LoadData()
+	local f = RPR.frames["FeatureWindow"]
 	f.featureSetList = {}
 	f.featureList = {}
 	f.featureSet = {}
-	for key,value in pairs(RPF.db.realm.featureSets) do
-		f.featureSetList[#f.featureSetList+1] = RPF:BuildRow(
+	for key,value in pairs(RPR.db.realm.featureSets) do
+		f.featureSetList[#f.featureSetList+1] = RPR:BuildRow(
 			{
 				[cfs.set]	= 	key,
 			},
@@ -558,8 +561,8 @@ function RPF:LoadData()
 
 end
 
-function RPF:CommitChanges()
-	local f = RPF.frames["FeatureWindow"]
+function RPR:CommitChanges()
+	local f = RPR.frames["FeatureWindow"]
 	self.db.realm.featureSets = {}
 	self.db.realm.settings.version = time()
 	self:SaveData()
@@ -582,13 +585,13 @@ function RPF:CommitChanges()
 	f:Hide()
 end
 
-function RPF:CancelChanges()
-	local f = RPF.frames["FeatureWindow"]
+function RPR:CancelChanges()
+	local f = RPR.frames["FeatureWindow"]
 	f:Hide()
 end
 
-function RPF:SaveData()
-	local f = RPF.frames["FeatureWindow"]
+function RPR:SaveData()
+	local f = RPR.frames["FeatureWindow"]
 	if not f.scrollSetFrame.selected then return end
 	f.featureSet[f.scrollSetFrame.selected.cols[cfs.set].value]["name"] = f.editbox["FeatureSetName"]:GetText()
 	f.featureSet[f.scrollSetFrame.selected.cols[cfs.set].value]["description"] = f.editbox["FeatureSetDesc"]:GetText()
@@ -621,7 +624,7 @@ function RPF:SaveData()
 	
 end
 
-function RPF:CreateFeatureSet()
+function RPR:CreateFeatureSet()
 	local f = self.frames["FeatureWindow"]
 	local set = f.editbox["CreateFeatureSet"]:GetText()
 	f.featureSetList[#f.featureSetList+1] = self:BuildRow(
@@ -636,7 +639,7 @@ function RPF:CreateFeatureSet()
 	f.editbox["CreateFeatureSet"]:ClearFocus()
 end
 
-function RPF:DeleteFeatureSet()
+function RPR:DeleteFeatureSet()
 	local f = self.frames["FeatureWindow"]
 	if not f.scrollSetFrame.selected then return end
 	for i=1,#f.featureSetList do
@@ -649,7 +652,7 @@ function RPF:DeleteFeatureSet()
 	end
 end
 
-function RPF:CreateFeature()
+function RPR:CreateFeature()
 	local f = self.frames["FeatureWindow"]
 	if not f.scrollSetFrame.selected then return end
 	local command = f.editbox["CreateFeature"]:GetText()
@@ -665,7 +668,7 @@ function RPF:CreateFeature()
 	f.editbox["CreateFeature"]:ClearFocus()
 end
 
-function RPF:DeleteFeature()
+function RPR:DeleteFeature()
 	local f = self.frames["FeatureWindow"]
 	if not f.scrollSetFrame.selected then return end
 	if not f.scrollFrame.selected then return end

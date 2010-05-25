@@ -76,7 +76,7 @@ function RPB:CreateFrameClientWindow()
 		-- Offspec
 	do
 		f.button={}
-		-- These buttons are given from "features"
+		-- These buttons are given from "rules"
 		
 		-- local button = CreateFrame("Button", f:GetName() .. "_ButtonBonus", f, "UIPanelButtonTemplate")
 		-- button:SetWidth(90)

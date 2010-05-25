@@ -199,16 +199,17 @@ end
 -- @param name Name of the player to check for
 -- @param alt Alt character
 function RPWL:Check(name, alt)
+	if not name then return nil end
 	for i=1,(#(db.realm.waitlist)) do
 		-- Main is on the list
 		if (string.lower(db.realm.waitlist[i].cols[cwl.name].value) == string.lower(name)) then
-			return i
+			return i, "main"
 		-- Alt talking for a main
 		elseif (string.lower(db.realm.waitlist[i].cols[cwl.alt].value) == string.lower(name)) then
-			return i
+			return i, "alt"
 		-- Alt looking for alt change.
 		elseif (alt and string.lower(db.realm.waitlist[i].cols[cwl.name].value) == string.lower(alt)) then
-			return i
+			return i, "change"
 		end
 	end
 	return nil
@@ -223,7 +224,8 @@ end
 function RPWL:Add(name, alt, timestamp, recieved)
 	-- Make sure they are not on the wait list
 	local guildRoster = self:GuildRoster()
-	if not self:Check(name, alt) then
+	local index, action = self:Check(name, alt)
+	if not index then
 		if guildRoster[string.lower(name)] then
 			class = guildRoster[string.lower(name)]["class"]
 		else
@@ -249,10 +251,17 @@ function RPWL:Add(name, alt, timestamp, recieved)
 		return true
 	-- They are on the waitlist, tell them!
 	else
-		if not recieved then
-			self:Print(prefix, name, " is already on the waitlist.")
+		if action == "change" then
+			self:Print(prefix.." Updated alt of",name," to",alt," from",db.realm.waitlist[index].cols[cwl.alt].value, " on the waitlist.")
+			db.realm.waitlist[index].cols[cwl.alt].value = alt
+			self:UpdateList()
+			return true
+		else
+			if not recieved then
+				self:Print(prefix, name, " is already on the waitlist.")
+			end
+			return false			
 		end
-		return false
 	end
 end
 
@@ -278,7 +287,7 @@ function RPWL:Remove(name, recieved)
 	end
 
 	-- Get our index
-	index = self:Check(name, name)
+	local index, action = self:Check(name, name)
 	-- If we have an index they're on the waitlist and we want to remove them
 	if (index) then
 		tremove(db.realm.waitlist,index)
@@ -322,36 +331,35 @@ function RPWL:Show(channel, to)
 	end
 end
 
+local helpmsg =
+{
+	"-- Raid Points Waitlist --",
+	"  Commands:",
+	"rp help - Raid Points help menu.",
+	"wl help - This menu.",
+	"wl show - Show the waitlist.",
+	"wl add [alt] - Add yourself to the waitlist, optionally include the alt you will be online with.",
+	"wl add [main] - Update the waitlist with the character you are currently on as your listed alt.",
+	"wl remove - Remove yourself from the waitlist.",
+}
 --- Send help to chat.
 -- @param channel Channel
 -- @param to Target player
 function RPWL:Help(channel, to)
-	msg =
-	{
-		"-- Raid Points Waitlist --",
-		"  Commands:",
-		"wl help - This menu.",
-		"wl show - Show the waitlist.",
-		"wl add [alt] - Add yourself to the waitlist, optionally include the alt you will be online with.",
-		"wl add [main] - Update the waitlist with the character you are currently on as your listed alt.",
-		"wl remove - Remove yourself from the waitlist.",
-	}
 
 	-- Send to the right channel
-	-- nil = Chatwindow
-	if not channel then
+	if to then
 		for i=1, #msg do
-			self:Print(msg[i])
+			RPWL:Whisper(msg[i], to)
 		end
-	-- No to field, send it to a normal chat
-	elseif not to then
+	elseif channel then
 		for i=1, #msg do
 			RPWL:Message(channel, msg[i])
 		end
 	-- We need to whisper
 	else
 		for i=1, #msg do
-			RPWL:Whisper(msg[i], to)
+			self:Print(msg[i])
 		end
 	end
 end
@@ -457,7 +465,8 @@ function RPWL:WhisperCommand(msg, from)
 	if cmd and self.whisperCommands[string.lower(cmd)] then
 		self.whisperCommands[string.lower(cmd)](self, msg, from)
 	else
-		self.whisperCommands["help"](self, msg)
+		msg = "wl help"
+		self.whisperCommands["help"](self, msg, from)
 	end
 	return true
 end
@@ -633,51 +642,45 @@ function RPWL:UpdateList()
 end
 
 -- Force the guildlist scrolling table to refresh.
-function RPWL:UpdateGuildList()
-	if self.Frame then
-		self.scrollFrameGuild:SortData();
-	end
-end
+-- function RPWL:UpdateGuildList()
+	-- if self.Frame then
+		-- self.scrollFrameGuild:SortData();
+	-- end
+-- end
 
 --- Handle the event fired when clicking on any row in the waitlist scrolling table.
-function scrollFrameOnClick(rowFrame, cellFrame, data, cols, row, realrow, column, button, down)
+function scrollFrameOnClick(rowFrame, cellFrame, data, cols, row, realrow, column, table, button, down)
 	if button == "LeftButton" then
-		if data[realrow] then
-			if RPWL.scrollFrame.selected == data[realrow] then
-				RPWL.scrollFrame.selected = nil
-			else
-				RPWL.scrollFrame.selected = data[realrow]
-			end
-		end
-		RPWL.scrollFrame:Refresh()
+		return false
 	elseif button == "RightButton" then
 		if data[realrow] then
-			RPWL.scrollFrame.selected = data[realrow]
-			RPWL:ButtonRemove()
+			RPWL:Remove(RPWL.scrollFrame:GetRow(realrow).cols[cwl.name].value, false, false)
+			RPWL.scrollFrame:Refresh()
 			RPWL.scrollFrame:SortData()
 		end
+		return true
 	end
 end
 
 -- Handle the event fired when clicking on any row in the guildlist scrolling table.
-function scrollFrameGuildOnClick(rowFrame, cellFrame, data, cols, row, realrow, column, button, down)
-	if button == "LeftButton" then
-		if data[realrow] then
-			if RPWL.scrollFrameGuild.selected == data[realrow] then
-				RPWL.scrollFrameGuild.selected = nil
-			else
-				RPWL.scrollFrameGuild.selected = data[realrow]
-			end
-			RPWL.scrollFrameGuild:Refresh()
-		end
-	elseif button == "RightButton" then
-		if data[realrow] then
-			RPWL.scrollFrameGuild.selected = data[realrow]
-			RPWL:ButtonAdd()
-			RPWL.scrollFrameGuild:SortData()
-		end
-	end
-end
+-- function scrollFrameGuildOnClick(rowFrame, cellFrame, data, cols, row, realrow, column, button, down)
+	-- if button == "LeftButton" then
+		-- if data[realrow] then
+			-- if RPWL.scrollFrameGuild.selected == data[realrow] then
+				-- RPWL.scrollFrameGuild.selected = nil
+			-- else
+				-- RPWL.scrollFrameGuild.selected = data[realrow]
+			-- end
+			-- RPWL.scrollFrameGuild:Refresh()
+		-- end
+	-- elseif button == "RightButton" then
+		-- if data[realrow] then
+			-- RPWL.scrollFrameGuild.selected = data[realrow]
+			-- RPWL:ButtonAdd()
+			-- RPWL.scrollFrameGuild:SortData()
+		-- end
+	-- end
+-- end
 
 --- Returns a color object depending if the person is online or not.
 -- @param row The row that we are checking for.
@@ -695,17 +698,17 @@ function CheckOnline(row)
 end
 
 --- Adds the selected person to the waitlist.
-function RPWL:ButtonAdd()
-	if (self.scrollFrameGuild.selected) then
-		self:Add(self.scrollFrameGuild.selected.cols[cgr.name].value, "", time())
-	end
-end
+-- function RPWL:ButtonAdd()
+	-- if (self.scrollFrameGuild.selected) then
+		-- self:Add(self.scrollFrameGuild.selected.cols[cgr.name].value, "", time())
+	-- end
+-- end
 
 --- Removes the selected person from the waitlist.
 function RPWL:ButtonRemove()
-	if (self.scrollFrame.selected ~= nil) then
-		self:Remove(self.scrollFrame.selected.cols[cwl.name].value, false, false)
-		self.scrollFrame.selected = nil
+	if (self.scrollFrame:GetSelection()) then
+		self:Remove(self.scrollFrame:GetRow(self.scrollFrame:GetSelection()).cols[cwl.name].value, false, false)
+		self.scrollFrame:ClearSelection()
 		self.scrollFrame:Refresh();
 	end
 end
@@ -753,10 +756,10 @@ function RPWL:RosterUpdate()
 		if self.guildRosterIndex[found].cols[cgr.status].value ~= value["status"] then self.guildRosterIndex[found].cols[cgr.status].value = value["status"] end
 		if self.guildRosterIndex[found].cols[cgr.rankindex].value ~= value["rankindex"] then self.guildRosterIndex[found].cols[cgr.rankindex].value = value["rankindex"] end
 	end
-	if self.scrollFrameGuild then
-		self.scrollFrameGuild:SetData(self.guildRosterIndex)
-		self:UpdateGuildList()
-	end
+	-- if self.scrollFrameGuild then
+		-- self.scrollFrameGuild:SetData(self.guildRosterIndex)
+		-- self:UpdateGuildList()
+	-- end
 end
 
 --- Expose the waitlist table.

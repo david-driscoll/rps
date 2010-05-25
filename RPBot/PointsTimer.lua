@@ -28,7 +28,8 @@ function RPB:CreateFramePointsTimer()
 	f:SetMovable(true)
 	f:SetClampedToScreen(true)
 	--   f:SetResizeable(true)
-	f:SetFrameStrata("HIGH")
+	f:SetFrameStrata("DIALOG")
+	f:SetFrameLevel(106)
 	f:SetHeight(150)
 	f:SetWidth(420)
 	f:SetPoint("CENTER")
@@ -130,7 +131,7 @@ function RPB:CreateFramePointsTimer()
 	function(self)
 		local datetime = time()
 		local value = tonumber(f.editbox["PointsAdd"]:GetText()) or 0
-		local total = duration / interval
+		--local total = duration / interval
 		local reason = ( f.editbox["Reason"]:GetText() or "" )
 		if reason ~= "" then reason = "<blank>" end
 		RPB:PointsAdd(self.rpoSettings.raid, datetime, datetime, 'all', value, 'P', 0, reason, false, true)
@@ -139,7 +140,7 @@ function RPB:CreateFramePointsTimer()
 	f.button["AddPoints"] = button
 	
 		
-	local button = CreateFrame("Button", f:GetName() .. "_ButtonMaster", f, "UIPanelButtonTemplate")
+--[[	local button = CreateFrame("Button", f:GetName() .. "_ButtonMaster", f, "UIPanelButtonTemplate")
 	button:SetWidth(90)
 	button:SetHeight(21)
 	button:SetPoint("TOP", f.button["AddPoints"], "BOTTOM", 0, -2)
@@ -149,7 +150,7 @@ function RPB:CreateFramePointsTimer()
 		RPB:SetMaster()
 	end
 	)
-	f.button["Master"] = button
+	f.button["Master"] = button]]
 	
 	local dropdown = AceGUI:Create("Dropdown")
 	dropdown.frame:SetParent(f)
@@ -281,7 +282,7 @@ function RPB:CreateFramePointsTimer()
 	RPB:AutomationTimeGet()
 end
 
-function RPB:AutomationTimeSet(recieved)
+function RPB:AutomationTimeSet()
 	if framebuilt then
 		local f = self.frames["PointsTimer"]
 		local dt = date()
@@ -372,8 +373,8 @@ end
 
 function RPB:AutomationUpdateUI()
 	local f = self.frames["PointsTimer"]
-	if self.rpoSettings.master == UnitName("player") then
-		f.button["Master"]:Disable()
+--	if self.rpoSettings.master == UnitName("player") then
+--		f.button["Master"]:Disable()
 		if self.rpbSettings.automationTimer then
 			if not self.automationTimer then
 				f.editbox["PointsAdd"]:SetText(self.rpbSettings.automationPoints or 0)
@@ -401,7 +402,7 @@ function RPB:AutomationUpdateUI()
 				v:SetDisabled(false)
 			end
 		end
-	else
+	--[[else
 		f.button["AddPoints"]:Disable()
 		f.button["StartTimer"]:Disable()
 		f.button["StopTimer"]:Disable()
@@ -413,10 +414,10 @@ function RPB:AutomationUpdateUI()
 		for k,v in pairs(f.dropdown) do
 			v:SetDisabled(true)
 		end
-	end
+	end]]
 end
 
-function RPB:AutomationStartTimer(recieved)
+function RPB:AutomationStartTimer()
 	local f = self.frames["PointsTimer"]
 	self.rpbSettings.automationTimer = true
 	RPB:AutomationTimeSet()
@@ -425,7 +426,7 @@ function RPB:AutomationStartTimer(recieved)
 	RPB:AutomationTimer()
 	self.automationTimer = self:ScheduleRepeatingTimer("AutomationTimer", 60)
 	RPB:AutomationUpdateUI()
-	if not recieved then
+	--[[if not recieved then
 		-- self:Debug(msg[1], self.rpbSettings.automationRaidStart)
 		-- self:Debug(msg[2], self.rpbSettings.automationRaidEnd)
 		-- self:Debug(msg[3], self.rpbSettings.automationWaitlistCutoff)
@@ -438,11 +439,11 @@ function RPB:AutomationStartTimer(recieved)
 			self.rpbSettings.automationPoints,
 			self.rpbSettings.automationReason,
 		})
-	end
+	end]]
 end
 
 function RPB:AutomationTimer()
-	if self.rpoSettings.master == UnitName("player") then
+	--if self.rpoSettings.master == UnitName("player") then
 		local f = self.frames["PointsTimer"]
 		--self:Debug("AutomationTimer")
 		
@@ -476,20 +477,20 @@ function RPB:AutomationTimer()
 				RPB:PointsAdd(self.rpoSettings.raid, datetime, datetime, 'all', value, 'P', 0, reason, false, true)
 			end
 		end
-	end
+	--end
 end
 
-function RPB:AutomationStopTimer(recieved)
+function RPB:AutomationStopTimer()
 	self:CancelTimer(self.automationTimer)
 	self.rpbSettings.automationTimer = false
 	self.automationTimer = nil
 	RPB:AutomationUpdateUI()
-	if not recieved then
+--[[	if not recieved then
 		self:Send(cs.automationstop, "adf")
-	end
+	end]]
 end
 
-
+--[[
 RPB.syncCommands[cs.automationget] = function(self, msg, sender)
 	local f = self.frames["PointsTimer"]
 	if self.rpoSettings.master ~= UnitName("player") then return end
@@ -541,3 +542,4 @@ RPB.syncCommands[cs.automationstop] = function(self, msg, sender)
 	RPB:AutomationTimeGet()
 	RPB:AutomationStopTimer(true)
 end
+]]

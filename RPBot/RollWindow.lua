@@ -29,6 +29,7 @@ local con = RPSConstants.stConstants["RollWindowNameList"]
 local conArg = RPSConstants.stArgs["RollWindowNameList"]
 
 local AceGUI = LibStub:GetLibrary("AceGUI-3.0")
+local ScrollingTable = LibStub:GetLibrary("ScrollingTable");
 
 local function RPB_GetPoints(player)
 	local pdata = RPB:GetPlayerHistory(player)
@@ -42,6 +43,18 @@ local function RPB_GetTotal(player)
 	for i=1,#rollList do
 		if (string.lower(rollList[i].cols[crl.player].value) == string.lower(player)) then
 			return RPB:CalculateMaxPoints(pdata.points, rollList[i].cols[crl.ty].value) + rollList[i].cols[crl.roll].value
+		end
+	end
+	return 0
+end
+
+local function RPB_GetMaxPoints(player)
+	local f = RPB.frames["RollWindow"]
+	local rollList = f.rollList
+	local pdata = RPB:GetPlayerHistory(player)
+	for i=1,#rollList do
+		if (string.lower(rollList[i].cols[crl.player].value) == string.lower(player)) then
+			return RPB:CalculateMaxPoints(pdata.points, rollList[i].cols[crl.ty].value)
 		end
 	end
 	return 0
@@ -75,7 +88,8 @@ function RPB:CreateFrameRollWindow()
 	f:SetMovable(true)
 	f:SetClampedToScreen(true)
 	--   f:SetResizeable(true)
-	f:SetFrameStrata("HIGH")
+	f:SetFrameStrata("DIALOG")
+	f:SetFrameLevel(103)
 	f:SetHeight(440)
 	f:SetWidth(620)
 	f:SetPoint("CENTER")
@@ -134,19 +148,166 @@ function RPB:CreateFrameRollWindow()
 		title:SetPoint("TOP", f, "TOP", 0, -6)
 		title:SetText("Roll Window")
 		f.title = title
+
+		local sbf = CreateFrame("FRAME",f:GetName() .. "_StatusBarFrame",f);
+		sbf:SetPoint("TOP", f, "TOP", 60, -60)
+		sbf:SetWidth(124);
+		sbf:SetHeight(22);
+		sbf:SetBackdrop({
+			  bgFile="Interface\\Tooltips\\UI-Tooltip-Background", 
+			  edgeFile="Interface\\Tooltips\\UI-Tooltip-Border", 
+			  tile=1, tileSize=10, edgeSize=10, 
+			  insets={left=3, right=3, top=3, bottom=3}
+		});
+		local sb = CreateFrame("StatusBar", sbf:GetName().."StatusBar", sbf,"TextStatusBar")
+		sb:SetPoint("CENTER", sbf, "CENTER", 0, 0)
+		sb:SetOrientation("HORIZONTAL")
+		sb:SetMinMaxValues(0, 100)
+		sb:SetWidth(120)
+		sb:SetHeight(16)
+		sb:SetValue(0)
+		sb:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar");
+		local fs = sb:CreateFontString("$parentText","ARTWORK","GameFontNormal");
+		fs:SetAllPoints();
+		fs:SetText("0%");
+		fs:SetPoint("CENTER",sb,"CENTER");
+		local fss = sbf:CreateFontString("$parentText2","ARTWORK","GameFontNormal");
+		fss:ClearAllPoints();
+		fss:SetText("Recieve:");
+		fss:SetPoint("RIGHT",sbf,"LEFT");
+		local c = GetColor(UnitName("player"))
+		sb:SetStatusBarColor(c.r, c.g, c.b, c.a)
+		sbf:SetBackdropBorderColor(c.r, c.g, c.b, c.a)
+		sbf:SetBackdropColor(0, 0, 0, 1)
+		sbf:SetScript("OnUpdate", function(self)
+			local sbf = RPB.frames["RollWindow"].sbfin
+			if not RPB.ip.incon then return end
+			local sb = sbf.sb
+			local fs = sb.fs
+			local ipin = RPB.ip.inc
+			if ipin and RPB.ip.incactive and ipin > RPB.ip.incl[RPB.ip.incactive] then
+				ipin = RPB.ip.incl[RPB.ip.incactive]
+			end
+			local perc
+			if RPB.ip.incactive then
+				perc = (ipin/RPB.ip.incl[RPB.ip.incactive])*100
+			else
+				perc = 0
+			end
+			sb:SetValue(perc)
+			local desc = RPSConstants.actionText["Bot"][RPB.ip.incactive] or RPB.ip.incactive or ""
+			fs:SetText(desc.." "..math.round(perc).."%")
+		end)
+		sb:SetScript("OnEnter", function(self) 
+			if not RPB.ip.incwho then return end
+			if not RPB.ip.incon then return end
+			local color = GetColor(UnitName("player"))
+			local who = ""
+			if RPB.ip.incwho then
+				who = RPB.ip.incwho
+				color = GetColor(RPB.ip.incwho)
+			end
+			GameTooltip:SetOwner(RPB.frames["RollWindow"].sbfin, "ANCHOR_CURSOR")
+			GameTooltip:ClearLines()
+			GameTooltip:AddLine("Recieveing from "..who, color.r, color.g, color.b)
+			GameTooltip:AddLine(RPB.ip.incactive)
+			GameTooltip:AddLine(RPB.ip.inc .. " of " .. RPB.ip.incl[RPB.ip.incactive])
+			GameTooltip:Show()
+		end)
+		sb:SetScript("OnLeave", function(self)
+			GameTooltip:Hide()
+		end)
+		
+		f.sbfin = sbf
+		sbf.sb = sb
+		sb.fs = fs
+
+		local sbf = CreateFrame("FRAME",f:GetName() .. "_StatusBarFrame",f);
+		sbf:SetPoint("TOP", f, "TOP", 60, -30)
+		sbf:SetWidth(124);
+		sbf:SetHeight(22);
+		sbf:SetBackdrop({
+			  bgFile="Interface\\Tooltips\\UI-Tooltip-Background", 
+			  edgeFile="Interface\\Tooltips\\UI-Tooltip-Border", 
+			  tile=1, tileSize=10, edgeSize=10, 
+			  insets={left=3, right=3, top=3, bottom=3}
+		});
+		local sb = CreateFrame("StatusBar", sbf:GetName().."StatusBar", sbf,"TextStatusBar")
+		sb:SetPoint("CENTER", sbf, "CENTER", 0, 0)
+		sb:SetOrientation("HORIZONTAL")
+		sb:SetMinMaxValues(0, 100)
+		sb:SetWidth(120)
+		sb:SetHeight(16)
+		sb:SetValue(0)
+		sb:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar");
+		local fs = sb:CreateFontString("$parentText","ARTWORK","GameFontNormal");
+		fs:SetAllPoints();
+		fs:SetText("0%");
+		fs:SetPoint("CENTER",sb,"CENTER");
+		local fss = sbf:CreateFontString("$parentText2","ARTWORK","GameFontNormal");
+		fss:ClearAllPoints();
+		fss:SetText("Send:");
+		fss:SetPoint("RIGHT",sbf,"LEFT");
+		local c = GetColor(UnitName("player"))
+		sb:SetStatusBarColor(c.r, c.g, c.b, c.a)
+		sbf:SetBackdropBorderColor(c.r, c.g, c.b, c.a)
+		sbf:SetBackdropColor(0, 0, 0, 1)
+		sbf:SetScript("OnUpdate", function(self)
+			local sbf = RPB.frames["RollWindow"].sbfout
+			if not RPB.ip.outon then return end
+			local sb = sbf.sb
+			local fs = sb.fs
+			local ipout = RPB.ip.out
+			if ipout and RPB.ip.outactive and ipout > RPB.ip.outl[RPB.ip.outactive] then
+				ipout = RPB.ip.outl[RPB.ip.outactive]
+			end
+			local perc
+			if RPB.ip.outactive then
+				perc = (ipout/RPB.ip.outl[RPB.ip.outactive])*100
+			else
+				perc = 0
+			end
+			sb:SetValue(perc)
+			local desc = RPSConstants.actionText["Bot"][RPB.ip.outactive] or RPB.ip.outactive or ""
+			fs:SetText(desc.." "..math.round(perc).."%")
+		end)
+		sb:SetScript("OnEnter", function(self)
+			if not RPB.ip.outwho then return end
+			if not RPB.ip.outon then return end
+			local color = GetColor(UnitName("player"))
+			local who = ""
+			if RPB.ip.outwho then
+				who = RPB.ip.outwho
+				color = GetColor(RPB.ip.outwho)
+			end
+			GameTooltip:SetOwner(RPB.frames["RollWindow"].sbfout, "ANCHOR_CURSOR")
+			GameTooltip:ClearLines()
+			GameTooltip:AddLine("Sending to "..who, color.r, color.g, color.b)
+			GameTooltip:AddLine(RPB.ip.outactive)
+			GameTooltip:AddLine(RPB.ip.out .. " of " .. RPB.ip.outl[RPB.ip.outactive])
+			GameTooltip:Show()
+		end)
+		sb:SetScript("OnLeave", function(self)
+			GameTooltip:Hide()
+		end)
+		
+		f.sbfout = sbf
+		sbf.sb = sb
+		sb.fs = fs
 	end
 
     -- Scroll Frame
 	do
 		f.rollList = {}
-	    f.scrollFrame = ScrollingTable2:CreateST(RPSConstants.columnDefinitons["RollWindow"], 10, nil, nil, f, true);
+	    f.scrollFrame = ScrollingTable:CreateST(RPSConstants.columnDefinitons["RollWindow"], 10, nil, nil, f);
+		f.scrollFrame:EnableSelection(true);
 		f.scrollFrame.frame:SetParent(f)
 		f.scrollFrame.frame:SetPoint("TOPLEFT", f, "TOPLEFT", 20, -240)
 		f.scrollFrame:SetData(f.rollList)
 		f.scrollFrame:RegisterEvents({
 			["OnClick"] = rollWindowScrollFrameOnClick,
 			["OnEnter"] = 
-			function(rowFrame, cellFrame, data, cols, row, realrow, column, ...) 
+			function(rowFrame, cellFrame, data, cols, row, realrow, column, table, ...) 
 				if row and realrow then
 					local selectedby = ""
 					if data[realrow].selected then
@@ -171,7 +332,7 @@ function RPB:CreateFrameRollWindow()
 				end
 			end,
 			["OnLeave"] = 
-			function(rowFrame, cellFrame, data, cols, row, realrow, column, ...) 
+			function(rowFrame, cellFrame, data, cols, row, realrow, column, table, ...) 
 				GameTooltip:Hide()
 			end,
 		});
@@ -186,14 +347,15 @@ function RPB:CreateFrameRollWindow()
 			-- f.item[i] = self:CreateLootFrame(f, i)
 		-- end
 		f.lootList = {}
-	    f.scrollFrameLoot = ScrollingTable2:CreateST(RPSConstants.columnDefinitons["RollWindowLootList"], 10, nil, nil, f, true);
+	    f.scrollFrameLoot = ScrollingTable:CreateST(RPSConstants.columnDefinitons["RollWindowLootList"], 10, nil, nil, f);
+		f.scrollFrameLoot:EnableSelection(true);
 		f.scrollFrameLoot.frame:SetParent(f)
 		f.scrollFrameLoot.frame:SetPoint("TOPLEFT", f, "TOPLEFT", 20, -30)
 		f.scrollFrameLoot:SetData(f.lootList)
 		f.scrollFrameLoot:RegisterEvents({
 			["OnClick"] = rollWindowItemScrollFrameOnClick,
 			["OnEnter"] = 
-			function(rowFrame, cellFrame, data, cols, row, realrow, column, ...) 
+			function(rowFrame, cellFrame, data, cols, row, realrow, column, table, ...) 
 				if data[realrow] then
 					if RPB:GetItemID(data[realrow].cols[cll.link].value) then
 						GameTooltip:SetOwner(rowFrame, "ANCHOR_CURSOR")
@@ -204,7 +366,7 @@ function RPB:CreateFrameRollWindow()
 				end
 			end,
 			["OnLeave"] = 
-			function(rowFrame, cellFrame, data, cols, row, realrow, column, ...) 
+			function(rowFrame, cellFrame, data, cols, row, realrow, column, table, ...) 
 				GameTooltip:Hide()
 			end,
 		});
@@ -219,14 +381,15 @@ function RPB:CreateFrameRollWindow()
 			-- f.item[i] = self:CreateLootFrame(f, i)
 		-- end
 		f.nameList = {}
-	    f.scrollFrameName = ScrollingTable2:CreateST(RPSConstants.columnDefinitons["RollWindowNameList"], 5, nil, nil, f, true);
+	    f.scrollFrameName = ScrollingTable:CreateST(RPSConstants.columnDefinitons["RollWindowNameList"], 5, nil, nil, f);
+		--f.scrollFrameName:EnableSelection(true);
 		f.scrollFrameName.frame:SetParent(f)
 		f.scrollFrameName.frame:SetPoint("TOPRIGHT", f, "TOPRIGHT", -10, -110)
 		f.scrollFrameName:SetData(f.nameList)
 		f.scrollFrameName:RegisterEvents({
 			--["OnClick"] = rollWindowItemScrollFrameOnClick,
 			["OnEnter"] = 
-			function(rowFrame, cellFrame, data, cols, row, realrow, column, ...) 
+			function(rowFrame, cellFrame, data, cols, row, realrow, column, table, ...) 
 				if data[realrow] then
 					GameTooltip:SetOwner(rowFrame, "ANCHOR_CURSOR")
 					GameTooltip:ClearLines()
@@ -236,12 +399,12 @@ function RPB:CreateFrameRollWindow()
 					GameTooltip:AddDoubleLine("Bot", RPB.rpoSettings.versioninfo[data[realrow].cols[con.name].value])
 					GameTooltip:AddDoubleLine("Database", RPB.rpoSettings.dbinfo[data[realrow].cols[con.name].value].database)
 					GameTooltip:AddDoubleLine("Lastaction", RPB.rpoSettings.dbinfo[data[realrow].cols[con.name].value].lastaction)
-					GameTooltip:AddDoubleLine("Feature", RPB.rpoSettings.dbinfo[data[realrow].cols[con.name].value].feature)
+					GameTooltip:AddDoubleLine("Rules", RPB.rpoSettings.dbinfo[data[realrow].cols[con.name].value].rules)
 					GameTooltip:Show()
 				end
 			end,
 			["OnLeave"] = 
-			function(rowFrame, cellFrame, data, cols, row, realrow, column, ...) 
+			function(rowFrame, cellFrame, data, cols, row, realrow, column, table, ...) 
 				GameTooltip:Hide()
 			end,
 		});
@@ -254,9 +417,9 @@ function RPB:CreateFrameRollWindow()
 		raidDropDown[k] = k
 	end
 	
-	local featureDropDown = {}
-	for k,v in pairs(RPF.db.realm.featureSets) do
-		featureDropDown[k] = v.name or k
+	local rulesDropDown = {}
+	for k,v in pairs(RPR.db.realm.rulesSets) do
+		rulesDropDown[k] = v.name or k
 	end
 	
 	f.dropdown = {}
@@ -281,20 +444,20 @@ function RPB:CreateFrameRollWindow()
 	
 	local dropdown = AceGUI:Create("Dropdown")
 	dropdown.frame:SetParent(f)
-	dropdown:SetList(featureDropDown)
+	dropdown:SetList(rulesDropDown)
 	dropdown:SetWidth(120)
 	dropdown:SetHeight(20)
-	dropdown:SetValue(self.rpfSettings.featureSet)
+	dropdown:SetValue(self.RPRSettings.rulesSet)
 	dropdown:SetPoint("TOPRIGHT", f, "TOPRIGHT", -12, -60)
 	dropdown:SetCallback("OnValueChanged", function(object, event, value, ...)
-			RPF:SwitchSet(value)
+			RPR:SwitchSet(value)
 		end
 	)
-	f.dropdown["FeatureSet"] = dropdown
-	local font = f:CreateFontString("Feature","OVERLAY","GameTooltipText")
-	font:SetText("Feature:")
+	f.dropdown["RulesSet"] = dropdown
+	local font = f:CreateFontString("Rules","OVERLAY","GameTooltipText")
+	font:SetText("Rules:")
 	font:SetPoint("TOPRIGHT", dropdown.frame, "TOPLEFT", -2, -8)
-	f.label["FeatureSet"] = font
+	f.label["RulesSet"] = font
 
 	-- Buttons
 		-- Start Bidding
@@ -503,13 +666,14 @@ function RPB:UpdateUI()
 	f.scrollFrameLoot:Refresh()
 	RPB:AutomationTimeGet()
 	
-	if f.scrollFrame.selected then
-		EAwardItem:SetText(RPB_GetLoss(f.scrollFrame.selected.cols[crl.loss].args[1]))
+	if f.scrollFrame and f.scrollFrame:GetSelection() then
+		local selected = f.scrollFrame:GetRow(f.scrollFrame:GetSelection()).cols;
+		EAwardItem:SetText(RPB_GetLoss(selected[crl.loss].args[1]))
 	else
 		EAwardItem:SetText("0")
 	end
 	f.dropdown["Raid"]:SetValue(self.rpoSettings.raid)
-	f.dropdown["FeatureSet"]:SetValue(self.rpfSettings.featureSet)
+	f.dropdown["RulesSet"]:SetValue(self.RPRSettings.rulesSet)
 	
 	if self.rpoSettings.master == UnitName("player") then
 		Master:Disable()
@@ -581,12 +745,12 @@ function RPB:MinimizeUI()
 	local DisenchantItem = f.button["DisenchantItem"]
 	local RollClear = f.button["RollClear"]
 	local DRaid = f.dropdown["Raid"]
-	local DFeatureSet = f.dropdown["FeatureSet"]
+	local DRulesSet = f.dropdown["RulesSet"]
 	local SName = f.scrollFrameName
 	local SRoll = f.scrollFrame
 	local SLoot = f.scrollFrameLoot
 	local LRaid = f.label["Raid"]
-	local LFeatureSet = f.label["FeatureSet"]
+	local LRulesSet = f.label["RulesSet"]
 	
 	SName:Hide()
 	Master:Hide()
@@ -602,9 +766,9 @@ function RPB:MinimizeUI()
 	DisenchantItem:Hide()
 	RollClear:Hide()
 	DRaid.frame:Hide()
-	DFeatureSet.frame:Hide()
+	DRulesSet.frame:Hide()
 	LRaid:Hide()
-	LFeatureSet:Hide()
+	LRulesSet:Hide()
 	SRoll.frame:ClearAllPoints()
 	SRoll.frame:SetPoint("BOTTOM", f, "BOTTOM", 0, 5)
 	SLoot.frame:ClearAllPoints()
@@ -633,12 +797,12 @@ function RPB:MaximizeUI()
 	local DisenchantItem = f.button["DisenchantItem"]
 	local RollClear = f.button["RollClear"]
 	local DRaid = f.dropdown["Raid"]
-	local DFeatureSet = f.dropdown["FeatureSet"]
+	local DRulesSet = f.dropdown["RulesSet"]
 	local SName = f.scrollFrameName
 	local SRoll = f.scrollFrame
 	local SLoot = f.scrollFrameLoot
 	local LRaid = f.label["Raid"]
-	local LFeatureSet = f.label["FeatureSet"]
+	local LRulesSet = f.label["RulesSet"]
 	
 	SName:Show()
 	Master:Show()
@@ -654,9 +818,9 @@ function RPB:MaximizeUI()
 	DisenchantItem:Show()
 	RollClear:Show()
 	DRaid.frame:Show()
-	DFeatureSet.frame:Show()
+	DRulesSet.frame:Show()
 	LRaid:Show()
-	LFeatureSet:Show()
+	LRulesSet:Show()
 	SRoll.frame:ClearAllPoints()
 	SRoll.frame:SetPoint("TOPLEFT", f, "TOPLEFT", 20, -240)
 	SLoot.frame:ClearAllPoints()
@@ -680,66 +844,80 @@ function RPB:CHAT_MSG_SYSTEM()
 	end
 end
 
-function rollWindowScrollFrameOnClick(rowFrame, cellFrame, data, cols, row, realrow, column, button, down)
+function rollWindowScrollFrameOnClick(rowFrame, cellFrame, data, cols, row, realrow, column, table, button, down)
 	local f = RPB.frames["RollWindow"]
 	if RPB.rpoSettings.master == UnitName("player") then
 		if button == "LeftButton" then
 			if data[realrow] then
-				if f.scrollFrame.selected then
-					f.scrollFrame.selected.selected = false
-					f.scrollFrame.selected.highlight = nil
+				local selected = f.scrollFrame:GetRow(f.scrollFrame:GetSelection());
+				if selected then
+					selected.selected = false
+					selected.highlight = nil
 				end
-				f.scrollFrame.selected = data[realrow]
-				f.scrollFrame.selected.selected = true
-				f.scrollFrame.selected.highlight = GetColor(UnitName("player"))
-
+				f.scrollFrame:SetSelection(realrow)
+				selected = f.scrollFrame:GetRow(f.scrollFrame:GetSelection());
+				selected.selected = true
+				selected.highlight = GetColor(UnitName("player"))
 				f.scrollFrame:Refresh()
 				local sendData = RPB:StripRow(data[realrow])
 				--RPB:Print(unpack(sendData))
 				f.editbox["AwardItem"]:SetText(RPB_GetLoss(data[realrow].cols[crl.loss].args[1]))
 				RPB:Send(cs.rolllistclick, {sendData, GetColor(UnitName("player"))})
+				return true
 			end
 		elseif button == "RightButton" then
 			if data[realrow] then
 				RPB:RollListRemove(data[realrow].cols[crl.player].value)
 				RPB:RollListSort()
+				return true
 			end
 		end
 	end
+	return true
 end
 
-function rollWindowItemScrollFrameOnClick(rowFrame, cellFrame, data, cols, row, realrow, column, button, down)
+function rollWindowItemScrollFrameOnClick(rowFrame, cellFrame, data, cols, row, realrow, column, table, button, down)
 	local f = RPB.frames["RollWindow"]
 	if RPB.rpoSettings.master == UnitName("player") and not f.inProgress then
 		if button == "LeftButton" then
 			if data[realrow] then
-				if f.scrollFrameLoot.selected then
-					f.scrollFrameLoot.selected.selected = false
-					f.scrollFrameLoot.selected.highlight = nil
+				local selected = f.scrollFrameLoot:GetRow(f.scrollFrameLoot:GetSelection());
+				if selected then
+					selected.selected = false
+					selected.highlight = nil
 				end
-				f.scrollFrameLoot.selected = data[realrow]
-				f.scrollFrameLoot.selected.selected = true
-				f.scrollFrameLoot.selected.highlight = GetColor(UnitName("player"))
+				f.scrollFrameLoot:SetSelection(realrow)
+				selected = f.scrollFrameLoot:GetRow(f.scrollFrameLoot:GetSelection());
+				selected.selected = true
+				selected.highlight = GetColor(UnitName("player"))
 				f.scrollFrameLoot:Refresh()
+
+				local itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount, itemEquipLoc, itemTexture, itemSellPrice = RPB:GetItemInfo(selected.cols[cll.link].value) 
+				RPB:Debug(itemLevel)
+				RPR:FindIlvlSet(itemLevel)
+
 				local sendData = RPB:StripRow(data[realrow])
 				--RPB:Print(unpack(sendData))
 				RPB:Send(cs.itemlistclick, {sendData, GetColor(UnitName("player"))})
+				return true
 			end
 		elseif button == "RightButton" then
 			if data[realrow] then
-				f.scrollFrameLoot.selected = data[realrow]
+				f.scrollFrameLoot:SetSelection(realrow)
 				RPB:ItemListRemove(data[realrow].cols[cll.link].value)
 				f.scrollFrameLoot:SortData()
+				return true
 			end
 		end
 	end
+	return true
 end
 
 function rollWindowScrollFrameColor(roll)
 	local f = RPB.frames["RollWindow"]
-	local feature = RPF.feature[string.lower(roll.cols[crl.ty].value)]
+	local rules = RPR.rules[string.lower(roll.cols[crl.ty].value)]
 	-- Make this loaclizable, for generic changes.
-	local diff = tonumber(feature.diff) or tonumber(RPB.rpbSettings.diff)
+	local diff = tonumber(rules.diff) or tonumber(RPB.rpbSettings.diff)
 	local low = 0
 	local rollList = f.rollList
 	for i=1,#rollList do
@@ -787,6 +965,7 @@ function rollWindowScrollFrameColor(roll)
 end
 
 function RPB:RollListAdd(player, cmd, recieved)
+	local f = self.frames["RollWindow"]
 	--local pinfo = self:GetInfo(player)
 	if (not self:GetPlayer(player)) then
 		self:CreatePlayer(player)
@@ -795,14 +974,41 @@ function RPB:RollListAdd(player, cmd, recieved)
 		return nil
 	end
 	local pinfo = self:GuildRosterByName(player) or self:RosterByName(player:gsub("^%l", string.upper))
+	local class = self:GetPlayer(player, "class")
+	local selected = f.scrollFrameLoot:GetRow(f.scrollFrameLoot:GetSelection());
+	local item = selected.cols	
+	local classes = self:GetClasses(item[cll.link].value)
+	local cstring = ""
+	local found = false
+	for i, c in pairs(classes) do
+		if cstring == "" then
+			cstring = c
+		else
+			cstring = cstring..", "..c
+		end
+		if string.lower(class) == string.lower(c) then
+			found = true
+			break
+		end
+	end
+	if not found and (table.getn(classes)>0) then
+		return "noclass", cstring
+	end
+
+	local itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemCount, itemEquipLoc, itemTexture = RPB:GetItemInfo(item[cll.link].value)
+	if (RPSConstants.filterList[itemSubType]) then
+		if not RPSConstants.filterClassList[string.upper(class)][itemSubType] then
+			return "noarmor", itemSubType
+		end
+	end
 	
 	--self:Print("RPB:RollListAdd", player, cmd, recieved)
 	local class, rank, ty, total, loss
-	local feature = RPF.feature[string.lower(cmd)]
-	local divisor = feature.divisor or 2
-	ty = feature.name
+	local rules = RPR.rules[string.lower(cmd)]
+	local divisor = rules.divisor or 2
+	ty = rules.name
 	
-	player = self:GetPlayer(player, "fullname")
+	p = self:GetPlayer(player, "fullname")
 	class = self:GetPlayer(player, "class")
 	rank = self:GetPlayer(player, "rank")
 
@@ -810,7 +1016,7 @@ function RPB:RollListAdd(player, cmd, recieved)
 	for i=1,#rollList do
 		if (string.lower(rollList[i].cols[crl.player].value) == string.lower(player)) then
 			if (string.lower(rollList[i].cols[crl.ty].value) ~= string.lower(ty)) then
-				if feature.nolist then
+				if rules.nolist then
 					self:RollListRemove(player)
 					return "nolist"
 				else
@@ -827,7 +1033,7 @@ function RPB:RollListAdd(player, cmd, recieved)
 		self:Send(cs.rolllistadd, {player, cmd, true})
 	end
 	
-	if feature.nolist then
+	if rules.nolist then
 		return "nolist"
 	end
 
@@ -860,8 +1066,8 @@ function RPB:RollListRemove(player, recieved)
 	end			
 	for i=1,#rollList do
 		if (string.lower(rollList[i].cols[crl.player].value) == string.lower(player)) then
-			if f.scrollFrame.selected == rollList[i] then
-				f.scrollFrame.selected = nil
+			if f.scrollFrame:GetSelection() == i then
+				f.scrollFrame:ClearSelection()
 			end
 			tremove(rollList,i)
 			break
@@ -876,10 +1082,19 @@ function RPB:RollListClear(recieved)
 		self:Send(cs.rolllistclear, {true})
 	end
 	f.rollList = {}
+	f.scrollFrame:ClearSelection()
 	f.scrollFrame:SetData(f.rollList)
 	self:RollListSort()
-	f.scrollFrame.selected = nil
-	self:RollListSort()
+	if f.timer then
+		self:CancelTimer(f.timer)
+		f.timer = nil
+		f.tm = 0
+	end
+	if f.stimer then
+		self:CancelTimer(f.stimer)
+		f.stimer = nil
+		f.tm = 0
+	end
 	f.inProgress = false
 	f.state = "Initial"
 	self:UpdateUI()
@@ -888,7 +1103,7 @@ end
 function RPB:RollListUpdate(index, player)
 	local f = self.frames["RollWindow"]
 	local rollList = f.rollList
-	local feature = RPF.feature[string.lower(cmd)]
+	local rules = RPR.rules[string.lower(cmd)]
 	local pdata = self:GetPlayerHistory(player)
 	--rollList[index].cols[crl.points].value = pdata.points
 	--rollList[index].cols[crl.total].value = self:CalculateMaxPoints(pdata.points, rollList[index].cols[crl.ty].value)
@@ -961,8 +1176,9 @@ function RPB:RollListSort()
 	local f = self.frames["RollWindow"]
 	-- Call the sort function for total?
 	if f and f.scrollFrame then
-		if f.scrollFrame.selected then
-			f.editbox["AwardItem"]:SetText(RPB_GetLoss(f.scrollFrame.selected.cols[crl.loss].args[1]))
+		if f.scrollFrame and f.scrollFrame:GetSelection() then
+			local selected = f.scrollFrame:GetRow(f.scrollFrame:GetSelection()).cols;
+			f.editbox["AwardItem"]:SetText(RPB_GetLoss(selected[crl.loss].args[1]))
 		end
 		--f.scrollFrame.cols[crl.roll] = "asc"
 		local st = f.scrollFrame
@@ -974,13 +1190,14 @@ function RPB:RollListSort()
 		end
 		cols[crl.total].sort = "asc";
 		f.scrollFrame:SortData();
+		f.scrollFrame:Refresh()
 	end
 end
 
 function RPB:RollListAward(recieved)
 	local f = self.frames["RollWindow"]
-	if not f.scrollFrameLoot.selected then return end
-	if not f.scrollFrame.selected then return end
+	if not f.scrollFrameLoot:GetSelection() then return end
+	if not f.scrollFrame:GetSelection() then return end
 	if not recieved then
 		self:Send(cs.rolllistaward, { true })
 	end
@@ -989,8 +1206,10 @@ function RPB:RollListAward(recieved)
 		return
 	end
 
-	local item = f.scrollFrameLoot.selected.cols
-	local winner = f.scrollFrame.selected.cols
+	local item, winner
+	
+	item = f.scrollFrameLoot:GetRow(f.scrollFrameLoot:GetSelection()).cols
+	winner = f.scrollFrame:GetRow(f.scrollFrame:GetSelection()).cols
 	local class, rank, ty, total, loss, roll, ptotal, player
 	local editbox = f.editbox["AwardItem"]
 	
@@ -1005,7 +1224,7 @@ function RPB:RollListAward(recieved)
 		loss = -(loss)
 	end
 	roll = winner[crl.roll].value
-	ptotal = RPB_GetTotal(player)
+	ptotal = RPB_GetMaxPoints(player)
 	f.state = "Initial"
 	self:UpdateUI()
 	if self.rpoSettings.master == UnitName("player") then
@@ -1016,6 +1235,7 @@ function RPB:RollListAward(recieved)
 		self:PointsAdd(self.rpoSettings.raid, dt, dt, player, (loss), 'I', item[cll.item].value, item[cll.link].value, true, true)
 		self:ItemListRemove(item[cll.link].value)
 		self:RollListUpdateRoll(player)
+		f.scrollFrame:ClearSelection()
 	end
 	if f.timer then
 		self:CancelTimer(f.timer)
@@ -1025,7 +1245,7 @@ end
 
 function RPB:RollListDisenchant(recieved)
 	local f = self.frames["RollWindow"]
-	if not f.scrollFrameLoot.selected then return end
+	if not f.scrollFrameLoot:GetSelection() then return end
 	if not recieved then
 		self:Send(cs.rolllistdisenchant, { true })
 	end
@@ -1034,7 +1254,8 @@ function RPB:RollListDisenchant(recieved)
 		return
 	end
 	
-	local item = f.scrollFrameLoot.selected.cols
+	local item
+	item = f.scrollFrameLoot:GetRow(f.scrollFrameLoot:GetSelection()).cols
 	f.state = "Initial"
 	self:UpdateUI()
 	if self.rpoSettings.master == UnitName("player") then
@@ -1052,10 +1273,10 @@ end
 
 function RPB:StartBidding(recieved)
 	local f = self.frames["RollWindow"]
-	if not f.scrollFrameLoot.selected then return end
+	if not f.scrollFrameLoot:GetSelection() then return end
 	local item
-	if f.scrollFrameLoot.selected then
-		item = f.scrollFrameLoot.selected.cols	
+	if f.scrollFrameLoot:GetSelection() then
+		item = f.scrollFrameLoot:GetRow(f.scrollFrameLoot:GetSelection()).cols
 		if not recieved then
 			self:Send(cs.startbidding, { true })
 		end
@@ -1072,22 +1293,19 @@ end
 
 function RPB:StartTimedBidding(recieved)
 	local f = self.frames["RollWindow"]
-	if not f.scrollFrameLoot.selected then return end
-	local item
-	if f.scrollFrameLoot.selected then
-		item = f.scrollFrameLoot.selected.cols	
-		if not recieved then
-			self:Send(cs.starttimedbidding, { true })
-		end
-		f.inProgress = true
-		f.state = "Bidding Started"
-		if self.rpoSettings.master == UnitName("player") then
-			self:Message("RAID_WARNING", "*** Declare on " .. item[cll.link].value .. ". ***")
-			self:Broadcast("*** Declare on " .. item[cll.link].value .. ".  Closing in " .. (tonumber(RPB.rpbSettings.bidtime) or 30) .. " seconds. ***")
-			f.tm = (tonumber(self.rpbSettings.bidtime) or 30) - 1
-			f.timer = self:ScheduleRepeatingTimer("ContinueBidding", 1)
-			self:UpdateUI()
-		end
+	if not f.scrollFrameLoot:GetSelection() then return end
+	local item = f.scrollFrameLoot:GetRow(f.scrollFrameLoot:GetSelection()).cols
+	if not recieved then
+		self:Send(cs.starttimedbidding, { true })
+	end
+	f.inProgress = true
+	f.state = "Bidding Started"
+	if self.rpoSettings.master == UnitName("player") then
+		self:Message("RAID_WARNING", "*** Declare on " .. item[cll.link].value .. ". ***")
+		self:Broadcast("*** Declare on " .. item[cll.link].value .. ".  Closing in " .. (tonumber(RPB.rpbSettings.bidtime) or 30) .. " seconds. ***")
+		f.tm = (tonumber(self.rpbSettings.bidtime) or 30) - 1
+		f.timer = self:ScheduleRepeatingTimer("ContinueBidding", 1)
+		self:UpdateUI()
 	end
 end
 
@@ -1096,7 +1314,7 @@ function RPB:ContinueBidding()
 	if f.inProgress then
 		f.tm = f.tm - 1
 		local timeleft = f.tm
-		local item = f.scrollFrameLoot.selected.cols
+		local item = f.scrollFrameLoot:GetRow(f.scrollFrameLoot:GetSelection()).cols
 		local lastcall = tonumber(self.rpbSettings.lastcalltonumber) or 5
 		
 		if (timeleft > lastcall and timeleft % (lastcall*2) == 0) then
@@ -1127,7 +1345,7 @@ function RPB:StopBidding(recieved)
 		f.stimer = self:ScheduleTimer("StopBidding", 1)
 		f.tm = f.tm - 1
 		local timeleft = f.tm
-		local item = f.scrollFrameLoot.selected.cols
+		local item = f.scrollFrameLoot:GetRow(f.scrollFrameLoot:GetSelection()).cols
 		local lastcall = tonumber(self.rpbSettings.lastcall) or 5
 		
 		if (timeleft == lastcall) then
@@ -1155,7 +1373,7 @@ function RPB:ItemListAdd(link, item, count, quality, recieved)
 	--if quality and quality < 3 then return end
 	if not link then
 		local editbox = f.editbox["AddItem"]
-		local itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemCount, itemEquipLoc, itemTexture = GetItemInfo(editbox:GetText())
+		local itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemCount, itemEquipLoc, itemTexture = RPB:GetItemInfo(editbox:GetText())
 		--RPB:Print(GetItemInfo(editbox:GetText()))
 		link = editbox:GetText()
 		item = self:GetItemID(link)
@@ -1191,7 +1409,7 @@ end
 function RPB:ItemListRemove(link, recieved)
 	local f = self.frames["RollWindow"]
 	if not link then
-		link = f.scrollFrameLoot.selected.cols[cll.link].value
+		link = f.scrollFrameLoot:GetRow(f.scrollFrameLoot:GetSelection()).cols[cll.link].value
 	end
 	if not recieved then
 		self:Send(cs.itemlistremove, {link, true})
@@ -1199,8 +1417,8 @@ function RPB:ItemListRemove(link, recieved)
 	local lootList = f.lootList
 	for i=1,#lootList do
 		if (lootList[i] and lootList[i].cols[cll.link].value == link) then
-			if f.scrollFrameLoot.selected == lootList[i] then
-				f.scrollFrameLoot.selected = nil
+			if f.scrollFrameLoot:GetSelection() == i then
+				f.scrollFrameLoot:ClearSelection()
 			end
 			tremove(lootList,i)
 			break
@@ -1218,7 +1436,7 @@ function RPB:ItemListClear(recieved)
 		f.lootList = {}
 		f.scrollFrameLoot:SetData(f.lootList)
 		f.scrollFrameLoot:SortData()
-		f.scrollFrameLoot.selected = nil
+		f.scrollFrameLoot:ClearSelection()
 	end
 end
 
@@ -1250,9 +1468,9 @@ RPB.syncCommands[cs.itemlistset] = function(self, msg, sender)
 			for j=1,#msg[2] do
 				--self:Print(msg[2][j][sel][cll.link], temp[i].cols[cll.link].value)
 				if msg[2][j]["sel"][cll.link] and string.lower(temp[i].cols[cll.link].value) == string.lower(msg[2][j]["sel"][cll.link] ) then
-					frame.selected = temp[i]
 					temp[i].selected = true
 					temp[i].highlight = msg[2][j]["highlight"]
+					frame:SetSelection(i)
 				--elseif not (list[i].selected and list[i].highlight ~= RPB:GetColor(UnitName("player"))) then
 				else
 					temp[i].selected = false
@@ -1297,9 +1515,9 @@ RPB.syncCommands[cs.rolllistset] = function(self, msg, sender)
 		if msg[2] then
 			for j=1,#msg[2] do
 				if msg[2][j]["sel"][crl.player] and string.lower(temp[i].cols[crl.player].value) == string.lower(msg[2][j]["sel"][crl.player] ) then
-					frame.selected = temp[i]
 					temp[i].selected = true
 					temp[i].highlight = msg[2][j]["highlight"]
+					frame:SetSelection(i)
 				--elseif not (list[i].selected and list[i].highlight ~= RPB:GetColor(UnitName("player"))) then
 				else
 					temp[i].selected = false
@@ -1318,18 +1536,19 @@ RPB.syncCommands[cs.rolllistclick] = function(self, msg, sender)
 	if sender == UnitName("player") then return end
 	local list = f.rollList
 	local frame = f.scrollFrame
-	if frame.selected then
-		frame.selected.selected = false
-		frame.selected.highlight = nil
-		frame.selected = nil
+	if frame:GetSelection() then
+		local selected = frame:GetRow(frame:GetSelection());
+		selected.selected = false
+		selected.highlight = nil
+		frame:ClearSelection()
 	end
 	for i=1,#list do
 		if (list[i].cols[crl.player].value == msg[1][crl.player]) then
-			frame.selected = list[i]
 			list[i].selected = true
 			list[i].highlight = msg[2]
 			f.editbox["AwardItem"]:SetText(RPB_GetLoss(list[i].cols[crl.loss].args[1]))
-		--elseif not (list[i].selected and list[i].highlight ~= RPB:GetColor(UnitName("player"))) then
+			frame:SetSelection(i)
+			--elseif not (list[i].selected and list[i].highlight ~= RPB:GetColor(UnitName("player"))) then
 		else
 			list[i].selected = false
 			list[i].highlight = nil
@@ -1344,21 +1563,25 @@ RPB.syncCommands[cs.itemlistclick] = function(self, msg, sender)
 	local list = f.lootList
 	local frame = f.scrollFrameLoot
 	--self:Print(msg, unpack(msg or {}))
-	if frame.selected then
-		frame.selected.selected = false
-		frame.selected.highlight = nil
-		frame.selected = nil
+	if frame:GetSelection() then
+		local selected = frame:GetRow(frame:GetSelection());
+		selected.selected = false
+		selected.highlight = nil
+		frame:ClearSelection()
 	end
 	for i=1,#list do
 		if (list[i].cols[cll.item].value == msg[1][cll.item]) then
-			frame.selected = list[i]
 			list[i].selected = true
 			list[i].highlight = msg[2]
-		--elseif not (list[i].selected and list[i].highlight ~= RPB:GetColor(UnitName("player"))) then
+			frame:SetSelection(i)
+			--local itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount, itemEquipLoc, itemTexture, itemSellPrice = RPB:GetItemInfo(list[i].cols[cll.item].value) 
+			--RPR:FindIlvlSet(itemLevel)
+			--elseif not (list[i].selected and list[i].highlight ~= RPB:GetColor(UnitName("player"))) then
 		else
 			list[i].selected = false
 			list[i].highlight = nil
 		end
 	end
 	f.scrollFrameLoot:SortData()
+	f.scrollFrameLoot:Refresh()
 end

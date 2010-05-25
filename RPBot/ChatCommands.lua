@@ -25,7 +25,7 @@ function RPB:ChatCommand(msg)
 	if cmd and self.chatCommands[string.lower(cmd)] then
 		self.chatCommands[string.lower(cmd)](self, msg)
 	else
-		self.chatCommands["help"](self)
+		self.chatCommands["help"](self, msg)
 	end
 end
 
@@ -60,8 +60,12 @@ RPB.chatCommands["history"] = function (self, msg)
 	self.frames["HistoryViewer"]:Show()
 end
 
-RPB.chatCommands["feature"] = function (self, msg)
-	RPF.frames["FeatureWindow"]:Show()
+RPB.chatCommands["rules"] = function (self, msg)
+	RPR.frames["RulesWindow"]:Show()
+end
+
+RPB.chatCommands["ilvl"] = function (self, msg)
+	RPR.frames["ItemWindow"]:Show()
 end
 
 RPB.chatCommands["add"] = function (self, msg)
@@ -90,7 +94,7 @@ end
 
 RPB.chatCommands["show"] = function (self, msg)
 	_, player, history, pos = self:GetArgs(msg, 3, 1)
-	self:PointsShow(player, nil, nil, history)
+	self:PointsShow(player, history, nil, history)
 end
 
 RPB.chatCommands["convert"] = function (self, msg)
@@ -115,11 +119,47 @@ end
 
 RPB.chatCommands["force"] = function (self, msg)
 	_, player, cmd, pos = self:GetArgs(msg, 3, 1)
-	self:RollListAdd(player, cmd)
+	if player and cmd then
+		self:RollListAdd(player, cmd)
+	end
 end
 
+RPB.chatCommands["clearalldatanow"] = function (self, msg)
+	self.db.realm.raid = nil
+	self.db.realm.player = nil
+	self.db.realm.version = nil
+	self.rpoSettings.dbinfo = nil
+	self.rpoSettings.versioninfo = nil
+	ReloadUI()
+end
+
+local helpmsg =
+{
+	"-- Raid Points System --",
+	"  Commands:",
+	"wl help - Waitlist help menu.",
+	"rp help - This menu.",
+	"rp settings - Opens the settings menu.",
+	"rp roll - The rolling interface, this is the heart of the mod.",
+	"rp points - This is the points editor, allows editing of the database.",
+	"rp rules - This is the rules interface, allows costs to be set and valid whisper commands to be defined.",
+	"rp ilvl - This is the ilvl editor, this allows certian items to have their ilvl reassigned.  This is more useful for tier tokens that have a generic item level.",
+	"rp add <points> <list> <reason> - Adds specific number of points to a list.  List can be special keyword 'all' a speciflc player or a comma list of players 'player1,player2,player3'",
+	"rp additem <points> <list> <reason> - Same as add points but specifices the item type instead of points type.",
+	"rp show <list> [channel] - Shows raid point informaion, optionally choose a channel such as raid or officer.",
+	"rp force <player> <command> - Force add someone to the roll window with the specific command.",
+	"rp use - Assigns a new database to use.",
+	"rp create - Creates a new database.",
+	"rp convert - Convert an existing Ni_Karma saved variables, the Ni_Karma mod must be active.",
+	"rp master - Assign yourself as the new master, same as clicking the master button in the roll window.",
+	"rp dbupdate - Request an update from the current master.",
+	"rp dbupdateall - -- ONLY USE IF YOU KNOW WHAT YOU ARE DOING CAN CAUSE DATA LOSS --",
+	"rp clearalldatanow - -- CLEARS ALL DATA USE ONLY IF NEEDED CAUSES UI TO RELOAD AFTERWARDS --",
+}
 RPB.chatCommands["?"] = function (self, msg)
-	self:Print("help stuff")
+	for i=1, #helpmsg do
+		self:Print(helpmsg[i])
+	end
 end
 RPB.chatCommands["help"] = RPB.chatCommands["?"]
 

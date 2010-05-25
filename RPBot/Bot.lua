@@ -33,6 +33,7 @@ local function MD5(data)
 end
 
 local cs = RPSConstants.syncCommands["Bot"]
+local csp = RPSConstants.syncCommandsPriority["Bot"]
 
 RPB = LibStub("AceAddon-3.0"):NewAddon("Raid Points Bot", "AceConsole-3.0", "AceEvent-3.0", "AceComm-3.0", "AceSerializer-3.0", "AceTimer-3.0", "RPLibrary", "GuildLib", "BLib")
 RPB.frames = {}
@@ -48,11 +49,11 @@ local function whisperFilter()
 			and settings.filterIn == "1"
 			and (
 				strfind(string.lower(arg1), "^rp")
-				or strfind(string.lower(arg1), "^"..RPF.cmd1)
-				or strfind(string.lower(arg1), "^"..RPF.cmd2)
-				or strfind(string.lower(arg1), "^"..RPF.cmd3)
-				or strfind(string.lower(arg1), "^"..RPF.cmd4)
-				or strfind(string.lower(arg1), "^"..RPF.cmd5)
+				or strfind(string.lower(arg1), "^"..RPR.cmd1)
+				or strfind(string.lower(arg1), "^"..RPR.cmd2)
+				or strfind(string.lower(arg1), "^"..RPR.cmd3)
+				or strfind(string.lower(arg1), "^"..RPR.cmd4)
+				or strfind(string.lower(arg1), "^"..RPR.cmd5)
 			)
 	then
 		return true
@@ -141,10 +142,14 @@ function RPB:OnInitialize()
 		end
 	end
 	self.debugOn = false
+
+	hooksecurefunc("SendAddonMessage", function(...)
+		return RPBSendAddonMessage(...)
+	end)
 end
 
 --- Enable processes
--- Register all events, setup inital state and load featureset
+-- Register all events, setup inital state and load rules set
 function RPB:OnEnable()
 	self:RegisterEvent("LOOT_OPENED")
 	self:RegisterEvent("START_LOOT_ROLL")
@@ -157,8 +162,8 @@ function RPB:OnEnable()
 	
 	self.rpbSettings = RPBS.db.realm.settings
 	self.rpoSettings = RPOS.db.realm.settings
-	self.rpfSettings = RPF.db.realm.settings
-	--self.feature = RPF.feature
+	self.RPRSettings = RPR.db.realm.settings
+	--self.rules = RPR.rules
 	self.options = RPBS.options
 
 	self:RosterScan()
@@ -179,9 +184,10 @@ function RPB:OnEnable()
 		self.debugOn = true
 	end
 	
-	db.realm.version.feature = self.rpfSettings.version
+	db.realm.version.rules = RPR.db.realm.settings.version
+	db.realm.version.item = RPR.db.realm.settings.itemversion
 	db.realm.version.bot = RPSsyncVersion
-	--self.feature = RPF.feature
+	--self.rules = RPR.rules
 end
 
 function RPB:DatabaseSync()
@@ -388,8 +394,8 @@ function RPB:PlayerToArray(player, to)
 			splitlist = { strsplit(",",player) }
 			--self:Print(splitlist)
 			for i=1,#splitlist do
-				if (self.classList[string.lower(splitlist[i])]) then
-					local class = self.classList[string.lower(splitlist[i])]
+				if (RPSConstants.classList[string.lower(splitlist[i])]) then
+					local class = RPSConstants.classList[string.lower(splitlist[i])]
 					local roster = self:Roster()
 					for k, v in pairs(roster) do
 						if v.class == class then
@@ -417,7 +423,7 @@ function RPB:PlayerToArray(player, to)
 					if to then
 						local roster = self:Roster()
 						if roster[to] then
-							local tier = self.tierList[roster[to].class]
+							local tier = RPSConstants.tierList[roster[to].class]
 							for i=1,#tier do
 								local class = tier[i]
 								local roster = self:Roster()
@@ -566,6 +572,9 @@ local function LastLink(entry, phistory)
 		if recHistory.recentactions[entry.link] then
 			--obj = recHistory.recentactions[entry.link]
 			myentry = LastLink(entry.link)
+		elseif recHistory.recenthistory[entry.link] then
+			--obj = recHistory.recentactions[entry.link]
+			myentry = LastLink(entry.link)
 		end
 	else
 		myentry = entry
@@ -573,14 +582,14 @@ local function LastLink(entry, phistory)
 	return myentry
 end
 
-local function LastLinkValue(entry, phistory)
-	local e = LastLink(entry, phistory)
-	if e.action == "Delete" then
-		return (-e.value)
-	else
-		return e.value
-	end
-end
+-- local function LastLinkValue(entry, phistory)
+	-- local e = LastLink(entry, phistory)
+	-- if e.action == "Delete" then
+		-- return (-e.value)
+	-- else
+		-- return e.value
+	-- end
+-- end
 
 function RPB:PointsRemove(raid, removetime, actiontime, datetime, player, whisper, recieved)
 	local playerlist
@@ -615,7 +624,7 @@ function RPB:PointsRemove(raid, removetime, actiontime, datetime, player, whispe
 		if (db.realm.raid[raid][string.lower(playerlist[i].name)]) then
 			if db.realm.raid[raid][string.lower(playerlist[i].name)].recentactions[datetime] then
 				local obj = db.realm.raid[raid][string.lower(playerlist[i].name)].recentactions[datetime]
-				local points = LastLinkValue(datetime, db.realm.raid[raid][string.lower(playerlist[i].name)])
+				--local points = LastLinkValue(datetime, db.realm.raid[raid][string.lower(playerlist[i].name)])
 				db.realm.raid[raid][string.lower(playerlist[i].name)].recentactions[removetime] = {
 					actiontime 	= actiontime,
 					datetime 	= datetime,
@@ -623,7 +632,7 @@ function RPB:PointsRemove(raid, removetime, actiontime, datetime, player, whispe
 					ty			= obj.ty,
 					itemid		= obj.itemid,
 					reason		= obj.reason,
-					value		= points,
+					value		= (0-obj.value),
 					waitlist	= obj.waitlist,
 					action		= "Delete",
 					}
@@ -632,16 +641,16 @@ function RPB:PointsRemove(raid, removetime, actiontime, datetime, player, whispe
 				if (whisper) then
 					local value = db.realm.raid[raid][string.lower(playerlist[i].name)].recentactions[datetime].value
 					if (tonumber(value) >= 0) then
-						self:Whisper("Entry Removed: \"Added "..value.." points for "..reason.."\"", name)
+						self:Whisper("Entry Removed: \"Added "..value.." points for "..obj.reason.."\"", name)
 					else
-						self:Whisper("Entry Removed: \"Deducted "..(-value).." points for "..reason.."\"", name)
+						self:Whisper("Entry Removed: \"Deducted "..(-value).." points for "..obj.reason.."\"", name)
 					end
 				end
 			end
 
 			if (db.realm.raid[raid][string.lower(playerlist[i].name)].recenthistory[datetime]) then
 				local obj = db.realm.raid[raid][string.lower(playerlist[i].name)].recenthistory[datetime]
-				local points = LastLinkValue(datetime, db.realm.raid[raid][string.lower(playerlist[i].name)])
+				--local points = LastLinkValue(datetime, db.realm.raid[raid][string.lower(playerlist[i].name)])
 				db.realm.raid[raid][string.lower(playerlist[i].name)].recentactions[removetime] = {
 					actiontime 	= actiontime,
 					datetime 	= datetime,
@@ -649,7 +658,7 @@ function RPB:PointsRemove(raid, removetime, actiontime, datetime, player, whispe
 					ty			= obj.ty,
 					itemid		= obj.itemid,
 					reason		= obj.reason,
-					value		= points,
+					value		= (0-obj.value),
 					waitlist	= obj.waitlist,
 					action		= "Delete",
 				}
@@ -658,9 +667,9 @@ function RPB:PointsRemove(raid, removetime, actiontime, datetime, player, whispe
 				if (whisper) then
 					local value = db.realm.raid[raid][string.lower(playerlist[i].name)].recenthistory[datetime].value
 					if (tonumber(value) >= 0) then
-						self:Whisper("Entry Removed: \"Added "..value.." points for "..reason.."\"", name)
+						self:Whisper("Entry Removed: \"Added "..value.." points for "..obj.reason.."\"", name)
 					else
-						self:Whisper("Entry Removed: \"Deducted "..(-value).." points for "..reason.."\"", name)
+						self:Whisper("Entry Removed: \"Deducted "..(-value).." points for "..obj.reason.."\"", name)
 					end
 				end
 			end
@@ -670,7 +679,7 @@ function RPB:PointsRemove(raid, removetime, actiontime, datetime, player, whispe
 end
 
 function FollowLink(entry, phistory)
-	local p, l = 0, 0
+	local p, l, mylink = 0, 0, nil
 	
 	if phistory then
 		recHistory = phistory
@@ -685,28 +694,28 @@ function FollowLink(entry, phistory)
 		end
 	end	
 
-	if entry and entry.link and entry.link > 0 then
-		--local obj
-		if recHistory.recentactions[entry.link] then
+	if entry and entry.link then
+		if entry.link > 0 and recHistory.recentactions[entry.link] then
 			--obj = phistory.recentactions[entry.link]
-			p, l = FollowLink(entry.link)
+			p, l, mylink = FollowLink(entry.link)
+		elseif entry.link > 0 and recHistory.recenthistory[entry.link] then
+			--obj = phistory.recentactions[entry.link]
+			p, l, mylink = FollowLink(entry.link)
+		elseif entry.link == 0 then
+			p = p + entry.value
+			if (entry.action == "Delete") then
+				if (entry.value > 0) then
+					l = l - entry.value
+				end
+			else
+				if (entry.value > 0) then
+					l = l + entry.value
+				end
+			end
+			mylink = entry
 		end
 	end
-
-	if entry and entry.action == "Delete" then
-		p = p + (-entry.value)
-		--RPB:Debug(p)
-		if (entry.value > 0) then
-			l = l - entry.value
-		end
-	elseif entry then
-		p = p + entry.value
-		--RPB:Debug(p)
-		if (entry.value > 0) then
-			l = l + entry.value
-		end
-	end
-	return p, l
+	return p, l, mylink
 end
 
 function RPB:PointsUpdate(raid, updatetime, actiontime, datetime, player, value, ty, itemid, reason, waitlist, whisper, recieved)
@@ -737,13 +746,15 @@ function RPB:PointsUpdate(raid, updatetime, actiontime, datetime, player, value,
 	if not recieved then
 		self:Send(cs.pointsupdate, {raid, updatetime, actiontime, datetime, player, value, ty, itemid, reason, waitlist, false, true})
 	end
+	
+	RPB:Debug({["raid"]=raid, ["updatetime"]=updatetime, ["actiontime"]=actiontime, ["datetime"]=datetime, ["player"]=player, ["value"]=value, ["ty"]=ty, ["itemid"]=itemid, ["reason"]=reason, ["waitlist"]=waitlist})
 
 	for i=1, #playerlist do
 		if (db.realm.raid[raid][string.lower(playerlist[i].name)]) then
 			if db.realm.raid[raid][string.lower(playerlist[i].name)].recentactions[datetime] then
 				local obj = db.realm.raid[raid][string.lower(playerlist[i].name)].recentactions[datetime]
-				local points, _ = FollowLink(datetime, db.realm.raid[raid][string.lower(playerlist[i].name)])
-				points = value - points
+				--local points, _ = FollowLink(datetime, db.realm.raid[raid][string.lower(playerlist[i].name)])
+				local points = value - obj.value
 				db.realm.raid[raid][string.lower(playerlist[i].name)].recentactions[updatetime] = {
 					actiontime	= actiontime,
 					datetime 	= datetime,
@@ -762,9 +773,9 @@ function RPB:PointsUpdate(raid, updatetime, actiontime, datetime, player, value,
 				end
 			end
 			if (db.realm.raid[raid][string.lower(playerlist[i].name)].recenthistory[datetime]) then
-				local obj = db.realm.raid[raid][string.lower(playerlist[i].name)].recentactions[datetime]
-				local points, _ = FollowLink(datetime, db.realm.raid[raid][string.lower(playerlist[i].name)])
-				points = value - points
+				local obj = db.realm.raid[raid][string.lower(playerlist[i].name)].recenthistory[datetime]
+				--local points, _ = FollowLink(datetime, db.realm.raid[raid][string.lower(playerlist[i].name)])
+				local points = value - obj.value
 				db.realm.raid[raid][string.lower(playerlist[i].name)].recenthistory[updatetime] = {
 					actiontime	= actiontime,
 					datetime 	= datetime,
@@ -820,19 +831,74 @@ function RPB:CalculatePoints(player, raid)
 			entry.link = 0
 		end
 		if entry.datetime == entry.actiontime then
-			local p, l = FollowLink(udtime, phistory)
-			points  = points + p
-			lifetime = lifetime + l
-			--self:Debug(points, lifetime)
+			local p, l, flink = FollowLink(udtime, phistory)
+			if (flink == entry) then
+				points  = points + p
+				if (entry.action == "Delete") then
+					if (l > 0) then
+						lifetime = lifetime - l
+					end
+				else
+					if (l > 0) then
+						lifetime = lifetime + l
+					end
+				end
+			else
+				points  = points + p + entry.value
+				if (entry.action == "Delete") then
+					if (entry.value > 0) then
+						lifetime = lifetime - entry.value
+					end
+					if (l > 0) then
+						lifetime = lifetime - l
+					end
+				else
+					if (entry.value > 0) then
+						lifetime = lifetime + entry.value
+					end
+					if (l > 0) then
+						lifetime = lifetime + l
+					end
+				end
+				self:Debug({["p"]=p, ["l"]=l, ["entry.value"]=entry.value})
+			end
+			self:Debug(points, lifetime)
 		end
 	end
 	
 	for udtime, entry in pairs(phistory.recentactions) do
 		if entry.datetime == entry.actiontime then
-			local p, l = FollowLink(udtime, phistory)
-			points  = points + p
-			lifetime = lifetime + l
-			--self:Debug(points, lifetime)
+			local p, l, flink = FollowLink(udtime, phistory)
+			if (flink == entry) then
+				points  = points + p
+				if (entry.action == "Delete") then
+					if (l > 0) then
+						lifetime = lifetime - l
+					end
+				else
+					if (l > 0) then
+						lifetime = lifetime + l
+					end
+				end
+			else
+				points  = points + p + entry.value
+				if (entry.action == "Delete") then
+					if (entry.value > 0) then
+						lifetime = lifetime - entry.value
+					end
+					if (l > 0) then
+						lifetime = lifetime - l
+					end
+				else
+					if (entry.value > 0) then
+						lifetime = lifetime + entry.value
+					end
+					if (l > 0) then
+						lifetime = lifetime + l
+					end
+				end
+			end
+			self:Debug(points, lifetime)
 		end
 	end
 	
@@ -846,13 +912,13 @@ end
 
 function RPB:CalculateLoss(points, cmd)
 	--self:Debug(points, cmd)
-	local feature = RPF.feature[string.lower(cmd)]
+	local rules = RPR.rules[string.lower(cmd)]
 	-- Make this loaclizable, for generic changes.
-	local divisor = tonumber(feature.divisor) or tonumber(self.rpbSettings.divisor)
-	-- local minclass = feature.minclass or db.realm.settings.minclass
-	-- local maxclass = feature.maxclass or db.realm.settings.maxclass
-	local minnonclass = tonumber(feature.minnonclass) or tonumber(self.rpbSettings.minnonclass)
-	local maxnonclass = tonumber(feature.maxnonclass) or tonumber(self.rpbSettings.maxnonclass) or nil
+	local divisor = tonumber(rules.divisor) or tonumber(self.rpbSettings.divisor)
+	-- local minclass = rules.minclass or db.realm.settings.minclass
+	-- local maxclass = rules.maxclass or db.realm.settings.maxclass
+	local minnonclass = tonumber(rules.minnonclass) or tonumber(self.rpbSettings.minnonclass)
+	local maxnonclass = tonumber(rules.maxnonclass) or tonumber(self.rpbSettings.maxnonclass) or nil
 	local loss
 	local total
 	
@@ -875,11 +941,11 @@ function RPB:CalculateLoss(points, cmd)
 end
 
 function RPB:CalculateMaxPoints(points, cmd)
-	local feature = RPF.feature[string.lower(cmd)]
+	local rules = RPR.rules[string.lower(cmd)]
 	-- Make this loaclizable, for generic changes.
-	local maxpoints = feature.maxpoints or tonumber(self.rpbSettings.maxpoints) or 0
-	local maxclass = feature.maxclass or tonumber(self.rpbSettings.maxclass) or 0
-	local maxnonclass = feature.maxnonclass or tonumber(self.rpbSettings.maxnonclass) or 0
+	local maxpoints = rules.maxpoints or tonumber(self.rpbSettings.maxpoints) or 0
+	local maxclass = rules.maxclass or tonumber(self.rpbSettings.maxclass) or 0
+	local maxnonclass = rules.maxnonclass or tonumber(self.rpbSettings.maxnonclass) or 0
 	local total = points
 	if maxpoints == 0 and (maxclass == 0 and maxnonclass == 0) then
 		total = 0
@@ -1006,28 +1072,32 @@ function RPB:PointsShow(player, channel, to, history)
 		playerlist = self:PlayerToArray(string.lower(to));
 	end
 	
-	for i=1, #playerlist do
-		local wait = ""
-		if playerlist[i].waitlist then
-			wait = "{star}"
-		end
-		--self:Print(playerlist[i].name, self:GetPlayer(playerlist[i].name),  self:GetPlayerHistory(playerlist[i].name,self.rpoSettings.raid) )
-		if self:GetPlayer(playerlist[i].name) and self:GetPlayerHistory(playerlist[i].name,self.rpoSettings.raid) then
-			local history = self:GetPlayerHistory(playerlist[i].name,self.rpoSettings.raid)
-			local p = self:GetPlayer(playerlist[i].name)
-			msg = p.fullname .. ": " .. history.points
-		else
-			msg = player .. ": " .. "0"
-		end
-		if not channel then
-			if wait == "{star}" then
-				wait = "(wl)"
+	if (channel == "history" or history == "history") then
+		
+	else
+		for i=1, #playerlist do
+			local wait = ""
+			if playerlist[i].waitlist then
+				wait = "{star}"
 			end
-			self:Print(wait .. msg)
-		elseif not to then
-			RPB:Message(channel, wait .. msg)
-		else
-			RPB:Whisper(wait .. msg, to)
+			--self:Print(playerlist[i].name, self:GetPlayer(playerlist[i].name),  self:GetPlayerHistory(playerlist[i].name,self.rpoSettings.raid) )
+			if self:GetPlayer(playerlist[i].name) and self:GetPlayerHistory(playerlist[i].name,self.rpoSettings.raid) then
+				local history = self:GetPlayerHistory(playerlist[i].name,self.rpoSettings.raid)
+				local p = self:GetPlayer(playerlist[i].name)
+				msg = p.fullname .. ": " .. history.points
+			else
+				msg = player .. ": " .. "0"
+			end
+			if not channel then
+				if wait == "{star}" then
+					wait = "(wl)"
+				end
+				self:Print(wait .. msg)
+			elseif not to then
+				RPB:Message(channel, wait .. msg)
+			else
+				RPB:Whisper(wait .. msg, to)
+			end
 		end
 	end
 end

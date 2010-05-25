@@ -57,7 +57,7 @@ function RPOS:OnInitialize()
 end
 
 --- Enable processes
--- Register all events, setup inital state and load featureset
+-- Register all events, setup inital state and load rulesset
 function RPOS:OnEnable()
 	self.options = self:RegisterPortfolio()
 	self.options:refresh()

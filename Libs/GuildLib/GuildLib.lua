@@ -94,14 +94,16 @@ end
 
 --- Roster Update
 -- Update the internal table with the current guild roster.
+local rebuiltOnce = false
 local rebuildOffline = true
 function GuildLib:RosterUpdate(rebuild)
-	if rebuild or rebuildOffline then
+	if not rebuiltOnce and (rebuild or rebuildOffline) then
 		if not GetGuildRosterShowOffline() then
 			SetGuildRosterShowOffline(true)
 			rebuildOffline = true
 		else
 			rebuildOffline = false
+			rebuiltOnce = true
 		end
 		for name, value in pairs(guildRoster) do
 			guildRoster[name] = {}

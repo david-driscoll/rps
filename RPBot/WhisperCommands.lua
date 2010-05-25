@@ -31,11 +31,11 @@ end
 function RPB:WhisperCommand(msg, name)
 	wcmd, pos = self:GetArgs(msg, 2, 1)
 	-- Check to make sure the first line was "wl", otherwise this message isnt for us and we need to ignore it.
-	if (string.lower(wcmd) == RPF.cmd1 or
-		string.lower(wcmd) == RPF.cmd2 or
-		string.lower(wcmd) == RPF.cmd3 or
-		string.lower(wcmd) == RPF.cmd4 or
-		string.lower(wcmd) == RPF.cmd5)
+	if (string.lower(wcmd) == RPR.cmd1 or
+		string.lower(wcmd) == RPR.cmd2 or
+		string.lower(wcmd) == RPR.cmd3 or
+		string.lower(wcmd) == RPR.cmd4 or
+		string.lower(wcmd) == RPR.cmd5)
 	then
 		cmd = wcmd
 		wcmd = "rp"
@@ -56,10 +56,21 @@ end
 RPB.whisperCommands = {}
 RPB.whisperCommands["show"] = function (self, msg, name)
 	_, _, player, history = self:GetArgs(msg, 4, 1)
+	if not player then return end
 	self:PointsShow(player, "WHISPER", name, history)
 end
 
+local helpmsg =
+{
+	"-- Raid Points Waitlist --",
+	"  List can be special keyword 'all', a class, 'tier', a speciflc player or a comma list of players 'player1,player2,player3'",
+	"  Commands:",
+	"rp help - This menu.",
+	"rp show <list> - Shows raid informaion, optionally choose a channel such as raid or officer.",
+}
 RPB.whisperCommands["?"] = function (self, msg, name)
-	-- Help topics, how to, etc, etc.
+	for i=1, #helpmsg do
+		self:Whisper(helpmsg[i], name)
+	end
 end
 RPB.whisperCommands["help"] = RPB.whisperCommands["?"]

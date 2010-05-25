@@ -121,12 +121,12 @@ function RPOS:RegisterPortfolio()
 				-- callback = function(value, isGUI, isUpdate) if not isUpdate then RPB:UseDatabase(value) end end,
 			-- },
 			-- {
-				-- id = "featureSet",
-				-- headerText = "Current Feature Set",
+				-- id = "rulesSet",
+				-- headerText = "Current Rules Set",
 				-- type = CONTROLTYPE_DROPDOWN,
-				-- defaultValue = rpoSettings["featureSet"],
-				-- menuList = featureDropDown,
-				-- callback = function(value, isGUI, isUpdate) if not isUpdate then RPOS:RemoveFeatureSet(); RPOS:AddFeatureSet(value) end end,
+				-- defaultValue = rpoSettings["rulesSet"],
+				-- menuList = rulesDropDown,
+				-- callback = function(value, isGUI, isUpdate) if not isUpdate then RPOS:RemoveRulesSet(); RPOS:AddRulesSet(value) end end,
 			-- },
 		}
 	}

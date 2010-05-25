@@ -13,6 +13,7 @@
 ]]
 
 --local RPLibrary = LibStub:GetLibrary("RPLibrary")
+local ScrollingTable = LibStub:GetLibrary("ScrollingTable");
 
 function RPWL:CreateFrame()
 	-- if self.Frame then
@@ -26,15 +27,16 @@ function RPWL:CreateFrame()
 	f:SetMovable(true)
 	f:SetClampedToScreen(true)
 	--   f:SetResizeable(true)
-	f:SetFrameStrata("HIGH")
-	f:SetHeight(512)
-	f:SetWidth(640)
+	f:SetFrameStrata("DIALOG")
+	f:SetFrameLevel(100)
+	f:SetHeight(260)
+	f:SetWidth(584)
 	f:SetPoint("CENTER")
 	
 	self:Skin(f)
 
 	local button = CreateFrame("Button", "DIWL_CloseButton", f, "UIPanelCloseButton")
-	button:SetPoint("TOPRIGHT", f, "TOPRIGHT", 5, 4)
+	button:SetPoint("TOPRIGHT", f, "TOPRIGHT", -2, -2)
 	button:Show()
 	f.CloseButton = button
 
@@ -63,40 +65,42 @@ function RPWL:CreateFrame()
 	title:SetText("Raid Points Waitlist")
 	self.title = title
 
-	self.scrollFrame = ScrollingTable2:CreateST(RPSConstants.columnDefinitons["Waitlist"], 12, nil, nil, self.Frame, true);
+	self.scrollFrame = ScrollingTable:CreateST(RPSConstants.columnDefinitons["Waitlist"], 12, nil, nil, self.Frame);
+	self.scrollFrame:EnableSelection(true);
 	self.scrollFrame.frame:SetParent(f)
-	self.scrollFrame.frame:SetPoint("TOPLEFT", self.Frame, "TOPLEFT", 100, -35)
+	self.scrollFrame.frame:SetPoint("TOPLEFT", self.Frame, "TOPLEFT", 20, -35)
 	self.scrollFrame:SetData(self.db.realm.waitlist)
 	self.scrollFrame:RegisterEvents({
 		["OnClick"] = scrollFrameOnClick,
 	});
 	
-	self.scrollFrameGuild = ScrollingTable2:CreateST(RPSConstants.columnDefinitons["Roster"], 12, nil, nil, self.Frame, true);
-	self.scrollFrameGuild.frame:SetParent(f)
-	self.scrollFrameGuild.frame:SetPoint("TOPLEFT", self.Frame, "TOPLEFT", 100, -275)
-	self.scrollFrameGuild:SetData({})
-	self.scrollFrameGuild:RegisterEvents({
-		["OnClick"] = scrollFrameGuildOnClick,
-	});
+	-- self.scrollFrameGuild = ScrollingTable:CreateST(RPSConstants.columnDefinitons["Roster"], 12, nil, nil, self.Frame);
+	-- self.scrollFrameGuild:EnableSelection(true);
+	-- self.scrollFrameGuild.frame:SetParent(f)
+	-- self.scrollFrameGuild.frame:SetPoint("TOPLEFT", self.Frame, "TOPLEFT", 100, -275)
+	-- self.scrollFrameGuild:SetData({})
+	-- self.scrollFrameGuild:RegisterEvents({
+		-- ["OnClick"] = scrollFrameGuildOnClick,
+	-- });
 
   	self.button={}
   
-	local button = CreateFrame("Button", "DIWL_ButtonAdd", f, "UIPanelButtonTemplate")
+	--[[local button = CreateFrame("Button", "DIWL_ButtonAdd", f, "UIPanelButtonTemplate")
 	button:SetWidth(90)
 	button:SetHeight(21)
-	button:SetPoint("TOPLEFT", f, "TOPLEFT", 10, -60)
+	button:SetPoint("BOTTOMLEFT", f, "BOTTOMLEFT", 10, 10)
 	button:SetText("Add")
 	button:SetScript("OnClick", 
 		function(self)
-			RPWL:ButtonAdd()
+			--RPWL:ButtonAdd()
 		end
 	)
-	self.button["add"] = button
+	self.button["add"] = button--]]
 
 	button = CreateFrame("Button", "DIWL_ButtonRemove", f, "UIPanelButtonTemplate")
 	button:SetWidth(90)
 	button:SetHeight(21)
-	button:SetPoint("TOPLEFT", self.button["add"], "BOTTOMLEFT", 0, 0)
+	button:SetPoint("BOTTOMLEFT", f, "BOTTOMLEFT", 10, 10)
 	button:SetText("Remove")
 	button:SetScript("OnClick", 
 		function(self)

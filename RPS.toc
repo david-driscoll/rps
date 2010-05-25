@@ -3,7 +3,7 @@
 ## Version: 0.1
 ## Interface: 30000
 ## Notes: Raid Points System
-## SavedVariables: rpDEBUGWaitlistDB, rpDEBUGBotDB, rpDEBUGBotSettingsDB, rpDEBUGOfficerSettingsDB, rpDEBUGFeatureDB
+## SavedVariables: rpDEBUGWaitlistDB, rpDEBUGBotDB, rpDEBUGBotSettingsDB, rpDEBUGOfficerSettingsDB, rpDEBUGRulesDB
 ## X-Misc
 ## * File-Revision:@file-revision@ 
 ## * Project-Version: @project-revision@ 
@@ -32,17 +32,19 @@ Libs\BLib\BLib.lua
 Libs\Portfolio\Loader.xml
 
 # RPLibrary
+RPLibrary\Constants.lua
 RPLibrary\RPLibrary.lua
 
 # RPOfficerSettings
 RPOfficerSettings\OfficerSettings.lua
 RPOfficerSettings\Portfolio.lua
 
-# RPFeature
-RPFeature\Constants.lua
-RPFeature\Features.lua
-RPFeature\FeatureWindow.lua
-RPFeature\Portfolio.lua
+# RPRules
+RPRules\Constants.lua
+RPRules\Rules.lua
+RPRules\RulesWindow.lua
+RPRules\ItemIlvlWindow.lua
+RPRules\Portfolio.lua
 
 # RPWaitlist
 RPWaitlist\Constants.lua
@@ -66,4 +68,6 @@ RPBot\SyncCommands.lua
 RPBot\RollWindow.lua
 RPBot\PointsTimer.lua
 RPBot\PointsViewer.lua
+##RPBot\HistoryViewer.lua
+RPBot\StatusBar.lua
 ##RPBot\ClientWindow.lua

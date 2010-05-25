@@ -27,6 +27,20 @@ end
 if not RPSConstants.syncCommands then
 	RPSConstants.syncCommands = {}
 end
+if not RPSConstants.syncCommandsPriority then
+	RPSConstants.syncCommandsPriority = {}
+end
+if not RPSConstants.actionText then
+	RPSConstants.actionText = {}
+end
+
+RPSConstants.actionText["Bot"] =
+{
+	dbmd5			= "Calculate...",
+	dbrequest		= "Request...",
+	dbsend			= "Updating...",
+	sendla			= "Updating...",
+}
 
 RPSConstants.syncCommands["Bot"] =
 {
@@ -73,12 +87,75 @@ RPSConstants.syncCommands["Bot"] =
 	automationset	= "automationset",
 	automationstart	= "automationstart",
 	automationstop	= "automationstop",
-	fsupdate		= "fsupdate",
-	fsoutdate		= "fsoutdate",
-	fssend			= "fssend",
 	vsreq			= "vsreq",
 	vsinfo			= "vsinfo",
 	vssend			= "vssend",
+	fsupdate		= "fsupdate",
+	fsoutdate		= "fsoutdate",
+	fssend			= "fssend",
+	fsinfo			= "fsinfo",
+	iiupdate		= "iiupdate",
+	iioutdate		= "iioutdate",
+	iisend			= "iisend",
+	iiinfo			= "iiinfo",
+}
+
+RPSConstants.syncCommandsPriority["Bot"] =
+{
+	rolllistadd		= "ALERT",
+	rolllistremove	= "ALERT",
+	rolllistupdateroll	= "ALERT",
+	rolllistupdatetype	= "ALERT",
+	rolllistdisenchant	= "ALERT",
+	rolllistaward	= "ALERT",
+	rolllistclear	= "ALERT",
+	startbidding	= "ALERT",
+	starttimedbidding = "ALERT",
+	rolllistclick	= "ALERT",
+	itemlistadd		= "ALERT",
+	itemlistremove	= "ALERT",
+	itemlistclick 	= "ALERT",
+	itemlistclear 	= "ALERT",
+	getmaster		= "ALERT",
+	setmaster		= "ALERT",
+	itemlistset		= "ALERT",
+	itemlistget		= "ALERT",
+	rolllistset		= "ALERT",
+	rolllistget		= "ALERT",
+	pointsadd		= "ALERT",
+	pointsremove	= "ALERT",
+	pointsupdate	= "ALERT",
+	loot			= "ALERT",
+	-- Login Syncing
+	logon			= "ALERT",
+	alert			= "NORMAL",
+	dboutdate		= "NORMAL",
+	dbupdate		= "NORMAL",
+	dbmd5			= "BULK",
+	dbrequest		= "BULK",
+	dbsend			= "BULK",
+	getla			= "BULK",
+	sendla			= "BULK",
+	rpoSettings		= "BULK",
+	rpbSettings		= "BULK",
+	dballupdate		= "NORMAL",
+	setraid			= "ALERT",
+	setset			= "ALERT",
+	automationget	= "BULK",
+	automationset	= "BULK",
+	automationstart	= "BULK",
+	automationstop	= "BULK",
+	vsreq			= "ALERT",
+	vsinfo			= "ALERT",
+	vssend			= "BULK",
+	fsupdate		= "BULK",
+	fsoutdate		= "BULK",
+	fssend			= "BULK",
+	fsinfo			= "ALERT",
+	iiupdate		= "BULK",
+	iioutdate		= "BULK",
+	iisend			= "BULK",
+	iiinfo			= "ALERT",
 }
 
 --  Constants Roll List
@@ -665,6 +742,334 @@ RPSConstants.stArgs["PointsViewerPopup"] =
 	[RPSConstants.stConstants["PointsViewerPopup"].reason]		= { },
 	[RPSConstants.stConstants["PointsViewerPopup"].action]		= { },
 	[RPSConstants.stConstants["PointsViewerPopup"].actiontime]	= { nil, nil, DoTimestampUpdate },
+}
+
+
+RPSConstants.columnDefinitons["HistoryViewer"] = 
+{
+	{
+	    ["name"] = "Name",
+	    ["width"] = 100,
+	    ["align"] = "CENTER",
+	    -- ["color"] = { 
+	        -- ["r"] = 0.5, 
+	        -- ["g"] = 0.5, 
+	        -- ["b"] = 1.0, 
+	        -- ["a"] = 1.0 
+	    -- },
+	    ["colorargs"] = nil,
+	    ["bgcolor"] = {
+	        ["r"] = 0.0, 
+	        ["g"] = 0.0, 
+	        ["b"] = 0.0, 
+	        ["a"] = 1.0 
+	    },
+	    ["defaultsort"] = "asc",
+	    
+	},
+	{
+	    ["name"] = "Class",
+	    ["width"] = 100,
+	    ["align"] = "CENTER",
+	    -- ["color"] = { 
+	        -- ["r"] = 0.5, 
+	        -- ["g"] = 0.5, 
+	        -- ["b"] = 1.0, 
+	        -- ["a"] = 1.0 
+	    -- },
+	    ["colorargs"] = nil,
+	    ["bgcolor"] = {
+	        ["r"] = 0.0, 
+	        ["g"] = 0.0, 
+	        ["b"] = 0.0, 
+	        ["a"] = 1.0 
+	    },
+		["sortnext"] = 1,
+	    ["defaultsort"] = "asc",
+	},
+	{
+	    ["name"] = "Rank",
+	    ["width"] = 100,
+	    ["align"] = "CENTER",
+	    -- ["color"] = { 
+	        -- ["r"] = 0.5, 
+	        -- ["g"] = 0.5, 
+	        -- ["b"] = 1.0, 
+	        -- ["a"] = 1.0 
+	    -- },
+	    ["colorargs"] = nil,
+	    ["bgcolor"] = {
+	        ["r"] = 0.0, 
+	        ["g"] = 0.0, 
+	        ["b"] = 0.0, 
+	        ["a"] = 1.0 
+	    },
+		["sortnext"] = 1,
+	    ["defaultsort"] = "asc",
+	},
+	{
+	    ["name"] = "Earned",
+	    ["width"] = 60,
+	    ["align"] = "CENTER",
+	    -- ["color"] = { 
+	        -- ["r"] = 0.5, 
+	        -- ["g"] = 0.5, 
+	        -- ["b"] = 1.0, 
+	        -- ["a"] = 1.0 
+	    -- },
+	    ["colorargs"] = nil,
+	    ["bgcolor"] = {
+	        ["r"] = 0.0, 
+	        ["g"] = 0.0, 
+	        ["b"] = 0.0, 
+	        ["a"] = 1.0 
+	    },
+		["sortnext"] = 1,
+	    ["defaultsort"] = "asc",
+	},
+	{
+	    ["name"] = "Spent",
+	    ["width"] = 60,
+	    ["align"] = "CENTER",
+	    -- ["color"] = { 
+	        -- ["r"] = 0.5, 
+	        -- ["g"] = 0.5, 
+	        -- ["b"] = 1.0, 
+	        -- ["a"] = 1.0 
+	    -- },
+	    ["colorargs"] = nil,
+	    ["bgcolor"] = {
+	        ["r"] = 0.0, 
+	        ["g"] = 0.0, 
+	        ["b"] = 0.0, 
+	        ["a"] = 1.0 
+	    },
+		["sortnext"] = 1,
+	    ["defaultsort"] = "asc",
+	},
+	{
+	    ["name"] = "Total",
+	    ["width"] = 60,
+	    ["align"] = "CENTER",
+	    -- ["color"] = { 
+	        -- ["r"] = 0.5, 
+	        -- ["g"] = 0.5, 
+	        -- ["b"] = 1.0, 
+	        -- ["a"] = 1.0 
+	    -- },
+	    ["colorargs"] = nil,
+	    ["bgcolor"] = {
+	        ["r"] = 0.0, 
+	        ["g"] = 0.0, 
+	        ["b"] = 0.0, 
+	        ["a"] = 1.0 
+	    },
+		["sortnext"] = 1,
+	    ["defaultsort"] = "asc",
+	},
+}
+
+RPSConstants.stConstants["HistoryViewer"] = 
+{
+	player = 1,
+	class = 2,
+	rank = 3,
+	earned = 4,
+	spent = 5,
+	total = 6,
+}
+
+RPSConstants.stArgs["HistoryViewer"] = 
+{
+	[RPSConstants.stConstants["HistoryViewer"].player]		= { },
+	[RPSConstants.stConstants["HistoryViewer"].class]		= { ClassColor },
+	[RPSConstants.stConstants["HistoryViewer"].rank]		= { },
+	[RPSConstants.stConstants["HistoryViewer"].earned]		= { },
+	[RPSConstants.stConstants["HistoryViewer"].spent]		= { },
+	[RPSConstants.stConstants["HistoryViewer"].total]		= { },
+}
+
+RPSConstants.columnDefinitons["HistoryViewerPopup"] = 
+{
+	{
+	    ["name"] = "Action Date",
+	    ["width"] = 150,
+	    ["align"] = "CENTER",
+	    ["color"] = { 
+	        ["r"] = 1.0, 
+	        ["g"] = 1.0, 
+	        ["b"] = 1.0, 
+	        ["a"] = 1.0 
+	    },
+	    ["colorargs"] = nil,
+	    ["bgcolor"] = {
+	        ["r"] = 0.0, 
+	        ["g"] = 0.0, 
+	        ["b"] = 0.0, 
+	        ["a"] = 1.0 
+	    },
+	    ["defaultsort"] = "asc",
+	},
+	{
+	    ["name"] = "Date",
+	    ["width"] = 150,
+	    ["align"] = "CENTER",
+	    ["color"] = { 
+	        ["r"] = 1.0, 
+	        ["g"] = 1.0, 
+	        ["b"] = 1.0, 
+	        ["a"] = 1.0 
+	    },
+	    ["colorargs"] = nil,
+	    ["bgcolor"] = {
+	        ["r"] = 0.0, 
+	        ["g"] = 0.0, 
+	        ["b"] = 0.0, 
+	        ["a"] = 1.0 
+	    },
+	    ["defaultsort"] = "asc",
+	},
+	{
+	    ["name"] = "Type",
+	    ["width"] = 30,
+	    ["align"] = "CENTER",
+	    -- ["color"] = { 
+	        -- ["r"] = 0.5, 
+	        -- ["g"] = 0.5, 
+	        -- ["b"] = 1.0, 
+	        -- ["a"] = 1.0 
+	    -- },
+	    ["colorargs"] = nil,
+	    ["bgcolor"] = {
+	        ["r"] = 0.0, 
+	        ["g"] = 0.0, 
+	        ["b"] = 0.0, 
+	        ["a"] = 1.0 
+	    },
+	    ["defaultsort"] = "asc",
+		["sortnext"] = 1,
+	},
+	{
+	    ["name"] = "Value",
+	    ["width"] = 60,
+	    ["align"] = "CENTER",
+	    -- ["color"] = { 
+	        -- ["r"] = 0.5, 
+	        -- ["g"] = 0.5, 
+	        -- ["b"] = 1.0, 
+	        -- ["a"] = 1.0 
+	    -- },
+	    ["colorargs"] = nil,
+	    ["bgcolor"] = {
+	        ["r"] = 0.0, 
+	        ["g"] = 0.0, 
+	        ["b"] = 0.0, 
+	        ["a"] = 1.0 
+	    },
+	    ["defaultsort"] = "asc",
+	},
+	{
+	    ["name"] = "Waitlist",
+	    ["width"] = 60,
+	    ["align"] = "CENTER",
+	    -- ["color"] = { 
+	        -- ["r"] = 0.5, 
+	        -- ["g"] = 0.5, 
+	        -- ["b"] = 1.0, 
+	        -- ["a"] = 1.0 
+	    -- },
+	    ["colorargs"] = nil,
+	    ["bgcolor"] = {
+	        ["r"] = 0.0, 
+	        ["g"] = 0.0, 
+	        ["b"] = 0.0, 
+	        ["a"] = 1.0 
+	    },
+		["sortnext"] = 1,
+	    ["defaultsort"] = "asc",
+	},
+	{
+	    ["name"] = "Itemid",
+	    ["width"] = 60,
+	    ["align"] = "CENTER",
+	    -- ["color"] = { 
+	        -- ["r"] = 0.5, 
+	        -- ["g"] = 0.5, 
+	        -- ["b"] = 1.0, 
+	        -- ["a"] = 1.0 
+	    -- },
+	    ["colorargs"] = nil,
+	    ["bgcolor"] = {
+	        ["r"] = 0.0, 
+	        ["g"] = 0.0, 
+	        ["b"] = 0.0, 
+	        ["a"] = 1.0 
+	    },
+	    ["defaultsort"] = "asc",
+	},
+	{
+	    ["name"] = "Reason",
+	    ["width"] = 200,
+	    ["align"] = "CENTER",
+	    -- ["color"] = { 
+	        -- ["r"] = 0.5, 
+	        -- ["g"] = 0.5, 
+	        -- ["b"] = 1.0, 
+	        -- ["a"] = 1.0 
+	    -- },
+	    ["colorargs"] = nil,
+	    ["bgcolor"] = {
+	        ["r"] = 0.0, 
+	        ["g"] = 0.0, 
+	        ["b"] = 0.0, 
+	        ["a"] = 1.0 
+	    },
+	    ["defaultsort"] = "asc",
+	},
+	{
+	    ["name"] = "Action",
+	    ["width"] = 60,
+	    ["align"] = "CENTER",
+	    -- ["color"] = { 
+	        -- ["r"] = 0.5, 
+	        -- ["g"] = 0.5, 
+	        -- ["b"] = 1.0, 
+	        -- ["a"] = 1.0 
+	    -- },
+	    ["colorargs"] = nil,
+	    ["bgcolor"] = {
+	        ["r"] = 0.0, 
+	        ["g"] = 0.0, 
+	        ["b"] = 0.0, 
+	        ["a"] = 1.0 
+	    },
+		["sortnext"] = 1,
+	    ["defaultsort"] = "asc",
+	},
+}
+
+RPSConstants.stConstants["HistoryViewerPopup"] = 
+{
+	datetime = 2,
+	ty = 3,
+	value = 4,
+	waitlist = 5,
+	itemid = 6,
+	reason = 7,
+	action = 8,
+	actiontime = 1,
+}
+
+RPSConstants.stArgs["HistoryViewerPopup"] = 
+{
+	[RPSConstants.stConstants["HistoryViewerPopup"].datetime]	= { nil, nil, DoTimestampUpdate },
+	[RPSConstants.stConstants["HistoryViewerPopup"].ty]			= { },
+	[RPSConstants.stConstants["HistoryViewerPopup"].value]		= { },
+	[RPSConstants.stConstants["HistoryViewerPopup"].waitlist]	= { },
+	[RPSConstants.stConstants["HistoryViewerPopup"].itemid]		= { },
+	[RPSConstants.stConstants["HistoryViewerPopup"].reason]		= { },
+	[RPSConstants.stConstants["HistoryViewerPopup"].action]		= { },
+	[RPSConstants.stConstants["HistoryViewerPopup"].actiontime]	= { nil, nil, DoTimestampUpdate },
 }
 
 

@@ -43,13 +43,11 @@ local mixins = {
 	"STBuild",
 	"STStrip",
 	"Split",
-	"classList",
-	"tierList",
-	"talentList",
 	"GetItemID",
 	"GetColor",
+	"GetClasses",
+	"GetItemInfo",
 } 
-
 -- Copied from XLoot, makes my life that much easier.
 local _G = getfenv(0)
 
@@ -411,70 +409,6 @@ function RPLibrary:StripColumn(col)
 	return col.value
 end
 
-local classColors = {
-["DEATH KNIGHT"]	= {["r"] = 0.77, 	["g"] = 0.12, 	["b"] = 0.23, 	["a"] = 1.0,},
-["DRUID"] 			= {["r"] = 1.00, 	["g"] = 0.49, 	["b"] = 0.04, 	["a"] = 1.0,},
-["HUNTER"] 			= {["r"] = 0.67, 	["g"] = 0.83, 	["b"] = 0.45, 	["a"] = 1.0,},
-["MAGE"] 			= {["r"] = 0.41, 	["g"] = 0.80, 	["b"] = 0.94, 	["a"] = 1.0,},
-["PALADIN"] 		= {["r"] = 0.96, 	["g"] = 0.55, 	["b"] = 0.73, 	["a"] = 1.0,},
-["PRIEST"] 			= {["r"] = 1.00, 	["g"] = 1.00, 	["b"] = 1.00, 	["a"] = 1.0,},
-["ROGUE"] 			= {["r"] = 1.00, 	["g"] = 0.96, 	["b"] = 0.41, 	["a"] = 1.0,},
-["SHAMAN"] 			= {["r"] = 0.14, 	["g"] = 0.35, 	["b"] = 1.00, 	["a"] = 1.0,},
-["WARLOCK"] 		= {["r"] = 0.58, 	["g"] = 0.51, 	["b"] = 0.79, 	["a"] = 1.0,},
-["WARRIOR"] 		= {["r"] = 0.78, 	["g"] = 0.61, 	["b"] = 0.43, 	["a"] = 1.0,},
-}
-
-RPLibrary.classList = 
-{
-["deathknight"]	= "DEATH KNIGHT",
-["druid"] 		= "DRUID",
-["hunter"] 		= "HUNTER",
-["mage"] 		= "MAGE",
-["paladin"] 	= "PALADIN",
-["priest"] 		= "PRIEST",
-["rogue"] 		= "ROGUE",
-["shaman"] 		= "SHAMAN",
-["warlock"]		= "WARLOCK",
-["warrior"]		= "WARRIOR",
-}
-
-RPLibrary.tierList = 
-{
-["DEATH KNIGHT"] = {"ROGUE", "DEATH KNIGHT", "MAGE", "DRUID"},
-["DRUID"] 		 = {"ROGUE", "DEATH KNIGHT", "MAGE", "DRUID"},
-["HUNTER"] 		 = {"WARRIOR", "HUNTER", "SHAMAN"},
-["MAGE"] 		 = {"ROGUE", "DEATH KNIGHT", "MAGE", "DRUID"},
-["PALADIN"] 	 = {"PALADIN", "PRIEST", "WARLOCK"},
-["PRIEST"] 		 = {"PALADIN", "PRIEST", "WARLOCK"},
-["ROGUE"] 		 = {"ROGUE", "DEATH KNIGHT", "MAGE", "DRUID"},
-["SHAMAN"] 		 = {"WARRIOR", "HUNTER", "SHAMAN"},
-["WARLOCK"] 	 = {"PALADIN", "PRIEST", "WARLOCK"},
-["WARRIOR"] 	 = {"WARRIOR", "HUNTER", "SHAMAN"},
-}
-
-RPLibrary.talentList =
-{
-["DEATH KNIGHT"] = {"Blood","Frost","Unholy","Unknown"},
-["DRUID"] = {"Balance","Feral","Restoration","Unknown"},
-["HUNTER"] = {"Beast Mastery","Marksmanship","Survival","Unknown"},
-["MAGE"] = {"Arcane","Fire","Frost","Unknown"},
-["PALADIN"] = {"Holy","Protection","Retribution","Unknown"},
-["PRIEST"] = {"Discipline","Holy","Shadow","Unknown"},
-["ROGUE"] = {"Assassination","Combat","Subtlety","Unknown"},
-["SHAMAN"] = {"Elemental","Enchancement","Restoration","Unknown"},
-["WARLOCK"] = {"Affliction","Demonology","Destruction","Unknown"},
-["WARRIOR"] = {"Arms","Fury","Protection","Unknown"},
-["UNKNOWN"] = {"Unknown","Unknown","Unknown","Unknown"},
-}
-
-function ClassColor(class)
-	if (class and classColors[string.upper(class)]) then
-		return classColors[string.upper(class)]
-	else
-		return {["r"] = 1.00, 	["g"] = 1.00, 	["b"] = 1.00, 	["a"] = 1.0,}
-	end
-end
-
 DoTimestampUpdate = function(rowFrame, cellFrame, data, cols, row, realrow, column, fShow, ...)
 	if fShow then
 		local cellData = data[realrow].cols[column];
@@ -555,6 +489,17 @@ function GetColor(Name)
 	return {["r"] = r / 255.0, ["g"] = g / 255.0, ["b"] = b / 255.0, ["a"] = 0.7}
 end
 
+function RPLibrary:GetItemInfo(item)
+	local itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount, itemEquipLoc, itemTexture, itemSellPrice = GetItemInfo(item) 
+	local itemid = self:GetItemID(item)
+	if RPR.db.realm.itemilvlDB[tonumber(itemid)] then
+		itemLevel = RPR.db.realm.itemilvlDB[tonumber(itemid)]
+	end
+	RPB:Debug(itemid, itemLevel)
+
+	return itemName, itemLink, itemRarity, tostring(itemLevel), itemMinLevel, itemType, itemSubType, itemStackCount, itemEquipLoc, itemTexture, itemSellPrice
+end
+
 function RPLibrary:Embed(target)
 	for k, v in pairs(mixins) do
 		target[v] = self[v]
@@ -582,6 +527,39 @@ do
       return days_in_month[month]
     end
   end
+end
+
+local LibraryTooltip
+function RPLibrary:GetClasses(itemId)
+	local classData = {}
+	if not LibraryTooltip then
+		LibraryTooltip = CreateFrame( "GameTooltip", "RPLibraryTooltip" )
+		LibraryTooltip:AddFontStrings(
+			LibraryTooltip:CreateFontString( "$parentTextLeft1", nil, "GameTooltipText" ),
+			LibraryTooltip:CreateFontString( "$parentTextRight1", nil, "GameTooltipText" )
+		);
+	end
+	LibraryTooltip:ClearLines()
+	LibraryTooltip:SetOwner(WorldFrame, "ANCHOR_NONE");
+	LibraryTooltip:SetHyperlink(itemId)
+	for i=1, LibraryTooltip:NumLines() do
+		data = getglobal("RPLibraryTooltipTextLeft"..i)
+		if ((data ~= nil) and data:IsShown()) then
+			text = data:GetText();
+		else
+			text = nil;
+		end
+
+		if (text ~= nil) then
+			_, _, classes = string.find(text, "^Classes:(.*)");
+			if (classes ~= nil) then
+				for class in string.gmatch(classes, "%s?([^%p]+)%p?") do
+					classData[#classData+1] = class
+				end
+			end
+		end
+	end
+	return classData
 end
 
 local optionTable = {

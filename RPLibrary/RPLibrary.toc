@@ -32,4 +32,5 @@ Libs\GuildLib\GuildLib.lua
 Libs\BLib\BLib.lua
 Libs\Portfolio\Loader.xml
 
+Constants.lua
 RPLibrary.lua

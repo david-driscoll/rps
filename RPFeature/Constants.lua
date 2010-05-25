@@ -6,10 +6,10 @@
 	* Project-Version: @project-version@
 	* Last edited by: @file-author@ on @file-date-iso@ 
 	* Last commit by: @project-author@ on @project-date-iso@ 
-	* Filename: RPFeature/Constants.lua
+	* Filename: RPReature/Constants.lua
 	* Component: Core
 	* Details:
-		Constants for RPFeatures.
+		Constants for RPReatures.
 ]]
 
 if not RPSConstants then

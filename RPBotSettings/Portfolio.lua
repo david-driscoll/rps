@@ -137,7 +137,7 @@ function RPBS:RegisterPortfolio()
 			{
 				id = "rulesHeader",
 				text = "Default Rules",
-				subText = "Defaults for when the current feature set holds no specific value.",
+				subText = "Defaults for when the current rules set holds no specific value.",
 				type = CONTROLTYPE_HEADER,
 				point = {nil, "broadcast", nil, nil, nil},
 			},

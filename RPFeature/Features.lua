@@ -6,7 +6,7 @@
 	* Project-Version: @project-version@
 	* Last edited by: @file-author@ on @file-date-iso@ 
 	* Last commit by: @project-author@ on @project-date-iso@ 
-	* Filename: RPFeature/Features.lua
+	* Filename: RPReature/Features.lua
 	* Component: Core
 	* Details:
 		This file contains the core of the RPBot. Handles start up, database initialization,
@@ -14,18 +14,18 @@
 ]]
 
 local db
-RPF = LibStub("AceAddon-3.0"):NewAddon("Raid Points Feature", "RPLibrary")
+RPR = LibStub("AceAddon-3.0"):NewAddon("Raid Points Feature", "RPLibrary")
 local cs
 
 --- Initial start up processes.
 -- Register chat commands, minor events and setup AceDB
-function RPF:OnInitialize()
+function RPR:OnInitialize()
 	-- Leverage SVN
 	--@alpha@
 	db = LibStub("AceDB-3.0"):New("rpDEBUGFeatureDB")
 	--@end-alpha@. 
 	--[===[@non-alpha@
-	db = LibStub("AceDB-3.0"):New("rpFeatureDB", defaults, "Default")
+	db = LibStub("AceDB-3.0"):New("RPReatureDB", defaults, "Default")
 	--@end-non-alpha@]===]
 	self.db = db
 	if not db.realm.settings then
@@ -144,7 +144,7 @@ end
 
 --- Enable processes
 -- Register all events, setup inital state and load featureset
-function RPF:OnEnable()
+function RPR:OnEnable()
 	self.options = self:RegisterPortfolio()
 	self:CreateFrame()
 	--self.options:refresh()
@@ -158,11 +158,11 @@ function RPF:OnEnable()
 	self.cmd4 = nil
 	self.cmd5 = nil
 	self:AddFeatureSet(db.realm.settings.featureSet)
-	self.feature = RPF.feature
+	self.feature = RPR.feature
 	cs = RPSConstants.syncCommands["Bot"]
 end
 
-function RPF:UpdateSets(msg)
+function RPR:UpdateSets(msg)
 	self.db.realm.featureSets = msg
 
 	local featureDropDown = {}
@@ -175,7 +175,7 @@ function RPF:UpdateSets(msg)
 	RPB.db.realm.version.feature = self.db.realm.settings.version
 end
 
-function RPF:SwitchSet(newset, recieved)
+function RPR:SwitchSet(newset, recieved)
 	self:RemoveFeatureSet()
 	db.realm.settings.featureSet = newset
 	self:AddFeatureSet(newset)
@@ -190,7 +190,7 @@ function RPF:SwitchSet(newset, recieved)
 	end
 end
 
-function RPF:AddFeatureSet(name)
+function RPR:AddFeatureSet(name)
 	--self:Print(name)
 	if not db then
 		db = self.db
@@ -204,7 +204,7 @@ function RPF:AddFeatureSet(name)
 	end
 end
 
-function RPF:AddFeature(data)
+function RPR:AddFeature(data)
 	if not self.feature then
 		self.feature = {}
 	end
@@ -262,7 +262,7 @@ function RPF:AddFeature(data)
 	-- end
 end
 
-function RPF:RemoveFeatureSet()
+function RPR:RemoveFeatureSet()
 	for key,value in pairs(self.feature) do
 		self:RemoveFeature(key)
 	end
@@ -273,7 +273,7 @@ function RPF:RemoveFeatureSet()
 	self.cmd5 = nil
 end
 
-function RPF:RemoveFeature(data)
+function RPR:RemoveFeature(data)
 	if self.feature[data.command] then
 		self.feature[data.command] = nil
 	end

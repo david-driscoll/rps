@@ -6,7 +6,7 @@
 	* Project-Version: @project-version@
 	* Last edited by: @file-author@ on @file-date-iso@ 
 	* Last commit: @project-author@ on @project-date-iso@ 
-	* Filename: RPBot/PointsViewer.lua
+	* Filename: RPBot/HistoryViewer.lua
 	* Component: Roll Interface
 	* Details:
 		This is the rolling interface.  Deals with displaying the proper lists, and awarding items.
@@ -17,12 +17,12 @@ local db = RPB.db
 local cs = RPSConstants.syncCommands["Bot"]
 
 --  Constants Roll List
-local c = RPSConstants.stConstants["PointsViewer"]
-local cArg = RPSConstants.stArgs["PointsViewer"]
+local c = RPSConstants.stConstants["HistoryViewer"]
+local cArg = RPSConstants.stArgs["HistoryViewer"]
 
 --  Constants Roll List
-local cp = RPSConstants.stConstants["PointsViewerPopup"]
-local cpArg = RPSConstants.stArgs["PointsViewerPopup"]
+local cp = RPSConstants.stConstants["HistoryViewerPopup"]
+local cpArg = RPSConstants.stArgs["HistoryViewerPopup"]
 
 local AceGUI = LibStub:GetLibrary("AceGUI-3.0")
 local ScrollingTable = LibStub:GetLibrary("ScrollingTable");
@@ -30,7 +30,7 @@ local ScrollingTable = LibStub:GetLibrary("ScrollingTable");
 --local fp
 
 local function myFilter(self, row)
-	local f = RPB.frames["PointsViewer"]
+	local f = RPB.frames["HistoryViewer"]
 	
 	local namePass = false
 	if (f.editbox["Name"]:GetText() ~= "") then
@@ -95,7 +95,7 @@ local function myFilter(self, row)
 	return namePass and classPass and rankPass and pointsPass
 end
 
-function RPB:CreateFramePointsViewer()
+function RPB:CreateFrameHistoryViewerPopup()
 	db = RPB.db
 	-- if self.Frame then
 	  -- self.Frame:Hide()
@@ -104,13 +104,13 @@ function RPB:CreateFramePointsViewer()
 	if not self.frames then
 		self.frames = {}
 	end
-	if self.frames["PointsViewer"] then
+	if self.frames["HistoryViewerPopup"] then
 		return
 	end
-	self.frames["PointsViewer"] = CreateFrame("Frame", "RPBPointsViewer", UIParent)
-	--f = self.frames["PointsViewer"]
+	self.frames["HistoryViewePopupr"] = CreateFrame("Frame", "RPBHistoryViewerPopup", UIParent)
+	--f = self.frames["HistoryViewer"]
 
-	local f = self.frames["PointsViewer"]
+	local f = self.frames["HistoryViewerPopup"]
 	f:EnableMouse(true)
 	f:SetMovable(true)
 	f:SetClampedToScreen(true)
@@ -156,21 +156,21 @@ function RPB:CreateFramePointsViewer()
 
 		local title = f:CreateFontString("Title", "ARTWORK", "GameFontNormal")
 		title:SetPoint("TOP", f, "TOP", 0, -6)
-		title:SetText("Points Viewer")
+		title:SetText("History Viewer")
 		f.title = title
 	end
 	
     -- Scroll Frame
 	do
 		f.nameList = {}
-	    f.scrollFrame = ScrollingTable:CreateST(RPSConstants.columnDefinitons["PointsViewer"], 10, nil, nil, f);
+	    f.scrollFrame = ScrollingTable:CreateST(RPSConstants.columnDefinitons["HistoryViewerPopup"], 10, nil, nil, f);
 		f.scrollFrame:EnableSelection(true);
 		f.scrollFrame.frame:SetParent(f)
 		f.scrollFrame.frame:SetPoint("TOP", f, "TOP", 0, -35)
 		f.scrollFrame:SetData(f.nameList)
 		f.scrollFrame:RegisterEvents({
-			["OnClick"] = PointsViewerScrollFrameOnClick,
-			["OnDoubleClick"] = PointsViewerScrollFrameOnDoubleClick,
+			["OnClick"] = HistoryViewerPopupScrollFrameOnClick,
+			["OnDoubleClick"] = HistoryViewerPopupScrollFrameOnDoubleClick,
 		});
 	end
 
@@ -188,8 +188,8 @@ function RPB:CreateFramePointsViewer()
 	dropdown:SetValue(f.raid)
 	dropdown:SetPoint("TOPRIGHT", f.scrollFrame.frame, "BOTTOMRIGHT", 0, 0)
 	dropdown:SetCallback("OnValueChanged", function(object, event, value, isSelected, ...)
-			RPB.frames["PointsViewer"].raid = value
-			RPB:PointsViewerRepopulate()
+			RPB.frames["HistoryViewerPopup"].raid = value
+			RPB:HistoryViewerRepopulate()
 		end
 	)
 	f.dropdown["Raid"] = dropdown
@@ -205,12 +205,12 @@ function RPB:CreateFramePointsViewer()
 	button:SetText("Delete")
 	button:SetScript("OnClick", 
 		function(self)
-			local sf = RPB.frames["PointsViewer"].scrollFrame
+			local sf = RPB.frames["HistoryViewerPopup"].scrollFrame
 			if sf:GetSelection() then
 				local player = RPB:GetPlayer(sf:GetRow(sf:GetSelection()).cols[c.player].value)
 				player.delete = true
 				sf:ClearSelection()
-				RPB:PointsViewerRepopulate()
+				RPB:HistoryViewerRepopulate()
 			end
 		end
 	)
@@ -222,7 +222,7 @@ function RPB:CreateFramePointsViewer()
 	editbox:SetHeight(32)
 	editbox:SetWidth(106)
 	editbox:SetScript("OnTextChanged", function(self) 
-			RPB.frames["PointsViewer"].scrollFrame:SortData()
+			RPB.frames["HistoryViewer"].scrollFrame:SortData()
 		end)
 	editbox:SetPoint("TOPLEFT", f.scrollFrame.frame, "BOTTOMLEFT", 46, 3)
 	
@@ -246,7 +246,7 @@ function RPB:CreateFramePointsViewer()
 	dropdown:SetHeight(20)
 	dropdown:SetPoint("TOPLEFT", f.editbox["Name"], "BOTTOMLEFT", -10, 4)
 	dropdown:SetCallback("OnValueChanged", function(object, event, value, ...)
-			RPB.frames["PointsViewer"].scrollFrame:SortData()
+			RPB.frames["HistoryViewer"].scrollFrame:SortData()
 		end
 	)
 	f.dropdown["Class"] = dropdown
@@ -269,7 +269,7 @@ function RPB:CreateFramePointsViewer()
 	dropdown:SetHeight(20)
 	dropdown:SetPoint("TOPLEFT", f.dropdown["Class"].frame, "BOTTOMLEFT", 0, -6)
 	dropdown:SetCallback("OnValueChanged", function(object, event, value, isSelected, ...)
-			RPB.frames["PointsViewer"].scrollFrame:SortData()
+			RPB.frames["HistoryViewer"].scrollFrame:SortData()
 		end
 	)
 	f.dropdown["Rank"] = dropdown
@@ -294,7 +294,7 @@ function RPB:CreateFramePointsViewer()
 	dropdown:SetHeight(20)
 	dropdown:SetPoint("TOPLEFT", f.dropdown["Rank"].frame, "BOTTOMLEFT", 0, -6)
 	dropdown:SetCallback("OnValueChanged", function(object, event, value, isSelected, ...)
-			RPB.frames["PointsViewer"].scrollFrame:SortData()
+			RPB.frames["HistoryViewer"].scrollFrame:SortData()
 		end
 	)
 	f.dropdown["Points"] = dropdown
@@ -321,7 +321,7 @@ function RPB:CreateFramePointsViewer()
 	dropdown:SetHeight(20)
 	dropdown:SetPoint("TOPLEFT", f.dropdown["Points"].frame, "TOPRIGHT", 6, 0)
 	dropdown:SetCallback("OnValueChanged", function(object, event, value, isSelected, ...)
-			RPB.frames["PointsViewer"].scrollFrame:SortData()
+			RPB.frames["HistoryViewer"].scrollFrame:SortData()
 		end
 	)
 	f.dropdown["Compare"] = dropdown
@@ -333,7 +333,7 @@ function RPB:CreateFramePointsViewer()
 	editbox:SetHeight(32)
 	editbox:SetWidth(50)
 	editbox:SetScript("OnTextChanged", function(self) 
-			RPB.frames["PointsViewer"].scrollFrame:SortData()
+			RPB.frames["HistoryViewer"].scrollFrame:SortData()
 		end)
 	editbox:SetPoint("TOPLEFT", f.dropdown["Compare"].frame, "TOPRIGHT", 6, 2)
 	
@@ -347,23 +347,23 @@ function RPB:CreateFramePointsViewer()
 	-- button:SetText("Remove Player")
 	-- button:SetScript("OnClick", 
 		-- function(self)
-			-- myPopup(RPB, self.frames["PointsViewer"], "Are you sure you want to remove this player?", function() RPB:PointsViewerRemovePlayer() end)
+			-- myPopup(RPB, self.frames["HistoryViewer"], "Are you sure you want to remove this player?", function() RPB:HistoryViewerRemovePlayer() end)
 		-- end
 	-- )
 	-- f.button["Remove"] = button
 	
 	-- Generate Data
 	f.scrollFrame:SetFilter(myFilter)
-	self:PointsViewerRepopulate()
+	self:HistoryViewerRepopulate()
 end
 
-function RPB:UpdatePointsViewerUI()
-	local f = self.frames["PointsViewer"]
+function RPB:UpdateHistoryViewerUI()
+	local f = self.frames["HistoryViewer"]
 	f.scrollFrame:SortData()
 end
 
-function PointsViewerScrollFrameOnClick(rowFrame, cellFrame, data, cols, row, realrow, column, table, button, down)
-	local f = RPB.frames["PointsViewer"]
+function HistoryViewerScrollFrameOnClick(rowFrame, cellFrame, data, cols, row, realrow, column, table, button, down)
+	local f = RPB.frames["HistoryViewer"]
 	local selected
 	if button == "LeftButton" then
 		if data[realrow] then
@@ -388,10 +388,10 @@ function PointsViewerScrollFrameOnClick(rowFrame, cellFrame, data, cols, row, re
 		end
 	elseif button == "RightButton" then
 		if data[realrow] then
-			if not RPB.frames["PointsViewerPopup"] then
-				RPB:CreateFramePointsViewerPopup()
+			if not RPB.frames["HistoryViewerPopup"] then
+				RPB:CreateFrameHistoryViewerPopup()
 			end
-			RPB:PointsViewerPopupSetup(f.raid, data[realrow].cols[c.player].value)
+			RPB:HistoryViewerPopupSetup(f.raid, data[realrow].cols[c.player].value)
 			selected = f.scrollFrame:GetRow(f.scrollFrame:GetSelection())
 			if selected then
 				selected.selected = false
@@ -407,15 +407,15 @@ function PointsViewerScrollFrameOnClick(rowFrame, cellFrame, data, cols, row, re
 	return true
 end
 
-function PointsViewerScrollFrameOnDoubleClick(rowFrame, cellFrame, data, cols, row, realrow, column, table, button, down)
-	local f = RPB.frames["PointsViewer"]
+function HistoryViewerScrollFrameOnDoubleClick(rowFrame, cellFrame, data, cols, row, realrow, column, table, button, down)
+	local f = RPB.frames["HistoryViewer"]
 	local selected
 	if button == "LeftButton" then
 		if data[realrow] then
-			if not RPB.frames["PointsViewerPopup"] then
-				RPB:CreateFramePointsViewerPopup()
+			if not RPB.frames["HistoryViewerPopup"] then
+				RPB:CreateFrameHistoryViewerPopup()
 			end
-			RPB:PointsViewerPopupSetup(f.raid, data[realrow].cols[c.player].value)
+			RPB:HistoryViewerPopupSetup(f.raid, data[realrow].cols[c.player].value)
 			selected = f.scrollFrame:GetRow(f.scrollFrame:GetSelection())
 			if selected then
 				selected.selected = false
@@ -429,7 +429,7 @@ function PointsViewerScrollFrameOnDoubleClick(rowFrame, cellFrame, data, cols, r
 		end
 	elseif button == "RightButton" then
 		if data[realrow] then
-			--myPopup(RPB, self.frames["PointsViewer"], "Are you sure you want to remove this player?", function() RPB:PointsViewerRemovePlayer() end)
+			--myPopup(RPB, self.frames["HistoryViewer"], "Are you sure you want to remove this player?", function() RPB:HistoryViewerRemovePlayer() end)
 		end
 	end
 	return true
@@ -450,8 +450,8 @@ local function GetTotal(player)
 	return ( pdata.points ) or 0
 end
 
-function RPB:PointsViewerRepopulate()
-	local f = self.frames["PointsViewer"]
+function RPB:HistoryViewerRepopulate()
+	local f = self.frames["HistoryViewer"]
 	for i, col in pairs(f.scrollFrame.cols) do 
 		if i ~= c.player then -- clear out all other sort marks
 			f.scrollFrame.cols[i].sort = nil;
@@ -485,7 +485,7 @@ function RPB:PointsViewerRepopulate()
 	f.scrollFrame:SetData(f.nameList)
 end
 
-function RPB:CreateFramePointsViewerPopup()
+function RPB:CreateFrameHistoryViewer()
 	db = RPB.db
 	-- if self.Frame then
 	  -- self.Frame:Hide()
@@ -494,11 +494,11 @@ function RPB:CreateFramePointsViewerPopup()
 	if not self.frames then
 		self.frames = {}
 	end
-	if self.frames["PointsViewerPopup"] then
+	if self.frames["HistoryViewerPopup"] then
 		return
 	end
-	self.frames["PointsViewerPopup"] = CreateFrame("Frame", "RPBPointsViewerPopup", self.frames["PointsViewer"])
-	local f = self.frames["PointsViewerPopup"]
+	self.frames["HistoryViewerPopup"] = CreateFrame("Frame", "RPBHistoryViewerPopup", self.frames["HistoryViewer"])
+	local f = self.frames["HistoryViewerPopup"]
 
 	f:EnableMouse(true)
 	f:SetMovable(true)
@@ -552,7 +552,7 @@ function RPB:CreateFramePointsViewerPopup()
 	button:SetText("Commit")
 	button:SetScript("OnClick", 
 		function(self)
-			RPB:PointsViewerPopupCommitChanges()
+			RPB:HistoryViewerPopupCommitChanges()
 		end
 	)
 	f.button["Commit"] = button
@@ -564,7 +564,7 @@ function RPB:CreateFramePointsViewerPopup()
 	button:SetText("Cancel")
 	button:SetScript("OnClick", 
 		function(self)
-			RPB:PointsViewerPopupCancelChanges()
+			RPB:HistoryViewerPopupCancelChanges()
 		end
 	)
 	f.button["Cancel"] = button
@@ -572,7 +572,7 @@ function RPB:CreateFramePointsViewerPopup()
     -- Scroll Frame
 	do
 		f.nameList = {}
-	    f.scrollFrame = ScrollingTable:CreateST(RPSConstants.columnDefinitons["PointsViewerPopup"], 10, nil, nil, f);
+	    f.scrollFrame = ScrollingTable:CreateST(RPSConstants.columnDefinitons["HistoryViewerPopup"], 10, nil, nil, f);
 		f.scrollFrame:EnableSelection(true);
 		f.scrollFrame.frame:SetParent(f)
 		f.scrollFrame.frame:SetPoint("TOP", f, "TOP", 0, -35)
@@ -593,8 +593,8 @@ function RPB:CreateFramePointsViewerPopup()
 			function(rowFrame, cellFrame, data, cols, row, realrow, column, table, ...) 
 				GameTooltip:Hide()
 			end,
-			["OnClick"] = PointsViewerPopupScrollFrameOnClick,
-			["OnDoubleClick"] = PointsViewerPopupScrollFrameOnDoubleClick,
+			["OnClick"] = HistoryViewerPopupScrollFrameOnClick,
+			["OnDoubleClick"] = HistoryViewerPopupScrollFrameOnDoubleClick,
 		});
 	end
 		
@@ -605,7 +605,7 @@ function RPB:CreateFramePointsViewerPopup()
 	button:SetText("Remove")
 	button:SetScript("OnClick", 
 		function(self)
-			RPB:PointsViewerPopupRemoveClick()
+			RPB:HistoryViewerPopupRemoveClick()
 		end
 	)
 	f.button["Remove"] = button
@@ -617,7 +617,7 @@ function RPB:CreateFramePointsViewerPopup()
 	button:SetText("Edit")
 	button:SetScript("OnClick", 
 		function(self)
-			RPB:PointsViewerPopupEditClick()
+			RPB:HistoryViewerPopupEditClick()
 		end
 	)
 	f.button["Edit"] = button
@@ -629,7 +629,7 @@ function RPB:CreateFramePointsViewerPopup()
 	button:SetText("Add")
 	button:SetScript("OnClick", 
 		function(self)
-			RPB:PointsViewerPopupAddClick()
+			RPB:HistoryViewerPopupAddClick()
 		end
 	)
 	f.button["Add"] = button
@@ -858,7 +858,7 @@ function RPB:CreateFramePointsViewerPopup()
 	editbox:SetHeight(32)
 	editbox:SetWidth(40)
 	editbox:SetScript("OnTextChanged", function(self) 
-			--RPB.frames["PointsViewer"].scrollFrame:SortData()
+			--RPB.frames["HistoryViewer"].scrollFrame:SortData()
 		end)
 	editbox:SetPoint("TOPRIGHT", f.dropdown["Second"].frame, "BOTTOMRIGHT", 0, 0)
 	self:SkinEditBox(editbox)
@@ -874,7 +874,7 @@ function RPB:CreateFramePointsViewerPopup()
 	editbox:SetHeight(32)
 	editbox:SetWidth(40)
 	editbox:SetScript("OnTextChanged", function(self) 
-			--RPB.frames["PointsViewer"].scrollFrame:SortData()
+			--RPB.frames["HistoryViewer"].scrollFrame:SortData()
 		end)
 	editbox:SetPoint("TOPRIGHT", f.editbox["Type"], "BOTTOMRIGHT", 0, 8)
 	--editbox:SetNumeric()
@@ -891,7 +891,7 @@ function RPB:CreateFramePointsViewerPopup()
 	-- editbox:SetHeight(32)
 	-- editbox:SetWidth(106)
 	-- editbox:SetScript("OnTextChanged", function(self) 
-			--RPB.frames["PointsViewer"].scrollFrame:SortData()
+			--RPB.frames["HistoryViewer"].scrollFrame:SortData()
 		-- end)
 	-- editbox:SetPoint("TOPRIGHT", f.checkbox["Waitlist"], "BOTTOMRIGHT", 0, 8)
 	-- self:SkinEditBox(editbox)
@@ -907,7 +907,7 @@ function RPB:CreateFramePointsViewerPopup()
 	editbox:SetHeight(32)
 	editbox:SetWidth(106)
 	editbox:SetScript("OnTextChanged", function(self) 
-			--RPB.frames["PointsViewer"].scrollFrame:SortData()
+			--RPB.frames["HistoryViewer"].scrollFrame:SortData()
 		end)
 	editbox:SetPoint("TOPRIGHT", f.editbox["Value"], "BOTTOMRIGHT", 0, 8)
 	self:SkinEditBox(editbox)
@@ -939,7 +939,7 @@ function RPB:CreateFramePointsViewerPopup()
 	button:SetText("Save")
 	button:SetScript("OnClick", 
 		function(self)
-			RPB:PointsViewerPopupSaveClick()
+			RPB:HistoryViewerPopupSaveClick()
 		end
 	)
 	f.button["Save"] = button
@@ -947,8 +947,8 @@ function RPB:CreateFramePointsViewerPopup()
 	f.actionList = {}
 end
 
-function PointsViewerPopupScrollFrameColor(row)
-	local f = RPB.frames["PointsViewerPopup"]
+function HistoryViewerPopupScrollFrameColor(row)
+	local f = RPB.frames["HistoryViewerPopup"]
 	for k,v in pairs(f.actionList) do
 		if row.cols[cp.actiontime].value == v.at then
 			if row.cols[cp.action].value ~= v.action then
@@ -992,8 +992,8 @@ function PointsViewerPopupScrollFrameColor(row)
 		}
 end
 
-function RPB:PointsViewerPopupScrollFrameRefresh()
-	local f = self.frames["PointsViewerPopup"]
+function RPB:HistoryViewerPopupScrollFrameRefresh()
+	local f = self.frames["HistoryViewerPopup"]
 	for i, col in pairs(f.scrollFrame.cols) do 
 		if i ~= cp.actiontime then -- clear out all other sort marks
 			f.scrollFrame.cols[i].sort = nil;
@@ -1003,8 +1003,8 @@ function RPB:PointsViewerPopupScrollFrameRefresh()
 	f.scrollFrame:SortData()
 end
 
-function RPB:PointsViewerPopupSetup(raid, player)
-	local f = self.frames["PointsViewerPopup"]
+function RPB:HistoryViewerPopupSetup(raid, player)
+	local f = self.frames["HistoryViewerPopup"]
 	f.raid = raid
 	f.player = player
 	local pinfo = self:GuildRosterByName(player) or self:RosterByName(player:gsub("^%l", string.upper))
@@ -1038,7 +1038,7 @@ function RPB:PointsViewerPopupSetup(raid, player)
 				[cp.action]		=	value.action,
 				[cp.actiontime]	=	actiontime,
 			},
-			cpArg, PointsViewerPopupScrollFrameColor
+			cpArg, HistoryViewerPopupScrollFrameColor
 		)
 	end
 	for actiontime,value in pairs(history.recentactions) do
@@ -1053,7 +1053,7 @@ function RPB:PointsViewerPopupSetup(raid, player)
 				[cp.action]		=	value.action,
 				[cp.actiontime]	=	actiontime,
 			},
-			cpArg, PointsViewerPopupScrollFrameColor
+			cpArg, HistoryViewerPopupScrollFrameColor
 		)
 	end
 	
@@ -1087,11 +1087,11 @@ function RPB:PointsViewerPopupSetup(raid, player)
 	--f.checkbox["Whisper"]:SetChecked(0)
 	
 	f.actionList = {}
-	self:PointsViewerPopupScrollFrameRefresh()
+	self:HistoryViewerPopupScrollFrameRefresh()
 end
 
-function RPB:PointsViewerPopupCommitChanges()
-	local f = self.frames["PointsViewerPopup"]
+function RPB:HistoryViewerPopupCommitChanges()
+	local f = self.frames["HistoryViewerPopup"]
 	
 	-- f.actionList[#f.actionList+1] = 
 	-- {
@@ -1123,13 +1123,13 @@ function RPB:PointsViewerPopupCommitChanges()
 	f:Hide()
 end
 
-function RPB:PointsViewerPopupCancelChanges()
-	local f = self.frames["PointsViewerPopup"]
+function RPB:HistoryViewerPopupCancelChanges()
+	local f = self.frames["HistoryViewerPopup"]
 	f:Hide()
 end
 
-function RPB:PointsViewerPopupAddClick()
-	local f = self.frames["PointsViewerPopup"]
+function RPB:HistoryViewerPopupAddClick()
+	local f = self.frames["HistoryViewerPopup"]
 	local dt = date()
 	local tt = 
 	{
@@ -1161,8 +1161,8 @@ function RPB:PointsViewerPopupAddClick()
 	f.action = "Add"
 end
 
-function RPB:PointsViewerPopupEditClick()
-	local f = self.frames["PointsViewerPopup"]
+function RPB:HistoryViewerPopupEditClick()
+	local f = self.frames["HistoryViewerPopup"]
 	if not f.scrollFrame:GetSelection() then return end
 	
 	local dt = date(nil,f.scrollFrame:GetRow(f.scrollFrame:GetSelection()).cols[cp.datetime].value)
@@ -1198,8 +1198,8 @@ function RPB:PointsViewerPopupEditClick()
 	f.datetime = f.scrollFrame:GetRow(f.scrollFrame:GetSelection()).cols[cp.datetime].value
 end
 
-function RPB:PointsViewerPopupRemoveClick()
-	local f = self.frames["PointsViewerPopup"]
+function RPB:HistoryViewerPopupRemoveClick()
+	local f = self.frames["HistoryViewerPopup"]
 	if not f.scrollFrame:GetSelection() then return end
 
 	local found = false
@@ -1217,7 +1217,7 @@ function RPB:PointsViewerPopupRemoveClick()
 		end
 	end
 	
-	if found then RPB:PointsViewerPopupScrollFrameRefresh() return end
+	if found then RPB:HistoryViewerPopupScrollFrameRefresh() return end
 	local deletetime = time()
 	local action
 	local color = {r = 0.0, g = 1.0, b = 0.0, a = 1.0}
@@ -1276,14 +1276,14 @@ function RPB:PointsViewerPopupRemoveClick()
 			[cp.waitlist]	=	f.actionList[#f.actionList].waitlist,
 			[cp.action]		=	action,
 		},
-		cpArg, PointsViewerPopupScrollFrameColor
+		cpArg, HistoryViewerPopupScrollFrameColor
 	)
-	self:PointsViewerPopupScrollFrameRefresh()
+	self:HistoryViewerPopupScrollFrameRefresh()
 	f.actionList[#f.actionList].historyList = #f.historyList
 end
 
-function RPB:PointsViewerPopupSaveClick()
-	local f = self.frames["PointsViewerPopup"]
+function RPB:HistoryViewerPopupSaveClick()
+	local f = self.frames["HistoryViewerPopup"]
 	local savetime = time()
 	local action
 	local color = {r = 0.0, g = 1.0, b = 0.0, a = 1.0}
@@ -1390,14 +1390,14 @@ function RPB:PointsViewerPopupSaveClick()
 			[cp.waitlist]	=	f.actionList[#f.actionList].waitlist,
 			[cp.action]		=	action,
 		},
-		cpArg, PointsViewerPopupScrollFrameColor
+		cpArg, HistoryViewerPopupScrollFrameColor
 	)
-	self:PointsViewerPopupScrollFrameRefresh()
+	self:HistoryViewerPopupScrollFrameRefresh()
 	f.actionList[#f.actionList].historyList = #f.historyList
 end
 
-function PointsViewerPopupScrollFrameOnClick(rowFrame, cellFrame, data, cols, row, realrow, column, table, button, down)
-	local f = RPB.frames["PointsViewerPopup"]
+function HistoryViewerPopupScrollFrameOnClick(rowFrame, cellFrame, data, cols, row, realrow, column, table, button, down)
+	local f = RPB.frames["HistoryViewerPopup"]
 	if button == "LeftButton" then
 		if data[realrow] then
 			local selected
@@ -1422,7 +1422,7 @@ function PointsViewerPopupScrollFrameOnClick(rowFrame, cellFrame, data, cols, ro
 		end
 	elseif button == "RightButton" then
 		if data[realrow] then
-			--myPopup(RPB, self.frames["PointsViewerPopup"], "Are you sure you want to remove this player?", function() RPB:PointsViewerPopupRemovePlayer() end)
+			--myPopup(RPB, self.frames["HistoryViewerPopup"], "Are you sure you want to remove this player?", function() RPB:HistoryViewerPopupRemovePlayer() end)
 		end
 	end
 	return true
