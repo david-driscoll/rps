@@ -15,7 +15,7 @@
 local Portfolio = LibStub and LibStub("Portfolio")
 if not Portfolio then return end
 
-function RPF:RegisterPortfolio()
+function RPR:RegisterPortfolio()
 	-- local optionTable = {
 		-- id="RPClientSettings",
 		-- text="Client Settings",
