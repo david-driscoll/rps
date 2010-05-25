@@ -1,0 +1,26 @@
+## Title: RPReature 0.1
+## Author: Sithy
+## Version: 0.1
+## Interface: 30000
+## Notes: Raid Points Automation
+## SavedVariables: RPReatureDB, rpDEBUGFeatureDB
+## RequiredDeps: RPLibrary
+## X-Misc
+## * File-Revision: @file-revision@ 
+## * Project-Version: @project-revision@ 
+## * Last edited by: @file-author@ on @file-date-iso@
+## * Last commit by: @project-author@ on @project-date-iso@
+
+# Embeds
+#@no-lib-strip@
+Libs\LibStub\LibStub.lua
+Libs\CallbackHandler-1.0\CallbackHandler-1.0.xml
+Libs\AceAddon-3.0\AceAddon-3.0.xml
+Libs\AceDB-3.0\AceDB-3.0.xml
+#@end-no-lib-strip@
+Libs\Portfolio\Loader.xml
+
+Constants.lua
+Features.lua
+FeatureWindow.lua
+Portfolio.lua
