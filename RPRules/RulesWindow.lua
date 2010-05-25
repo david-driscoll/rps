@@ -731,7 +731,6 @@ function RPR:CreateRulesSet()
 			cfsArg
 		)
 		f.rulesSet[set] = {}
-		f.rulesSet[set]["commands"] = {}
 		f.scrollSetFrame:SortData()
 		f.editbox["CreateRulesSet"]:SetText("")
 		f.editbox["CreateRulesSet"]:ClearFocus()
@@ -764,7 +763,7 @@ function RPR:CreateRules()
 			},
 			cfcArg
 		)
-		f.rulesSet[selectedSet.cols[cfc.command].value]["commands"][command] = {}
+		f.rulesSet[selectedSet.cols[cfc.command].value][command] = {}
 		f.scrollFrame:SortData()
 		f.editbox["CreateRules"]:SetText("")
 		f.editbox["CreateRules"]:ClearFocus()
@@ -779,7 +778,7 @@ function RPR:DeleteRules()
 	local selected = f.scrollFrame:GetRow(f.scrollFrame:GetSelection())
 	for i=1,#f.rulesList do
 		if f.rulesList[i] == selected then
-			f.rulesSet[selectedSet.cols[cfc.command].value]["commands"][selected.cols[cfc.command].value] = nil
+			f.rulesSet[selectedSet.cols[cfc.command].value][selected.cols[cfc.command].value] = nil
 			tremove(f.rulesList,i)
 			f.scrollFrame:ClearSelection()
 			f.scrollFrame:SortData()

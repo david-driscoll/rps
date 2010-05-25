@@ -58,7 +58,7 @@ local function RPBStausOnEvent(this, event, ...)
 			if RPB.ip.incon then
 				RPB.ip.inc = RPB.ip.inc + 1
 			end
-			if (prefix == CommCmd.."LC".."\\003") then
+			if (prefix == CommCmd.."LC".."\003") then
 				RPB.ip.incon = false
 				RPB.ip.incwho = nil
 			end
@@ -81,7 +81,7 @@ function RPBSendAddonMessage(prefix, text, chattype, destination, ...)
 		if RPB.ip.outon then
 			RPB.ip.out = RPB.ip.out + 1
 		end
-		if (prefix == prefix.."\\003") then
+		if (prefix == CommCmd.."LC".."\003") then
 			RPB.ip.outon = false
 			RPB.ip.outwho = nil
 		end

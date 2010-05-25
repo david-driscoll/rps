@@ -286,9 +286,11 @@ function RPR:AddRulesSet(name)
 		db = self.db
 	end
 	db.realm.settings.rulesSet = name
-	for key,value in pairs(db.realm.rulesSets[name]["commands"]) do
-		--self:Print(key)
-		self:AddRules(value)
+	if db.realm.rulesSets and db.realm.rulesSets[name] and db.realm.rulesSets[name]["commands"] then
+		for key,value in pairs(db.realm.rulesSets[name]["commands"]) do
+			--self:Print(key)
+			self:AddRules(value)
+		end
 	end
 end
 

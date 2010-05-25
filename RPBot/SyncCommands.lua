@@ -240,6 +240,7 @@ function RPB:VersionRequest()
 		local msg = dbvs[key]
 		local sender = key
 		--if self.rpoSettings.master == UnitName("player") then
+		if self.rpoSettings.master == sender then
 		
 		-- Check database version, this is the lasttime the database was downloaded from the website or compressed ingame.
 		if msg.database == self.db.realm.version.database then
@@ -320,6 +321,7 @@ function RPB:VersionRequest()
 				-- They have newer last actions, we need to get the difference of tables.
 				self:Send(cs.getla, { self.rpoSettings.dbinfo[sender].lastaction, msg }, sender)
 			end
+		end
 		end
 	end
 	dbvs = {}

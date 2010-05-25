@@ -196,7 +196,7 @@ function RPB:CreateFrameRollWindow()
 			end
 			sb:SetValue(perc)
 			local desc = RPSConstants.actionText["Bot"][RPB.ip.incactive] or RPB.ip.incactive or ""
-			fs:SetText(desc.." "..math.round(perc).."%")
+			fs:SetText(desc.." " .. math.floor(perc) .."%")
 		end)
 		sb:SetScript("OnEnter", function(self) 
 			if not RPB.ip.incwho then return end
@@ -269,7 +269,7 @@ function RPB:CreateFrameRollWindow()
 			end
 			sb:SetValue(perc)
 			local desc = RPSConstants.actionText["Bot"][RPB.ip.outactive] or RPB.ip.outactive or ""
-			fs:SetText(desc.." "..math.round(perc).."%")
+			fs:SetText(desc.." ".. math.floor(perc) .."%")
 		end)
 		sb:SetScript("OnEnter", function(self)
 			if not RPB.ip.outwho then return end
