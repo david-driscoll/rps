@@ -92,8 +92,8 @@ function RPBSendAddonMessage(prefix, text, chattype, destination, ...)
 		if (prefix == CommCmd.."LC".."\003") then
 			RPB.ip.outon[destination] = nil
 			RPB.ip.outwho[destination] = nil
-			RPB.ip.out[sender] = nil
-			RPB.ip.outactive[sender] = nil
+			RPB.ip.out[destination] = nil
+			RPB.ip.outactive[destination] = nil
 		end
 	end
 end

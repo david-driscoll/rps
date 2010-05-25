@@ -346,7 +346,7 @@ function RPB:CreateFrameRollWindow()
 			GameTooltip:ClearLines()
 			for k,v in pairs(RPB.ip.outactive) do
 				color = GetColor(RPB.ip.outwho[k] or UnitName("player"))
-				GameTooltip:AddLine("Sending from "..( RPB.ip.outwho[k] or "" ), color.r, color.g, color.b)
+				GameTooltip:AddLine("Sending to "..( RPB.ip.outwho[k] or "" ), color.r, color.g, color.b)
 				GameTooltip:AddLine(RPB.ip.outactive[k])
 				GameTooltip:AddLine(RPB.ip.out[k] .. " of " .. RPB.ip.outl[k][RPB.ip.outactive[k]])
 			end
