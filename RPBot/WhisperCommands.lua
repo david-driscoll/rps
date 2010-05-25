@@ -56,7 +56,6 @@ end
 RPB.whisperCommands = {}
 RPB.whisperCommands["show"] = function (self, msg, name)
 	_, _, player, history = self:GetArgs(msg, 4, 1)
-	if not player then return end
 	self:PointsShow(player, "WHISPER", name, history)
 end
 

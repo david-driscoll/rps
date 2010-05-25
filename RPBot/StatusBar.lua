@@ -64,6 +64,8 @@ local function RPBStausOnEvent(this, event, ...)
 			if (prefix == CommCmd.."LC".."\003") then
 				RPB.ip.incon[sender] = nil
 				RPB.ip.incwho[sender] = nil
+				RPB.ip.inc[sender] = nil
+				RPB.ip.incactive[sender] = nil
 			end
 		end
 	end
@@ -90,6 +92,8 @@ function RPBSendAddonMessage(prefix, text, chattype, destination, ...)
 		if (prefix == CommCmd.."LC".."\003") then
 			RPB.ip.outon[destination] = nil
 			RPB.ip.outwho[destination] = nil
+			RPB.ip.out[sender] = nil
+			RPB.ip.outactive[sender] = nil
 		end
 	end
 end
