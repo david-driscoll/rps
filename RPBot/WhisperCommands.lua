@@ -20,9 +20,9 @@
 -- param arg6 = status (like "DND" or "GM") 
 -- param arg7 = (number) message id (for reporting spam purposes?) (default: 0) 
 -- param arg8 = (number) unknown (default: 0)
-function RPB:CHAT_MSG_WHISPER()
+function RPB:CHAT_MSG_WHISPER(event, ...)
 	-- Fire our event off to our handler
-	
+	local arg1, arg2 = ...
 	-- TODO: Hide or Show whispers depending on the state that whisper command comes back as.
 	--		This will let us hide the whisper if settings tell us to.
 	self:WhisperCommand(arg1, arg2)

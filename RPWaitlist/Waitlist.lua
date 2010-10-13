@@ -53,8 +53,9 @@ local cgrArg = RPSConstants.stArgs["Roster"]
 -- Sync commands, lets save some overhead
 local cs = RPSConstants.syncCommands["Waitlist"]
 
-local function whisperFilter()
+local function whisperFilter(self, event, ...)
 	local settings = RPWL.rpoSettings
+	local arg1, arg2 = ...;
 	if 		event == "CHAT_MSG_WHISPER_INFORM"
 			and settings.filterOut == "1"
 			and strfind(arg1, "^"..prefix) then
@@ -149,9 +150,9 @@ end
 -- param arg6 = status (like "DND" or "GM") 
 -- param arg7 = (number) message id (for reporting spam purposes?) (default: 0) 
 -- param arg8 = (number) unknown (default: 0)
-function RPWL:CHAT_MSG_WHISPER()
+function RPWL:CHAT_MSG_WHISPER(event, ...)
 	-- Fire our event off to our handler
-	
+	local arg1, arg2 = ...
 	-- TODO: Hide or Show whispers depending on the state that whisper command comes back as.
 	--		This will let us hide the whisper if settings tell us to.
 	self:WhisperCommand(arg1, arg2)

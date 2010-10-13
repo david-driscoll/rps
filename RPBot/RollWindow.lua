@@ -403,7 +403,7 @@ function RPB:CreateFrameRollWindow()
 		});
 		for i=1,#f.scrollFrame.cols do
 			local colFrameName = f.scrollFrame.head:GetName().."Col"..i;
-			local col = getglobal(colFrameName)
+			local col = _G[colFrameName]
 			col:SetScript("OnClick", nil)
 		end
 
@@ -437,7 +437,7 @@ function RPB:CreateFrameRollWindow()
 		});
 		for i=1,#f.scrollFrameLoot.cols do
 			local colFrameName =  f.scrollFrameLoot.head:GetName().."Col"..i;
-			local col = getglobal(colFrameName)
+			local col = _G[colFrameName]
 			col:SetScript("OnClick", nil)
 		end
 		
@@ -473,7 +473,7 @@ function RPB:CreateFrameRollWindow()
 				GameTooltip:Hide()
 			end,
 		});
-		getglobal("ScrollTable2HeadCol1"):SetScript("OnClick", nil);
+		_G["ScrollTable2HeadCol1"]:SetScript("OnClick", nil);
 
 	end
 	
@@ -1039,7 +1039,7 @@ function RPB:RollListAdd(player, cmd, recieved)
 		return nil
 	end
 	local pinfo = self:GuildRosterByName(player) or self:RosterByName(player:gsub("^%l", string.upper))
-	local class = self:GetPlayer(player, "class")
+	local class = pinfo.class
 	local selected = f.scrollFrameLoot:GetRow(f.scrollFrameLoot:GetSelection());
 	local item = selected.cols	
 	local classes = self:GetClasses(item[cll.link].value)

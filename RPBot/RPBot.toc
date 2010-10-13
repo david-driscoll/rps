@@ -38,7 +38,7 @@ Bot.lua
 ChatCommands.lua
 WhisperCommands.lua
 SyncCommands.lua
-Loot.lua
+##Loot.lua
 Frame.lua
 RollWindow.lua
 PointsTimer.lua

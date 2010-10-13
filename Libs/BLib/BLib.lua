@@ -337,7 +337,7 @@ function BLib:CreateOrUpdateUnit(unitid, isInRaid)
 		if isPet then
 			new_class = "PET"
 		else
-			new_class = select(2, UnitClass(unitid))
+			new_class = select(1, UnitClass(unitid))
 		end
 		if isInRaid == nil and GetNumRaidMembers() > 0 then
 			isInRaid = true

@@ -38,8 +38,9 @@ local csp = RPSConstants.syncCommandsPriority["Bot"]
 RPB = LibStub("AceAddon-3.0"):NewAddon("Raid Points Bot", "AceConsole-3.0", "AceEvent-3.0", "AceComm-3.0", "AceSerializer-3.0", "AceTimer-3.0", "RPLibrary", "GuildLib", "BLib")
 RPB.frames = {}
 
-local function whisperFilter()
+local function whisperFilter(self, event, ...)
 	local settings = RPB.rpoSettings
+	local arg1, arg2 = ...;
 	if 		event == "CHAT_MSG_WHISPER_INFORM"
 			and settings.filterOut == "1"
 			and strfind(arg1, "^"..prefix)

@@ -543,7 +543,7 @@ function RPLibrary:GetClasses(itemId)
 	LibraryTooltip:SetOwner(WorldFrame, "ANCHOR_NONE");
 	LibraryTooltip:SetHyperlink(itemId)
 	for i=1, LibraryTooltip:NumLines() do
-		data = getglobal("RPLibraryTooltipTextLeft"..i)
+		data = _G["RPLibraryTooltipTextLeft"..i]
 		if ((data ~= nil) and data:IsShown()) then
 			text = data:GetText();
 		else
