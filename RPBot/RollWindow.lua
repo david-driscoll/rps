@@ -899,7 +899,8 @@ function RPB:MaximizeUI()
 	f.minimize = false
 end
 
-function RPB:CHAT_MSG_SYSTEM()
+function RPB:CHAT_MSG_SYSTEM(event, ...)
+	local arg1 = ...
 	local f = self.frames["RollWindow"]
 	if (self.frames and f and f.inProgress and event == "CHAT_MSG_SYSTEM" and string.find(arg1, "rolls") and string.find(arg1, "%(1%-100%)")) then
 		_, _, player, roll = string.find(arg1, "(.+) " .. "rolls" .. " (%d+)");
