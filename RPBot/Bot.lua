@@ -152,13 +152,13 @@ end
 --- Enable processes
 -- Register all events, setup inital state and load rules set
 function RPB:OnEnable()
-	self:RegisterEvent("LOOT_OPENED")
-	self:RegisterEvent("START_LOOT_ROLL")
+	--self:RegisterEvent("LOOT_OPENED")
+	--self:RegisterEvent("START_LOOT_ROLL")
 	--self:RegisterEvent("LOOT_SLOT_CLEARED")
 	--self:RegisterEvent("LOOT_CLOSED")	
 	--self:RegisterEvent("CANCEL_LOOT_ROLL")
 	self:RegisterEvent("CHAT_MSG_SYSTEM")
-	self:RegisterEvent("SpecialEvents_ItemLooted")
+	--self:RegisterEvent("SpecialEvents_ItemLooted")
 	self:RegisterMessage("GuildLib_Update")
 	
 	self.rpbSettings = RPBS.db.realm.settings
