@@ -3,10 +3,10 @@
 ## Version: 0.1
 ## Interface: 30000
 ## Notes: Raid Points System
-## SavedVariables: rpDEBUGWaitlistDB, rpDEBUGBotDB, rpDEBUGBotSettingsDB, rpDEBUGOfficerSettingsDB, rpDEBUGRulesDB
+## SavedVariables: rpWaitlistDB, rpBotDB, rpBotSettingsDB, rpOfficerSettingsDB, rpRulesDB, rpDEBUGWaitlistDB, rpDEBUGBotDB, rpDEBUGBotSettingsDB, rpDEBUGOfficerSettingsDB, rpDEBUGRulesDB
 ## X-Misc
-## * File-Revision:@file-revision@ 
-## * Project-Version: @project-revision@ 
+## * File-Revision:@file-revision@
+## * Project-Version: @project-revision@
 ## * Last edited by: @file-author@ on @file-date-iso@
 ## * Last commit by: @project-author@ on @project-date-iso@
 
