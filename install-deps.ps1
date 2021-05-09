@@ -3,9 +3,12 @@ if (-not (Test-Path ./temp/)) {
     mkdir temp
 }
 pushd temp;
-svn checkout https://repos.wowace.com/wow/ace3/trunk ace3
+svn checkout https://repos.curseforge.com/wow/ace3/trunk ace3
 popd
-gci ./temp/ace3/ -Directory -Exclude "tests" | foreach { Copy-Item $_.FullName "./Libs/$($_.Name)/" -Recurse -Force }
+gci ./temp/ace3/ -Directory -Exclude "tests" | foreach {
+    Remove-Item "./Libs/$($_.Name)/" -Recurse -Force
+    Copy-Item $_.FullName "./Libs/$($_.Name)/" -Recurse -Force
+}
 Remove-Item ./temp/ -Recurse -Force
 
 Invoke-WebRequest https://raw.githubusercontent.com/BigWigsMods/packager/master/release.sh -OutFile release.sh

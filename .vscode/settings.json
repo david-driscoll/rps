@@ -1,6 +1,22 @@
 {
-    "workbench.colorTheme": "Dark+ (WoW)",
+    // "workbench.colorTheme": "Default Dark+",
     "files.associations": {
         ".pkgmeta": "yaml"
-    }
+    },
+    "Lua.color.mode": "Semantic",
+    "Lua.completion.autoRequire": true,
+    "Lua.diagnostics.globals": [
+        "strmatch",
+        "geterrorhandler"
+    ],
+    "Lua.workspace.library": [
+        "./Externs/"
+    ],
+    "Lua.workspace.useGitIgnore": false,
+    "Lua.runtime.version": "Lua 5.1",
+    "wowAPI.emmyLua.loadFrameXML": true,
+    "editor.semanticHighlighting.enabled": true,
+    "Lua.diagnostics.disable": [
+        "undefined-field"
+    ]
 }

@@ -4,8 +4,8 @@
 	*******************
 	* File-Revision: @file-revision@
 	* Project-Version: @project-version@
-	* Last edited by: @file-author@ on @file-date-iso@ 
-	* Last commit: @project-author@ on @project-date-iso@ 
+	* Last edited by: @file-author@ on @file-date-iso@
+	* Last commit: @project-author@ on @project-date-iso@
 	* Filename: RPBot/HistoryViewer.lua
 	* Component: Roll Interface
 	* Details:
@@ -31,7 +31,7 @@ local ScrollingTable = LibStub:GetLibrary("ScrollingTable");
 
 local function myFilter(self, row)
 	local f = RPB.frames["HistoryViewer"]
-	
+
 	local namePass = false
 	if (f.editbox["Name"]:GetText() ~= "") then
 		if string.find(string.lower(row.cols[c.player].value), string.lower(f.editbox["Name"]:GetText())) then
@@ -40,7 +40,7 @@ local function myFilter(self, row)
 	else
 		namePass = true
 	end
-	
+
 	local classPass = true
 	for i, widget in f.dropdown["Class"].pullout:IterateItems() do
 		if widget.type == "Dropdown-Item-Toggle" and widget:GetValue() then
@@ -52,7 +52,7 @@ local function myFilter(self, row)
 			end
 		end
 	end
-	
+
 	local rankPass = true
 	for i, widget in f.dropdown["Rank"].pullout:IterateItems() do
 		if widget.type == "Dropdown-Item-Toggle" and widget:GetValue() then
@@ -64,16 +64,16 @@ local function myFilter(self, row)
 			end
 		end
 	end
-	
+
 	local points = f.dropdown["Points"].value
 	local compare = f.dropdown["Compare"].text:GetText()
 	local EPoints = f.editbox["Points"]:GetText()
-	
+
 	local pointsPass = false
 	if (points ~= "" and compare ~= "" and EPoints ~= "") then
 		EPoints = tonumber(EPoints)
 		local value
-		if type(row.cols[3+points].value) == "function" then 
+		if type(row.cols[3+points].value) == "function" then
 			value = row.cols[3+points].value(unpack(row.cols[3+points].args or {}));
 		else
 			value = row.cols[3+points].value;
@@ -107,6 +107,7 @@ function RPB:CreateFrameHistoryViewerPopup()
 	if self.frames["HistoryViewerPopup"] then
 		return
 	end
+
 	self.frames["HistoryViewePopupr"] = CreateFrame("Frame", "RPBHistoryViewerPopup", UIParent)
 	--f = self.frames["HistoryViewer"]
 
@@ -120,7 +121,7 @@ function RPB:CreateFrameHistoryViewerPopup()
 	f:SetWidth(560)
 	f:SetPoint("CENTER")
 	f:Hide()
-	
+
 	f.dropdown = {}
 	f.label = {}
 	f.editbox = {}
@@ -128,7 +129,7 @@ function RPB:CreateFrameHistoryViewerPopup()
 	-- Frame Textures, Drag Header, Close Button, Title
 	do
 		self:Skin(f);
-	   
+
 		local button = CreateFrame("Button", f:GetName() .. "_CloseButton", f, "UIPanelCloseButton")
 		button:SetPoint("TOPRIGHT", f, "TOPRIGHT", -2, -2)
 		button:Show()
@@ -159,7 +160,7 @@ function RPB:CreateFrameHistoryViewerPopup()
 		title:SetText("History Viewer")
 		f.title = title
 	end
-	
+
     -- Scroll Frame
 	do
 		f.nameList = {}
@@ -197,13 +198,13 @@ function RPB:CreateFrameHistoryViewerPopup()
 	font:SetText("Raid:")
 	font:SetPoint("TOPRIGHT", dropdown.frame, "TOPLEFT", -2, -8)
 	f.label["Raid"] = font
-	
+
 	local button = CreateFrame("Button", f:GetName() .. "_ButtonDelete", f, "UIPanelButtonTemplate")
 	button:SetWidth(75)
 	button:SetHeight(21)
 	button:SetPoint("BOTTOM", f, "BOTTOM", 40, 10)
 	button:SetText("Delete")
-	button:SetScript("OnClick", 
+	button:SetScript("OnClick",
 		function(self)
 			local sf = RPB.frames["HistoryViewerPopup"].scrollFrame
 			if sf:GetSelection() then
@@ -215,29 +216,29 @@ function RPB:CreateFrameHistoryViewerPopup()
 		end
 	)
 	f.button["Delete"] = button
-	
+
 	local editbox = CreateFrame("EditBox", nil, f)
 	f.editbox["Name"] = editbox
 	editbox:SetAutoFocus(false)
 	editbox:SetHeight(32)
 	editbox:SetWidth(106)
-	editbox:SetScript("OnTextChanged", function(self) 
+	editbox:SetScript("OnTextChanged", function(self)
 			RPB.frames["HistoryViewer"].scrollFrame:SortData()
 		end)
 	editbox:SetPoint("TOPLEFT", f.scrollFrame.frame, "BOTTOMLEFT", 46, 3)
-	
+
 	self:SkinEditBox(editbox)
 	self:ScriptEditBox(editbox)
 	local font = f:CreateFontString("Name","OVERLAY","GameTooltipText")
 	font:SetText("Name:")
 	font:SetPoint("TOPRIGHT", editbox, "TOPLEFT", -8, -10)
 	f.label["Name"] = font
-	
+
 	local classDropDown = {}
 	for k,v in pairs(RPSConstants.classList) do
 		classDropDown[v] = v
 	end
-	
+
 	local dropdown = AceGUI:Create("Dropdown")
 	dropdown.frame:SetParent(f)
 	dropdown:SetList(classDropDown)
@@ -254,13 +255,13 @@ function RPB:CreateFrameHistoryViewerPopup()
 	font:SetText("Class:")
 	font:SetPoint("TOPRIGHT", dropdown.frame, "TOPLEFT", -2, -8)
 	f.label["Class"] = font
-	
+
 	local rankDropDown = {}
 	local ranks = self:GuildRanks()
 	for i=1,#ranks do
 		rankDropDown[i] = ranks[i]
 	end
-	
+
 	local dropdown = AceGUI:Create("Dropdown")
 	dropdown.frame:SetParent(f)
 	dropdown:SetList(rankDropDown)
@@ -277,14 +278,14 @@ function RPB:CreateFrameHistoryViewerPopup()
 	font:SetText("Rank:")
 	font:SetPoint("TOPRIGHT", dropdown.frame, "TOPLEFT", -2, -8)
 	f.label["Rank"] = font
-	
+
 	local pointsDropDown =
 	{
 		"Earned",
 		"Spent",
 		"Total",
 	}
-	
+
 	local dropdown = AceGUI:Create("Dropdown")
 	dropdown.frame:SetParent(f)
 	dropdown:SetList(pointsDropDown)
@@ -302,7 +303,7 @@ function RPB:CreateFrameHistoryViewerPopup()
 	font:SetText("Points:")
 	font:SetPoint("TOPRIGHT", dropdown.frame, "TOPLEFT", -2, -8)
 	f.label["Points"] = font
-	
+
 	local compareDropDown =
 	{
 		"<",
@@ -311,7 +312,7 @@ function RPB:CreateFrameHistoryViewerPopup()
 		">=",
 		">",
 	}
-	
+
 	local dropdown = AceGUI:Create("Dropdown")
 	dropdown.frame:SetParent(f)
 	dropdown:SetList(compareDropDown)
@@ -325,33 +326,33 @@ function RPB:CreateFrameHistoryViewerPopup()
 		end
 	)
 	f.dropdown["Compare"] = dropdown
-	
+
 	local editbox = CreateFrame("EditBox", nil, f)
 	f.editbox["Points"] = editbox
 	editbox:SetAutoFocus(false)
 	--editbox:SetNumeric()
 	editbox:SetHeight(32)
 	editbox:SetWidth(50)
-	editbox:SetScript("OnTextChanged", function(self) 
+	editbox:SetScript("OnTextChanged", function(self)
 			RPB.frames["HistoryViewer"].scrollFrame:SortData()
 		end)
 	editbox:SetPoint("TOPLEFT", f.dropdown["Compare"].frame, "TOPRIGHT", 6, 2)
-	
+
 	self:SkinEditBox(editbox)
 	self:ScriptEditBox(editbox)
-	
+
 	-- local button = CreateFrame("Button", f:GetName() .. "_ButtonRemovePlayer", f, "UIPanelButtonTemplate")
 	-- button:SetWidth(90)
 	-- button:SetHeight(21)
 	-- button:SetPoint("TOPLEFT", f.scrollFrame.frame, "BOTTOMLEFT", 2, -6)
 	-- button:SetText("Remove Player")
-	-- button:SetScript("OnClick", 
+	-- button:SetScript("OnClick",
 		-- function(self)
 			-- myPopup(RPB, self.frames["HistoryViewer"], "Are you sure you want to remove this player?", function() RPB:HistoryViewerRemovePlayer() end)
 		-- end
 	-- )
 	-- f.button["Remove"] = button
-	
+
 	-- Generate Data
 	f.scrollFrame:SetFilter(myFilter)
 	self:HistoryViewerRepopulate()
@@ -452,7 +453,7 @@ end
 
 function RPB:HistoryViewerRepopulate()
 	local f = self.frames["HistoryViewer"]
-	for i, col in pairs(f.scrollFrame.cols) do 
+	for i, col in pairs(f.scrollFrame.cols) do
 		if i ~= c.player then -- clear out all other sort marks
 			f.scrollFrame.cols[i].sort = nil;
 		end
@@ -508,7 +509,7 @@ function RPB:CreateFrameHistoryViewer()
 	f:SetWidth(860)
 	f:SetPoint("CENTER")
 	f:Hide()
-	
+
 	f.dropdown = {}
 	f.label = {}
 	f.editbox = {}
@@ -544,31 +545,31 @@ function RPB:CreateFrameHistoryViewer()
 		title:SetText("Points Viewer")
 		f.title = title
 	end
-	
+
 	local button = CreateFrame("Button", f:GetName() .. "_ButtonCommit", f, "UIPanelButtonTemplate")
 	button:SetWidth(75)
 	button:SetHeight(21)
 	button:SetPoint("BOTTOM", f, "BOTTOM", -40, 10)
 	button:SetText("Commit")
-	button:SetScript("OnClick", 
+	button:SetScript("OnClick",
 		function(self)
 			RPB:HistoryViewerPopupCommitChanges()
 		end
 	)
 	f.button["Commit"] = button
-	
+
 	local button = CreateFrame("Button", f:GetName() .. "_ButtonCancel", f, "UIPanelButtonTemplate")
 	button:SetWidth(75)
 	button:SetHeight(21)
 	button:SetPoint("BOTTOM", f, "BOTTOM", 40, 10)
 	button:SetText("Cancel")
-	button:SetScript("OnClick", 
+	button:SetScript("OnClick",
 		function(self)
 			RPB:HistoryViewerPopupCancelChanges()
 		end
 	)
 	f.button["Cancel"] = button
-	
+
     -- Scroll Frame
 	do
 		f.nameList = {}
@@ -578,8 +579,8 @@ function RPB:CreateFrameHistoryViewer()
 		f.scrollFrame.frame:SetPoint("TOP", f, "TOP", 0, -35)
 		f.scrollFrame:SetData(f.nameList)
 		f.scrollFrame:RegisterEvents({
-			["OnEnter"] = 
-			function(rowFrame, cellFrame, data, cols, row, realrow, column, table, ...) 
+			["OnEnter"] =
+			function(rowFrame, cellFrame, data, cols, row, realrow, column, table, ...)
 				if data[realrow] then
 					if RPB:GetItemID(data[realrow].cols[cp.reason].value) then
 						GameTooltip:SetOwner(rowFrame, "ANCHOR_CURSOR")
@@ -589,21 +590,21 @@ function RPB:CreateFrameHistoryViewer()
 					end
 				end
 			end,
-			["OnLeave"] = 
-			function(rowFrame, cellFrame, data, cols, row, realrow, column, table, ...) 
+			["OnLeave"] =
+			function(rowFrame, cellFrame, data, cols, row, realrow, column, table, ...)
 				GameTooltip:Hide()
 			end,
 			["OnClick"] = HistoryViewerPopupScrollFrameOnClick,
 			["OnDoubleClick"] = HistoryViewerPopupScrollFrameOnDoubleClick,
 		});
 	end
-		
+
 	local button = CreateFrame("Button", f:GetName() .. "_ButtonRemove", f, "UIPanelButtonTemplate")
 	button:SetWidth(75)
 	button:SetHeight(21)
 	button:SetPoint("TOPRIGHT", f.scrollFrame.frame, "BOTTOMRIGHT", -6, 0)
 	button:SetText("Remove")
-	button:SetScript("OnClick", 
+	button:SetScript("OnClick",
 		function(self)
 			RPB:HistoryViewerPopupRemoveClick()
 		end
@@ -615,25 +616,25 @@ function RPB:CreateFrameHistoryViewer()
 	button:SetHeight(21)
 	button:SetPoint("TOPRIGHT", f.button["Remove"], "TOPLEFT", -6, 0)
 	button:SetText("Edit")
-	button:SetScript("OnClick", 
+	button:SetScript("OnClick",
 		function(self)
 			RPB:HistoryViewerPopupEditClick()
 		end
 	)
 	f.button["Edit"] = button
-	
+
 	local button = CreateFrame("Button", f:GetName() .. "_ButtonAdd", f, "UIPanelButtonTemplate")
 	button:SetWidth(75)
 	button:SetHeight(21)
 	button:SetPoint("TOPRIGHT", f.button["Edit"], "TOPLEFT", -6, 0)
 	button:SetText("Add")
-	button:SetScript("OnClick", 
+	button:SetScript("OnClick",
 		function(self)
 			RPB:HistoryViewerPopupAddClick()
 		end
 	)
 	f.button["Add"] = button
-	
+
 		-- id 				= -1,
 		-- name 			= string.lower(k),
 		-- fullname 		= v.fullname or player:gsub("^%l", string.upper),
@@ -650,7 +651,7 @@ function RPB:CreateFrameHistoryViewer()
 			-- value		= 0,
 			-- waitlist	= false,
 			-- action		= "Insert",
-	
+
 	local editbox = CreateFrame("EditBox", nil, f)
 	f.editbox["Name"] = editbox
 	editbox:SetAutoFocus(false)
@@ -664,12 +665,12 @@ function RPB:CreateFrameHistoryViewer()
 	font:SetText("Name:")
 	font:SetPoint("TOPRIGHT", editbox, "TOPLEFT", -8, -10)
 	f.label["Name"] = font
-	
+
 	local classDropDown = {["Unknown"] = "Unknown"}
 	for k,v in pairs(RPSConstants.classList) do
 		classDropDown[v] = v
 	end
-	
+
 	local dropdown = AceGUI:Create("Dropdown")
 	dropdown.frame:SetParent(f)
 	dropdown:SetList(classDropDown)
@@ -684,7 +685,7 @@ function RPB:CreateFrameHistoryViewer()
 	font:SetText("Class:")
 	font:SetPoint("TOPRIGHT", dropdown.frame, "TOPLEFT", -2, -8)
 	f.label["Class"] = font
-	
+
 	local dropdown = AceGUI:Create("Dropdown")
 	dropdown.frame:SetParent(f)
 	dropdown:SetWidth(120)
@@ -698,19 +699,19 @@ function RPB:CreateFrameHistoryViewer()
 	font:SetText("Spec:")
 	font:SetPoint("TOPRIGHT", dropdown.frame, "TOPLEFT", -2, -8)
 	f.label["Spec"] = font
-	
+
 	local font = f:CreateFontString("Points","OVERLAY","GameTooltipText")
 	font:SetText("Points:")
 	font:SetPoint("TOPLEFT", f.dropdown["Spec"].frame, "BOTTOMLEFT", 0, -6)
 	f.label["Points"] = font
-	
+
 	local font = f:CreateFontString("Lifetime","OVERLAY","GameTooltipText")
 	font:SetText("Lifetime:")
 	font:SetPoint("TOPLEFT", f.label["Points"], "BOTTOMLEFT", 0, -6)
 	f.label["Lifetime"] = font
 
 	local dt = date()
-	local timetable = 
+	local timetable =
 	{
 		year 	= tonumber("20"..string.sub(dt,7,8)),
 		month 	= tonumber(string.sub(dt,1,2)),
@@ -719,7 +720,7 @@ function RPB:CreateFrameHistoryViewer()
 		min 	= tonumber(string.sub(dt,13,14)),
 		sec 	= tonumber(string.sub(dt,16,17)),
 	}
-	
+
 	local m = timetable.month-1
 	local y = timetable.year
 	if m == 0 then
@@ -743,7 +744,7 @@ function RPB:CreateFrameHistoryViewer()
 				end
 			end
 		end
-		local tt = 
+		local tt =
 		{
 			year 	= y,
 			month 	= m,
@@ -764,7 +765,7 @@ function RPB:CreateFrameHistoryViewer()
 		dayDropDown[time(tt)] = sd .. "/" .. sm .. "/" .. sy
 		dayUse = dayUse + 1
 	end
-	
+
 	local hour = {}
 	local minute = {}
 	local second = {}
@@ -789,10 +790,10 @@ function RPB:CreateFrameHistoryViewer()
 			second[i] = tostring(i)
 		end
 	end
-	
-	
-	
-		
+
+
+
+
 	local dropdown = AceGUI:Create("Dropdown")
 	dropdown.frame:SetParent(f)
 	dropdown:SetList(second)
@@ -804,7 +805,7 @@ function RPB:CreateFrameHistoryViewer()
 			RPB:AutomationTimeSet()
 		end
 	)
-	f.dropdown["Second"] = dropdown	
+	f.dropdown["Second"] = dropdown
 
 	local dropdown = AceGUI:Create("Dropdown")
 	dropdown.frame:SetParent(f)
@@ -817,7 +818,7 @@ function RPB:CreateFrameHistoryViewer()
 			RPB:AutomationTimeSet()
 		end
 	)
-	f.dropdown["Minute"] = dropdown	
+	f.dropdown["Minute"] = dropdown
 
 	local dropdown = AceGUI:Create("Dropdown")
 	dropdown.frame:SetParent(f)
@@ -835,7 +836,7 @@ function RPB:CreateFrameHistoryViewer()
 	font:SetText("Time:")
 	font:SetPoint("TOPRIGHT", dropdown.frame, "TOPLEFT", -2, -8)
 
-	
+
 	local dropdown = AceGUI:Create("Dropdown")
 	dropdown.frame:SetParent(f)
 	dropdown:SetList(dayDropDown)
@@ -851,13 +852,13 @@ function RPB:CreateFrameHistoryViewer()
 	local font = f:CreateFontString("Date","OVERLAY","GameTooltipText")
 	font:SetText("Date:")
 	font:SetPoint("TOPRIGHT", dropdown.frame, "TOPLEFT", -2, -8)
-	
+
 	local editbox = CreateFrame("EditBox", nil, f)
 	f.editbox["Type"] = editbox
 	editbox:SetAutoFocus(false)
 	editbox:SetHeight(32)
 	editbox:SetWidth(40)
-	editbox:SetScript("OnTextChanged", function(self) 
+	editbox:SetScript("OnTextChanged", function(self)
 			--RPB.frames["HistoryViewer"].scrollFrame:SortData()
 		end)
 	editbox:SetPoint("TOPRIGHT", f.dropdown["Second"].frame, "BOTTOMRIGHT", 0, 0)
@@ -867,13 +868,13 @@ function RPB:CreateFrameHistoryViewer()
 	font:SetText("Type:")
 	font:SetPoint("TOPRIGHT", editbox, "TOPLEFT", -8, -10)
 	f.label["Type"] = font
-	
+
 	local editbox = CreateFrame("EditBox", nil, f)
 	f.editbox["Value"] = editbox
 	editbox:SetAutoFocus(false)
 	editbox:SetHeight(32)
 	editbox:SetWidth(40)
-	editbox:SetScript("OnTextChanged", function(self) 
+	editbox:SetScript("OnTextChanged", function(self)
 			--RPB.frames["HistoryViewer"].scrollFrame:SortData()
 		end)
 	editbox:SetPoint("TOPRIGHT", f.editbox["Type"], "BOTTOMRIGHT", 0, 8)
@@ -884,13 +885,13 @@ function RPB:CreateFrameHistoryViewer()
 	font:SetText("Value:")
 	font:SetPoint("TOPRIGHT", editbox, "TOPLEFT", -8, -10)
 	f.label["Value"] = font
-	
+
 	-- local editbox = CreateFrame("EditBox", nil, f)
 	-- f.editbox["Itemid"] = editbox
 	-- editbox:SetAutoFocus(false)
 	-- editbox:SetHeight(32)
 	-- editbox:SetWidth(106)
-	-- editbox:SetScript("OnTextChanged", function(self) 
+	-- editbox:SetScript("OnTextChanged", function(self)
 			--RPB.frames["HistoryViewer"].scrollFrame:SortData()
 		-- end)
 	-- editbox:SetPoint("TOPRIGHT", f.checkbox["Waitlist"], "BOTTOMRIGHT", 0, 8)
@@ -900,13 +901,13 @@ function RPB:CreateFrameHistoryViewer()
 	-- font:SetText("Itemid:")
 	-- font:SetPoint("TOPRIGHT", editbox, "TOPLEFT", -8, -10)
 	-- f.label["Itemid"] = font
-		
+
 	local editbox = CreateFrame("EditBox", nil, f)
 	f.editbox["Reason"] = editbox
 	editbox:SetAutoFocus(false)
 	editbox:SetHeight(32)
 	editbox:SetWidth(106)
-	editbox:SetScript("OnTextChanged", function(self) 
+	editbox:SetScript("OnTextChanged", function(self)
 			--RPB.frames["HistoryViewer"].scrollFrame:SortData()
 		end)
 	editbox:SetPoint("TOPRIGHT", f.editbox["Value"], "BOTTOMRIGHT", 0, 8)
@@ -916,7 +917,7 @@ function RPB:CreateFrameHistoryViewer()
 	font:SetText("Reason:")
 	font:SetPoint("TOPRIGHT", editbox, "TOPLEFT", -8, -10)
 	f.label["Reason"] = font
-	
+
 
 	local checkbox = CreateFrame("CheckButton", nil, f, "OptionsCheckButtonTemplate")
 	f.checkbox["Waitlist"] = checkbox
@@ -931,13 +932,13 @@ function RPB:CreateFrameHistoryViewer()
 	local font = f:CreateFontString("Whisper","OVERLAY","GameTooltipText")
 	font:SetText("Whisper:")
 	font:SetPoint("TOPRIGHT", checkbox, "TOPLEFT", 0, -8)
-	
+
 	local button = CreateFrame("Button", f:GetName() .. "_ButtonSave", f, "UIPanelButtonTemplate")
 	button:SetWidth(75)
 	button:SetHeight(21)
 	button:SetPoint("TOPRIGHT", f.checkbox["Waitlist"], "BOTTOMRIGHT", 0, 0)
 	button:SetText("Save")
-	button:SetScript("OnClick", 
+	button:SetScript("OnClick",
 		function(self)
 			RPB:HistoryViewerPopupSaveClick()
 		end
@@ -994,7 +995,7 @@ end
 
 function RPB:HistoryViewerPopupScrollFrameRefresh()
 	local f = self.frames["HistoryViewerPopup"]
-	for i, col in pairs(f.scrollFrame.cols) do 
+	for i, col in pairs(f.scrollFrame.cols) do
 		if i ~= cp.actiontime then -- clear out all other sort marks
 			f.scrollFrame.cols[i].sort = nil;
 		end
@@ -1024,7 +1025,7 @@ function RPB:HistoryViewerPopupSetup(raid, player)
 	if not found then f.dropdown["Spec"]:SetValue(3) end
 	f.label["Points"]:SetText("Points: "..history.points)
 	f.label["Lifetime"]:SetText("Lifetime: "..history.lifetime)
-	
+
 	f.historyList = {}
 	for actiontime,value in pairs(history.recenthistory) do
 		f.historyList[#f.historyList+1] = self:BuildRow(
@@ -1056,15 +1057,15 @@ function RPB:HistoryViewerPopupSetup(raid, player)
 			cpArg, HistoryViewerPopupScrollFrameColor
 		)
 	end
-	
+
 
 	f.scrollFrame:SetData(f.historyList)
 	f.title:SetText(player.fullname)
 	f:Show()
 	f:SetPoint("CENTER")
-	
+
 	local dt = date()
-	local tt = 
+	local tt =
 	{
 		year 	= tonumber("20"..string.sub(dt,7,8)),
 		month 	= tonumber(string.sub(dt,1,2)),
@@ -1074,26 +1075,26 @@ function RPB:HistoryViewerPopupSetup(raid, player)
 	f.dropdown["Hour"]:SetValue(0)
 	f.dropdown["Minute"]:SetValue(0)
 	f.dropdown["Second"]:SetValue(0)
-	
+
 	f.dropdown["Date"]:SetDisabled(true)
 	f.dropdown["Hour"]:SetDisabled(true)
 	f.dropdown["Minute"]:SetDisabled(true)
 	f.dropdown["Second"]:SetDisabled(true)
-	
+
 	f.editbox["Type"]:SetText("")
 	f.editbox["Value"]:SetText("")
 	f.editbox["Reason"]:SetText("")
 	f.checkbox["Waitlist"]:SetChecked(0)
 	--f.checkbox["Whisper"]:SetChecked(0)
-	
+
 	f.actionList = {}
 	self:HistoryViewerPopupScrollFrameRefresh()
 end
 
 function RPB:HistoryViewerPopupCommitChanges()
 	local f = self.frames["HistoryViewerPopup"]
-	
-	-- f.actionList[#f.actionList+1] = 
+
+	-- f.actionList[#f.actionList+1] =
 	-- {
 		-- at 			-- Time this action was processed.
 		-- actiontime 	-- Time this action was done in the past
@@ -1107,9 +1108,9 @@ function RPB:HistoryViewerPopupCommitChanges()
 		-- whiser		-- Wether or not this change should be whispered to the player
 		-- action		-- The action to be performed by the base data classes.
 	-- }
-	
+
 	local whisper = f.checkbox["Whisper"]:GetChecked()
-	
+
 	for k,v in ipairs(f.actionList) do
 		if v.action == "Insert" then
 			self:PointsAdd(f.raid, v.actiontime, v.datetime, f.player, v.value, v.ty, v.itemid, v.reason, v.waitlist, whisper)
@@ -1119,7 +1120,7 @@ function RPB:HistoryViewerPopupCommitChanges()
 			self:PointsRemove(f.raid, v.at, v.actiontime, v.datetime, f.player, whisper)
 		end
 	end
-	
+
 	f:Hide()
 end
 
@@ -1131,14 +1132,14 @@ end
 function RPB:HistoryViewerPopupAddClick()
 	local f = self.frames["HistoryViewerPopup"]
 	local dt = date()
-	local tt = 
+	local tt =
 	{
 		year 	= tonumber("20"..string.sub(dt,7,8)),
 		month 	= tonumber(string.sub(dt,1,2)),
 		day 	= tonumber(string.sub(dt,4,5)),
 	}
 	f.dropdown["Date"]:SetValue(time(tt))
-	local tt = 
+	local tt =
 	{
 		hour 	= tonumber(string.sub(dt,10,11)),
 		min 	= tonumber(string.sub(dt,13,14)),
@@ -1147,12 +1148,12 @@ function RPB:HistoryViewerPopupAddClick()
 	f.dropdown["Hour"]:SetValue(tt.hour)
 	f.dropdown["Minute"]:SetValue(tt.min)
 	f.dropdown["Second"]:SetValue(tt.sec)
-	
+
 	f.dropdown["Date"]:SetDisabled(false)
 	f.dropdown["Hour"]:SetDisabled(false)
 	f.dropdown["Minute"]:SetDisabled(false)
 	f.dropdown["Second"]:SetDisabled(false)
-	
+
 	f.editbox["Type"]:SetText("")
 	f.editbox["Value"]:SetText("")
 	f.editbox["Reason"]:SetText("")
@@ -1164,16 +1165,16 @@ end
 function RPB:HistoryViewerPopupEditClick()
 	local f = self.frames["HistoryViewerPopup"]
 	if not f.scrollFrame:GetSelection() then return end
-	
+
 	local dt = date(nil,f.scrollFrame:GetRow(f.scrollFrame:GetSelection()).cols[cp.datetime].value)
-	local tt = 
+	local tt =
 	{
 		year 	= tonumber("20"..string.sub(dt,7,8)),
 		month 	= tonumber(string.sub(dt,1,2)),
 		day 	= tonumber(string.sub(dt,4,5)),
 	}
 	f.dropdown["Date"]:SetValue(time(tt))
-	local tt = 
+	local tt =
 	{
 		hour 	= tonumber(string.sub(dt,10,11)),
 		min 	= tonumber(string.sub(dt,13,14)),
@@ -1182,12 +1183,12 @@ function RPB:HistoryViewerPopupEditClick()
 	f.dropdown["Hour"]:SetValue(tt.hour)
 	f.dropdown["Minute"]:SetValue(tt.min)
 	f.dropdown["Second"]:SetValue(tt.sec)
-	
+
 	f.dropdown["Date"]:SetDisabled(true)
 	f.dropdown["Hour"]:SetDisabled(true)
 	f.dropdown["Minute"]:SetDisabled(true)
 	f.dropdown["Second"]:SetDisabled(true)
-	
+
 	f.editbox["Type"]:SetText(f.scrollFrame:GetRow(f.scrollFrame:GetSelection()).cols[cp.ty].value)
 	f.editbox["Value"]:SetText(tonumber(f.scrollFrame:GetRow(f.scrollFrame:GetSelection()).cols[cp.value].value))
 	f.editbox["Reason"]:SetText(f.scrollFrame:GetRow(f.scrollFrame:GetSelection()).cols[cp.reason].value)
@@ -1216,13 +1217,13 @@ function RPB:HistoryViewerPopupRemoveClick()
 			break
 		end
 	end
-	
+
 	if found then RPB:HistoryViewerPopupScrollFrameRefresh() return end
 	local deletetime = time()
 	local action
 	local color = {r = 0.0, g = 1.0, b = 0.0, a = 1.0}
 	if f.scrollFrame:GetRow(f.scrollFrame:GetSelection()).cols[cp.action].value == "Insert" then
-		f.actionList[#f.actionList+1] = 
+		f.actionList[#f.actionList+1] =
 		{
 			at			= deletetime,
 			actiontime 	= deletetime,
@@ -1236,7 +1237,7 @@ function RPB:HistoryViewerPopupRemoveClick()
 		}
 		action = "Delete"
 	elseif f.scrollFrame:GetRow(f.scrollFrame:GetSelection()).cols[cp.action].value == "Delete" then
-		f.actionList[#f.actionList+1] = 
+		f.actionList[#f.actionList+1] =
 		{
 			at			= deletetime,
 			actiontime 	= deletetime,
@@ -1250,7 +1251,7 @@ function RPB:HistoryViewerPopupRemoveClick()
 		}
 		action = "Insert"
 	elseif f.scrollFrame:GetRow(f.scrollFrame:GetSelection()).cols[cp.action].value == "Update" then
-		f.actionList[#f.actionList+1] = 
+		f.actionList[#f.actionList+1] =
 		{
 			at			= deletetime,
 			actiontime 	= deletetime,
@@ -1287,9 +1288,9 @@ function RPB:HistoryViewerPopupSaveClick()
 	local savetime = time()
 	local action
 	local color = {r = 0.0, g = 1.0, b = 0.0, a = 1.0}
-	
+
 	local dt = date(nil, f.dropdown["Date"].value)
-	local timetable = 
+	local timetable =
 	{
 		year 	= tonumber("20"..string.sub(dt,7,8)),
 		month 	= tonumber(string.sub(dt,1,2)),
@@ -1298,14 +1299,14 @@ function RPB:HistoryViewerPopupSaveClick()
 		min 	= tonumber(f.dropdown["Minute"].value),
 		sec 	= tonumber(f.dropdown["Second"].value),
 	}
-	
+
 	f.dropdown["Date"]:SetDisabled(true)
 	f.dropdown["Hour"]:SetDisabled(true)
 	f.dropdown["Minute"]:SetDisabled(true)
 	f.dropdown["Second"]:SetDisabled(true)
-	
+
 	if f.action == "Add" then
-		f.actionList[#f.actionList+1] = 
+		f.actionList[#f.actionList+1] =
 		{
 			at 			= time(timetable),
 			actiontime 	= time(timetable),
@@ -1355,16 +1356,16 @@ function RPB:HistoryViewerPopupSaveClick()
 				break
 			end
 		end
-		
+
 		for i=1,#f.actionList do
 			if f.actionList[i].actiontime == f.scrollFrame:GetRow(f.scrollFrame:GetSelection()).cols[cp.actiontime].value then
 				tremove(f.historyList,f.actionList[i].historyList)
 				tremove(f.actionList,i)
 				break
 			end
-		end	
-		
-		f.actionList[#f.actionList+1] = 
+		end
+
+		f.actionList[#f.actionList+1] =
 		{
 			at 			= savetime,
 			actiontime 	= savetime,

@@ -4,8 +4,8 @@
 	*******************
 	* File-Revision: @file-revision@
 	* Project-Version: @project-version@
-	* Last edited by: @file-author@ on @file-date-iso@ 
-	* Last commit by: @project-author@ on @project-date-iso@ 
+	* Last edited by: @file-author@ on @file-date-iso@
+	* Last commit by: @project-author@ on @project-date-iso@
 	* Filename: RPBotSettings/BotSettings.lua
 	* Component: Core
 	* Details:
@@ -22,13 +22,13 @@ function RPBS:OnInitialize()
 	-- Leverage SVN
 	--@alpha@
 	db = LibStub("AceDB-3.0"):New("rpDEBUGBotSettingsDB")
-	--@end-alpha@. 
+	--@end-alpha@.
 	--[===[@non-alpha@
 	db = LibStub("AceDB-3.0"):New("rpBotSettingsDB", defaults, "Default")
 	--@end-non-alpha@]===]
 	self.db = db
 	if not db.realm.settings then
-		db.realm.settings = 
+		db.realm.settings =
 		{
 			mode 			= "WEB",
 			broadcast 		= "AUTO",
@@ -57,10 +57,10 @@ end
 function RPBS:OnEnable()
 	self.options = self:RegisterPortfolio()
 	self.options:refresh()
-	
+
 	--SetGuildRosterShowOffline(true)
 	--self:Send("syncrequest", "to me")
 	--enablecomm = false
 	--AceComm:RegisterComm("wlupdate")
-	
+
 end

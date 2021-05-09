@@ -4,8 +4,8 @@
 	*******************
 	* File-Revision: @file-revision@
 	* Project-Version: @project-version@
-	* Last edited by: @file-author@ on @file-date-iso@ 
-	* Last commit: @project-author@ on @project-date-iso@ 
+	* Last edited by: @file-author@ on @file-date-iso@
+	* Last commit: @project-author@ on @project-date-iso@
 	* Filename: RPBot/ClientWindow.lua
 	* Component: Client
 	* Details:
@@ -36,12 +36,12 @@ function RPB:CreateFrameClientWindow()
 	-- Frame Textures, Drag Header, Close Button, Title
 	do
 		self:Skin(f);
-	   
+
 	   local button = CreateFrame("Button", f:GetName() .. "_CloseButton", f, "UIPanelCloseButton")
 	   button:SetPoint("TOPRIGHT", f, "TOPRIGHT", 5, 4)
 	   button:Show()
 	   f.CloseButton = button
-	   
+
 	   local drag = CreateFrame("Button", f:GetName() .. "_DragHeader", f)
 	   drag:SetHeight(24)
 	   drag:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
@@ -61,7 +61,7 @@ function RPB:CreateFrameClientWindow()
 		  end
 	   )
 	   self.dragheader = drag
-	   
+
 	   local title = f:CreateFontString("Title", "ARTWORK", "GameFontNormal")
 	   title:SetPoint("TOP", f, "TOP", 0, -6)
 	   title:SetText("Raid Points - Roll Window")
@@ -77,61 +77,61 @@ function RPB:CreateFrameClientWindow()
 	do
 		f.button={}
 		-- These buttons are given from "rules"
-		
+
 		-- local button = CreateFrame("Button", f:GetName() .. "_ButtonBonus", f, "UIPanelButtonTemplate")
 		-- button:SetWidth(90)
 		-- button:SetHeight(21)
 		-- button:SetPoint("TOPLEFT", f, "TOPLEFT", 10, -60)
 		-- button:SetText("Bonus")
-		-- button:SetScript("OnClick", 
+		-- button:SetScript("OnClick",
 			-- function(self)
 				-- RPB:StartBidding()
 			-- end
 		-- )
 		-- self.button["Bonus"] = button
-		
+
 		-- local button = CreateFrame("Button", f:GetName() .. "_ButtonUpgrade", f, "UIPanelButtonTemplate")
 		-- button:SetWidth(90)
 		-- button:SetHeight(21)
 		-- button:SetPoint("TOPLEFT", f, "TOPLEFT", 10, -30)
 		-- button:SetText("Upgrade")
-		-- button:SetScript("OnClick", 
+		-- button:SetScript("OnClick",
 			-- function(self)
 				-- RPB:StopBidding()
 			-- end
 		-- )
 		-- self.button["Upgrade"] = button
-		
+
 		-- local button = CreateFrame("Button", f:GetName() .. "_ButtonSidegrade", f, "UIPanelButtonTemplate")
 		-- button:SetWidth(90)
 		-- button:SetHeight(21)
 		-- button:SetPoint("TOPLEFT", f, "TOPLEFT", 10, 0)
 		-- button:SetText("Sidegrade")
-		-- button:SetScript("OnClick", 
+		-- button:SetScript("OnClick",
 			-- function(self)
 				-- RPB:StartTimedBidding()
 			-- end
 		-- )
 		-- self.button["Sidegrade"] = button
-		
+
 		-- local button = CreateFrame("Button", f:GetName() .. "_ButtonPass", f, "UIPanelButtonTemplate")
 		-- button:SetWidth(90)
 		-- button:SetHeight(21)
 		-- button:SetPoint("TOPLEFT", f, "TOPLEFT", 10, 30)
 		-- button:SetText("Pass")
-		-- button:SetScript("OnClick", 
+		-- button:SetScript("OnClick",
 			-- function(self)
 				-- RPB:AwardItem()
 			-- end
 		-- )
 		-- self.button["Pass"] = button
-		
+
 		-- local button = CreateFrame("Button", f:GetName() .. "_ButtonOffspec", f, "UIPanelButtonTemplate")
 		-- button:SetWidth(90)
 		-- button:SetHeight(21)
 		-- button:SetPoint("TOPLEFT", f, "TOPLEFT", 10, 60)
 		-- button:SetText("Offspec")
-		-- button:SetScript("OnClick", 
+		-- button:SetScript("OnClick",
 			-- function(self)
 				-- RPB:RemoveItem()
 			-- end
@@ -142,7 +142,7 @@ function RPB:CreateFrameClientWindow()
 	-- Create Loot Frames
 	do
 		f.item = {}
-		for i=1, 1 do 
+		for i=1, 1 do
 			f.item[i] = self:CreateLootFrame(self, i)
 		end
 	end
